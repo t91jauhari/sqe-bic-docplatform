@@ -1,0 +1,41 @@
+name: sqe-refactor-operational
+
+x-runtime: &runtime
+  image: ${REFACTOR_BACKEND_IMAGE:-sqe-refactor-api:step42}
+  environment: &environment
+    APP_ENV: development
+    APP_SECRET: ${PREVIEW_APP_SECRET:?Supply the existing preview encryption secret}
+    DATABASE_URL: sqlite:////data/preview.db
+    STORAGE_DRIVER: local
+    STORAGE_PATH: /data/files
+    WORKFLOW_DRIVER: local
+    DATASET_READ_MODE: registry
+    WORKER_CONCURRENCY: "2"
+    ALLOWED_ORIGINS: http://localhost:3100,http://127.0.0.1:3100
+  volumes:
+    - preview-state:/data
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+
+services:
+  api:
+    <<: *runtime
+    ports:
+      - 127.0.0.1:8100:8000
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+  worker:
+    <<: *runtime
+    profiles: [processing]
+    command: [python, -m, app.worker]
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  preview-state:

@@ -1,5 +1,5 @@
 {
-  "source_commit": "b3116354fccedb0cc7885c92055c32ae28716e9d",
+  "source_commit": "e4a83e469511023a193980f4ab52fc69cd442258",
   "history_included": false,
   "customer_samples_included": false,
   "files": {
@@ -823,6 +823,10 @@
       "sha256": "3bc06453c54d4d3f3704857406fc5175cbab48f8ca844c53ea51f45f5b1e54d4",
       "bytes": 2060
     },
+    "compose.preview.yaml": {
+      "sha256": "3a65d36a7264bbd983a6d5b8601a52d898a601ad9e87b243d4d0a68cf81d69bc",
+      "bytes": 1077
+    },
     "compose.production.yaml": {
       "sha256": "8aa7fd40b8de9d86373ae45e6b6fa4b0c0583370415e79f113cace0854da9895",
       "bytes": 2139
@@ -834,6 +838,10 @@
     "docker/minio/Dockerfile": {
       "sha256": "a27ee5f587d4db9be5ed3e40c8b84c0aed7aef710ad19f8d7a6a41d4c6b858a2",
       "bytes": 449
+    },
+    "docs/refactor/OPERATIONAL_PREVIEW.md": {
+      "sha256": "bbe28178885d6660cca4b2414f835c035a0a8aeb99dc46b62dde4a362b4ff589",
+      "bytes": 2839
     },
     "docs/refactor/ROLLOUT.md": {
       "sha256": "33aa8f4fcf230150595cd3c166b75b35bbe40c86212db449ab7290b7e39b72cb",
@@ -1404,8 +1412,8 @@
       "bytes": 124
     },
     "scripts/export_public_source.py": {
-      "sha256": "d8b4d56a34ea8b076f7b8fed791400eac287926d74fe5618c474533354bd32c5",
-      "bytes": 9446
+      "sha256": "51850a26ce2146af78c889b9a9479d14b9c3439f2b0516da27e3833c48f02a35",
+      "bytes": 9510
     },
     "scripts/init_dev.py": {
       "sha256": "845af00ab9b0fc3bdcfeccc6104785fafd45500d4a9c800bda4377cf9c45e77b",
