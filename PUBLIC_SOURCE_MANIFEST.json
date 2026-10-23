@@ -1,5 +1,5 @@
 {
-  "source_commit": "e4a83e469511023a193980f4ab52fc69cd442258",
+  "source_commit": "3a90a46aa3fe9a6925a855f08442990ba5ac68c0",
   "history_included": false,
   "customer_samples_included": false,
   "files": {
@@ -596,8 +596,8 @@
       "bytes": 2518
     },
     "backend/app/field_evidence.py": {
-      "sha256": "8e25c3bfb2f073742f49c74edae25da408900dd6877a98337b465bd6d72fcc52",
-      "bytes": 10767
+      "sha256": "7c00692a0bed3c1f5f1e510799224e8ac15d19c40552de4b86980d9b043f28cb",
+      "bytes": 11331
     },
     "backend/app/field_reprocessing.py": {
       "sha256": "a959416b7017f90e035f029d9993a16922524246779f3af304ee514e67203ad8",
@@ -704,8 +704,8 @@
       "bytes": 1387
     },
     "backend/app/settings.py": {
-      "sha256": "62ec5d5dbc9538ce41c2b1860e82140d8809b846e2e3a5ade7a27a59de133253",
-      "bytes": 3579
+      "sha256": "0085a13d5974d3f4db6c5e467ca0751a315f327b4da5c0c09cf8dbe708b86d00",
+      "bytes": 3760
     },
     "backend/app/sop.py": {
       "sha256": "2bf98636c876198e17b207b58a4bf6a85f051206671da39caf654d69cd603bc6",
@@ -756,8 +756,8 @@
       "bytes": 5099
     },
     "backend/app/worker.py": {
-      "sha256": "0857d9a226e58fb6f118e8d5733d85212d773d768c1447c8fe2e1ee0789ba292",
-      "bytes": 9570
+      "sha256": "26c66a6b75f7f4c5bef571e9e1cf026c796bab9f3b73d407331ef634a859e5bf",
+      "bytes": 9623
     },
     "backend/app/worker_capacity.py": {
       "sha256": "aac8dd8de1abe8dcf37548ff6de01fa42799126ae0dd38390b8ac7c6b8b1199b",
@@ -812,8 +812,8 @@
       "bytes": 7421
     },
     "backend/tests/test_infrastructure_settings.py": {
-      "sha256": "dfdee410e2ebfea8c7c546c07b80f08e391aef0e2bc91ac5f65f74739ee0fa85",
-      "bytes": 1082
+      "sha256": "0bc6c64722ca2fe99c4d246b02702b8b07860d58aacef199cd211f2b733e842c",
+      "bytes": 1843
     },
     "backend/tests/test_report_bindings.py": {
       "sha256": "65681a7da472c57b581ccde3e6b18b5633b2046e935b486c56a08754daf49716",
@@ -824,12 +824,12 @@
       "bytes": 2060
     },
     "compose.preview.yaml": {
-      "sha256": "3a65d36a7264bbd983a6d5b8601a52d898a601ad9e87b243d4d0a68cf81d69bc",
-      "bytes": 1077
+      "sha256": "9d92185d1fb4cd7c334c9bf11282d202c857ce71a2ca18c3acf65b6820e71da1",
+      "bytes": 1880
     },
     "compose.production.yaml": {
-      "sha256": "8aa7fd40b8de9d86373ae45e6b6fa4b0c0583370415e79f113cace0854da9895",
-      "bytes": 2139
+      "sha256": "abc02fc8f70ba2ee866328b79b8be66e28829034d9083901b087b6f4d008846b",
+      "bytes": 2194
     },
     "compose.yaml": {
       "sha256": "d9f559ba707c84939b112b2a9b5ca0b74e94926ecd5ee75c87d0344b96e4f5df",
@@ -840,8 +840,8 @@
       "bytes": 449
     },
     "docs/refactor/OPERATIONAL_PREVIEW.md": {
-      "sha256": "bbe28178885d6660cca4b2414f835c035a0a8aeb99dc46b62dde4a362b4ff589",
-      "bytes": 2839
+      "sha256": "d68566bbf82d97b13bfc5f879e1dc439b642aed09e7c062e48a288dd868a588e",
+      "bytes": 4079
     },
     "docs/refactor/ROLLOUT.md": {
       "sha256": "33aa8f4fcf230150595cd3c166b75b35bbe40c86212db449ab7290b7e39b72cb",

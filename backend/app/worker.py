@@ -151,7 +151,9 @@ async def dispatch(client):
 
 
 async def temporal_main():
-    client = await Client.connect(settings.temporal)
+    client = await Client.connect(
+        settings.temporal, namespace=settings.temporal_namespace
+    )
     with ThreadPoolExecutor(max_workers=settings.concurrency) as executor:
         worker = Worker(
             client,

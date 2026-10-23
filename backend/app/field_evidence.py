@@ -14,6 +14,8 @@ def populated_fields(value, path="", include_empty=False):
         for key, child in value.items():
             if key.startswith("_") or key == "page_results":
                 continue
+            if key == "complete" and set(value) == {"raw", "complete"}:
+                continue  # Completeness describes the value, not another source field.
             yield from populated_fields(
                 child, f"{path}.{key}" if path else key, include_empty
             )
@@ -141,7 +143,13 @@ def build_field_evidence(doc, response):
         entries = dict(populated_fields(raw))
         for path in metadata.get("spatial_evidence", {}):
             value = at_path(raw, path)
-            if isinstance(value, (dict,list)):
+            if isinstance(value, dict) and set(value) == {"raw", "complete"}:
+                # Providers can locate the wrapper instead of its raw leaf.
+                # Use that location once, while retaining the business value.
+                if value["raw"] is not None and value["raw"] != "":
+                    entries.pop(f"{path}.raw", None)
+                    entries[path] = value["raw"]
+            elif isinstance(value, (dict,list)):
                 entries[path] = value
         allowed = dict(populated_fields(raw, include_empty=True))
         entries.update({field: allowed[field] for field in manual if field in allowed})

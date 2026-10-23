@@ -13,6 +13,7 @@ x-runtime: &runtime
     MINIO_SECURE: "true"
     WORKFLOW_DRIVER: temporal
     TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:?Set the Temporal service address}
+    TEMPORAL_NAMESPACE: ${TEMPORAL_NAMESPACE:-default}
     TEMPORAL_TASK_QUEUE: ${TEMPORAL_TASK_QUEUE:?Set a deployment-specific task queue}
     WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-4}
     ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?Set the HTTPS application origin}

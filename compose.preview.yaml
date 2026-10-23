@@ -6,14 +6,24 @@ x-runtime: &runtime
     APP_ENV: development
     APP_SECRET: ${PREVIEW_APP_SECRET:?Supply the existing preview encryption secret}
     DATABASE_URL: sqlite:////data/preview.db
-    STORAGE_DRIVER: local
+    STORAGE_DRIVER: minio
     STORAGE_PATH: /data/files
-    WORKFLOW_DRIVER: local
+    MINIO_ENDPOINT: ${PREVIEW_MINIO_ENDPOINT:?Set the shared MinIO endpoint}
+    MINIO_ACCESS_KEY: ${PREVIEW_MINIO_ACCESS_KEY:?Set the isolated preview access key}
+    MINIO_SECRET_KEY: ${PREVIEW_MINIO_SECRET_KEY:?Set the isolated preview secret key}
+    MINIO_BUCKET: ${PREVIEW_MINIO_BUCKET:?Set the isolated preview bucket}
+    MINIO_SECURE: "false"
+    WORKFLOW_DRIVER: temporal
+    TEMPORAL_ADDRESS: ${PREVIEW_TEMPORAL_ADDRESS:?Set the shared Temporal address}
+    TEMPORAL_NAMESPACE: ${PREVIEW_TEMPORAL_NAMESPACE:?Set the isolated namespace}
+    TEMPORAL_TASK_QUEUE: ${PREVIEW_TEMPORAL_TASK_QUEUE:?Set the isolated task queue}
     DATASET_READ_MODE: registry
     WORKER_CONCURRENCY: "2"
     ALLOWED_ORIGINS: http://localhost:3100,http://127.0.0.1:3100
   volumes:
     - preview-state:/data
+  networks:
+    - shared-infrastructure
   restart: unless-stopped
   security_opt:
     - no-new-privileges:true
@@ -33,9 +43,15 @@ services:
     <<: *runtime
     profiles: [processing]
     command: [python, -m, app.worker]
+    stop_grace_period: 120s
     depends_on:
       api:
         condition: service_healthy
 
 volumes:
   preview-state:
+
+networks:
+  shared-infrastructure:
+    external: true
+    name: ${SHARED_INFRA_NETWORK:?Set the existing infrastructure network}

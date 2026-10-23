@@ -35,6 +35,7 @@ class Settings:
         ).split(",")
     )
     temporal: str = os.getenv("TEMPORAL_ADDRESS", "localhost:7233")
+    temporal_namespace: str = os.getenv("TEMPORAL_NAMESPACE", "default")
     task_queue: str = os.getenv("TEMPORAL_TASK_QUEUE", "sqe-documents")
     workflow_driver: str = os.getenv("WORKFLOW_DRIVER", "temporal")
     concurrency: int = int(os.getenv("WORKER_CONCURRENCY", "50"))
@@ -77,3 +78,5 @@ if settings.environment != "development" and (
 
 if not 1 <= settings.concurrency <= 50:
     raise RuntimeError("WORKER_CONCURRENCY must be between 1 and 50.")
+if not settings.temporal_namespace.strip():
+    raise RuntimeError("TEMPORAL_NAMESPACE must not be empty.")
