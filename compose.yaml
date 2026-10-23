@@ -1,4 +1,9 @@
 name: sqe-document-platform
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
 x-backend: &backend
   build:
     context: .
@@ -14,6 +19,7 @@ x-backend: &backend
     MINIO_SECURE: "false"
     WORKFLOW_DRIVER: temporal
     TEMPORAL_ADDRESS: temporal:7233
+  logging: *logging
   restart: unless-stopped
 services:
   minio:
@@ -34,6 +40,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 30
+    logging: *logging
     restart: unless-stopped
   postgres:
     image: postgres:17.6
@@ -48,6 +55,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+    logging: *logging
     restart: unless-stopped
   temporal:
     build:
@@ -63,6 +71,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 30
+    logging: *logging
     restart: unless-stopped
   api:
     <<: *backend
@@ -95,6 +104,7 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    logging: *logging
     restart: unless-stopped
 volumes:
   postgres:

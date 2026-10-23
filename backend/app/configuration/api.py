@@ -1,6 +1,7 @@
 """Configuration HTTP boundary; application services own publication and replay."""
 
 from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
 
@@ -21,8 +22,8 @@ def configuration(user=Depends(current_user)):
     from app.schema_descriptions import with_schemas
 
     with SessionLocal() as db:
-        cfg = latest_config(db, user.org)
-        return {
+        cfg = latest_config(db, user.org, copy_payload=False)
+        return JSONResponse({
             "id": cfg.id,
             "version": cfg.version,
             "payload": with_schemas(
@@ -33,7 +34,7 @@ def configuration(user=Depends(current_user)):
                 },
             ),
             "can_edit": user.role == "bank_admin",
-        }
+        })
 
 
 class ConfigInput(BaseModel):
@@ -89,7 +90,7 @@ def configuration_catalog(case_id: str | None = None, user=Depends(current_user)
     with SessionLocal() as db:
         case = authorized(db, Case, case_id, user) if case_id else None
         config = (
-            get_revision(db, case.config_id) if case else latest_config(db, user.org)
+            get_revision(db, case.config_id, copy_payload=False) if case else latest_config(db, user.org, copy_payload=False)
         )
         family = (
             config.payload["templates"][case.template].get("document_family", "forex")

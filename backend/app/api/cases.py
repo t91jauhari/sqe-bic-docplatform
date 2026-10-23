@@ -1,9 +1,13 @@
 """Cases HTTP boundary."""
 
 from app.application import cases as use_cases
+from app.application import case_configuration as configuration_use_cases
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from fastapi import Depends
 from app.security import current_user
+from app.security import require_roles
+from app.contracts import CaseConfigurationInput
 from app.api.dependencies import REVIEW, WRITE
 from app.api.contracts import (
     ContextInput,
@@ -13,6 +17,12 @@ from app.api.contracts import (
 )
 
 router = APIRouter(tags=["cases"])
+
+
+@router.post("/api/cases/{case_id}/configuration", status_code=202)
+def adopt_case_configuration(case_id: str, data: CaseConfigurationInput,
+                            user=Depends(require_roles("bank_admin", "branch_admin"))):
+    return configuration_use_cases.adopt_configuration(case_id=case_id, data=data, user=user)
 
 
 @router.get("/api/cases")
@@ -36,7 +46,7 @@ def cases(
 
 @router.get("/api/cases/{case_id}")
 def case_detail(case_id: str, user=Depends(current_user)):
-    return use_cases.case_detail(case_id=case_id, user=user)
+    return JSONResponse(use_cases.case_detail(case_id=case_id, user=user))
 
 
 @router.put("/api/cases/{case_id}/context")

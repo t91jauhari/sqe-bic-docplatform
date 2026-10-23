@@ -51,6 +51,12 @@ class ContextInput(BaseModel):
     evidence: str = Field(min_length=5, max_length=1000)
 
 
+class CaseConfigurationInput(BaseModel):
+    expected_version: int = Field(ge=1)
+    target_version: int = Field(ge=1)
+    reason: str = Field(min_length=10, max_length=1000)
+
+
 class FindingReview(BaseModel):
     report_id: str | None = None
     rule_id: str

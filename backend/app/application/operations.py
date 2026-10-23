@@ -9,7 +9,7 @@ from app.db import Case, CaseTask, CaseRun, Document, Inbox, Job, SessionLocal
 from app.configuration.revisions import latest_config
 from app.access import scoped
 from app.settings import settings
-from app.projections import case_view
+from app.projections import case_views
 
 
 def operations_metrics(*, user):
@@ -79,7 +79,7 @@ def dashboard(*, user):
             .order_by(Case.updated_at.desc())
             .limit(8)
         ).all()
-        cfg = latest_config(db, user.org)
+        cfg = latest_config(db, user.org, copy_payload=False)
         return {
             "cases": len(case_states),
             "documents": document_count,
@@ -96,5 +96,5 @@ def dashboard(*, user):
             "provider": cfg.payload["provider"],
             "workflow_driver": settings.workflow_driver,
             "config_version": cfg.version,
-            "recent": [case_view(c, db) for c in recent],
+            "recent": case_views(recent, db),
         }

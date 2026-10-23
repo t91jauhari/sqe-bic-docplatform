@@ -31,7 +31,56 @@ from app.contracts import (
     FindingReview,
     TaskAssignment,
 )
-from app.projections import case_view, doc_view
+from collections import OrderedDict
+from app.projections import case_view, case_views, doc_view
+
+_REPORT_DETAIL_KEYS = (
+    "findings",
+    "missing",
+    "validation_status",
+    "provider",
+    "customer",
+    "config_version",
+    "scores",
+    "sop_summary",
+    "sop_packages",
+    "technical_findings",
+)
+_MAX_CASE_REPORT_CACHE = 512
+
+
+def _case_report_snapshots(db, report_meta):
+    if not report_meta:
+        return {}
+    clean = not (db.new or db.dirty or db.deleted)
+    bind = db.get_bind()
+    cache = getattr(bind, "_sqe_case_report_cache", None) if clean else None
+    if clean and cache is None:
+        cache = OrderedDict()
+        setattr(bind, "_sqe_case_report_cache", cache)
+    result = {}
+    missing_ids = []
+    for r_id, _, _, _, _, fp in report_meta:
+        key = (r_id, fp)
+        if cache is not None and key in cache:
+            cache.move_to_end(key)
+            result[r_id] = cache[key]
+        else:
+            missing_ids.append(r_id)
+    if missing_ids:
+        for r_id, fp, snap in db.execute(
+            select(Report.id, Report.fingerprint, Report.snapshot).where(
+                Report.id.in_(missing_ids)
+            )
+        ):
+            projected = {k: snap.get(k) for k in _REPORT_DETAIL_KEYS}
+            result[r_id] = projected
+            if cache is not None:
+                cache[(r_id, fp)] = projected
+                cache.move_to_end((r_id, fp))
+                while len(cache) > _MAX_CASE_REPORT_CACHE:
+                    cache.popitem(last=False)
+    return result
 
 
 def cases(*, q: str, status: str, transaction_flow: str, offset: int, limit: int, user):
@@ -48,14 +97,12 @@ def cases(*, q: str, status: str, transaction_flow: str, offset: int, limit: int
         if status:
             query = query.where(Case.status == status)
         count = db.scalar(select(func.count()).select_from(query.subquery()))
+        rows = db.scalars(
+            query.order_by(Case.updated_at.desc()).offset(offset).limit(limit)
+        ).all()
         return {
             "total": count,
-            "items": [
-                case_view(c, db)
-                for c in db.scalars(
-                    query.order_by(Case.updated_at.desc()).offset(offset).limit(limit)
-                )
-            ],
+            "items": case_views(rows, db),
         }
 
 
@@ -67,68 +114,72 @@ def case_detail(*, case_id: str, user):
             .where(Document.case_id == c.id)
             .order_by(Document.created_at)
         ).all()
-        reports = db.scalars(
-            select(Report).where(Report.case_id == c.id).order_by(Report.version.desc())
+        report_meta = db.execute(
+            select(
+                Report.id,
+                Report.version,
+                Report.state,
+                Report.created_at,
+                Report.approved_by,
+                Report.fingerprint,
+            )
+            .where(Report.case_id == c.id)
+            .order_by(Report.version.desc())
+            .limit(1)
         ).all()
+        report_snapshots = _case_report_snapshots(db, report_meta)
         events = db.scalars(
             select(Audit)
             .where(Audit.case_id == c.id)
             .order_by(Audit.created_at.desc())
             .limit(100)
         ).all()
+        ctx_payload = db.scalar(
+            select(CaseContext.payload).where(CaseContext.case_id == c.id)
+        )
+        run_rows = db.execute(
+            select(
+                CaseRun.id,
+                CaseRun.status,
+                CaseRun.stage,
+                CaseRun.error,
+                CaseRun.fingerprint,
+                CaseRun.created_at,
+            )
+            .where(CaseRun.case_id == c.id)
+            .order_by(CaseRun.created_at.desc())
+            .limit(10)
+        ).all()
+        rev = get_revision(db, c.config_id, copy_payload=False)
+        doc_rows = [(d.doc_type, d.status) for d in docs]
         return {
-            **case_view(c, db),
+            **case_view(c, db, doc_rows=doc_rows, rev=rev),
             "context_suggestions": __import__(
                 "app.case_context", fromlist=["suggestions"]
             ).suggestions(docs),
-            "case_context": (
-                db.scalar(
-                    select(CaseContext).where(CaseContext.case_id == c.id)
-                ).payload
-                if db.scalar(select(CaseContext).where(CaseContext.case_id == c.id))
-                else {}
-            ),
+            "case_context": ctx_payload if ctx_payload is not None else {},
             "sop_runs": [
                 {
-                    "id": run.id,
-                    "status": run.status,
-                    "stage": run.stage,
-                    "error": run.error,
-                    "snapshot_hash": run.fingerprint,
-                    "created_at": run.created_at,
+                    "id": r_id,
+                    "status": r_status,
+                    "stage": r_stage,
+                    "error": r_error,
+                    "snapshot_hash": r_fp,
+                    "created_at": r_created_at,
                 }
-                for run in db.scalars(
-                    select(CaseRun)
-                    .where(CaseRun.case_id == c.id)
-                    .order_by(CaseRun.created_at.desc())
-                    .limit(10)
-                )
+                for r_id, r_status, r_stage, r_error, r_fp, r_created_at in run_rows
             ],
             "documents": [doc_view(d) for d in docs],
             "reports": [
                 {
-                    "id": r.id,
-                    "version": r.version,
-                    "state": r.state,
-                    "created_at": r.created_at,
-                    "approved_by": r.approved_by,
-                    "snapshot": {
-                        key: r.snapshot.get(key)
-                        for key in [
-                            "findings",
-                            "missing",
-                            "validation_status",
-                            "provider",
-                            "customer",
-                            "config_version",
-                            "scores",
-                            "sop_summary",
-                            "sop_packages",
-                            "technical_findings",
-                        ]
-                    },
+                    "id": r_id,
+                    "version": r_version,
+                    "state": r_state,
+                    "created_at": r_created_at,
+                    "approved_by": r_approved_by,
+                    "snapshot": report_snapshots[r_id],
                 }
-                for r in reports
+                for r_id, r_version, r_state, r_created_at, r_approved_by, _ in report_meta
             ],
             "timeline": [
                 {
@@ -142,7 +193,8 @@ def case_detail(*, case_id: str, user):
             ],
             "can_write": user.role not in {"auditor"},
             "can_review": user.role in {"bank_admin", "branch_admin", "reviewer"},
-            "maker_checker": get_revision(db, c.config_id).payload["maker_checker"],
+            "can_adopt_configuration": user.role in {"bank_admin", "branch_admin"},
+            "maker_checker": rev.payload["maker_checker"],
         }
 
 

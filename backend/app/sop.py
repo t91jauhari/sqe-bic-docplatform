@@ -503,34 +503,33 @@ def evaluate(documents, cfg, context):
                     ):
                         valid = True
                 elif op == "all_pages_marked" and isinstance(actual, dict):
+                    from page_policy import required_initial_pages, initial_page_records
                     pages = actual.get("pages", [])
                     count = actual.get("page_count")
+                    page_policy = cfg["profiles"].get(left_type, {}).get("policy", {})
                     required_count = (
                         cfg["profiles"]
                         .get(left_type, {})
                         .get("policy", {})
                         .get("expected_pages")
                     )
-                    if required_count and count is not None and count != required_count:
+                    if required_count and not page_policy.get("exclude_final_page", False) and count is not None and count != required_count:
                         valid = False
                     if (
                         valid is not False
                         and count
-                        and len(pages) == count
-                        and {p.get("page_number") for p in pages}
-                        == set(range(1, int(count) + 1))
+                        and isinstance(pages, list)
                     ):
-                        required_pages = (
-                            cfg["profiles"]
-                            .get(left_type, {})
-                            .get("policy", {})
-                            .get(
-                                "required_initial_pages", list(range(1, int(count) + 1))
-                            )
+                        required_pages = required_initial_pages(
+                            count,
+                            exclude_final_page=page_policy.get("exclude_final_page", False),
+                            explicit_pages=page_policy.get("required_initial_pages"),
                         )
-                        pages = [
-                            p for p in pages if p.get("page_number") in required_pages
-                        ]
+                        if not required_pages:
+                            result = "NOT_APPLICABLE"
+                        pages = initial_page_records(count, pages,
+                            exclude_final_page=page_policy.get("exclude_final_page", False),
+                            explicit_pages=page_policy.get("required_initial_pages"))
                         marks = [
                             p.get(k)
                             for p in pages
@@ -538,7 +537,7 @@ def evaluate(documents, cfg, context):
                         ]
                         if any(v is False for v in marks):
                             valid = False
-                        elif all(v is True for v in marks) and all(
+                        elif required_pages and all(v is True for v in marks) and all(
                             p.get("evidence") for p in pages
                         ):
                             valid = True

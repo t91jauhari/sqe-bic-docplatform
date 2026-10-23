@@ -77,3 +77,33 @@ def test_comparison_uses_case_pin_after_new_family_policy_is_published(signed, m
     assert signed.get(f'/api/cases/{before}/comparison').json() == {'enabled': True}
     assert signed.get(f'/api/cases/{after}/comparison').json() == {'enabled': False}
     assert signed.get('/api/config/catalog').json()['dataset_comparison_policy']['enabled'] is True
+
+
+def test_blank_presence_reference_means_absent_without_changing_text_blanks():
+    from app.dataset_comparison import canonical
+    for value in (None, '', '[BLANK]'):
+        assert canonical(value, 'presence') is False
+        assert canonical(value, 'initials') is False
+        assert canonical(value, 'text') is None
+    assert canonical(True, 'presence') is True
+
+
+def test_issuance_projection_accepts_raw_and_normalized_components():
+    from types import SimpleNamespace
+    from app.dataset_comparison import canonical, project
+    for value in (
+        {'place': 'QA CITY', 'date': '23-10-2026'},
+        {'raw': 'QA CITY\n23-10-2026', 'place_raw': 'QA CITY', 'date_raw': '23-10-2026'},
+        {'raw': 'QA CITY, 23-10-2026', 'complete': True},
+    ):
+        projected=project(SimpleNamespace(normalized={'issuance':value}), 'issuance', 'text')
+        assert canonical(projected, 'text', 'issuance') == canonical('QA CITY, 23-10-2026','text','issuance')
+
+
+def test_month_only_dates_keep_precision_without_inventing_a_day():
+    from app.dataset_comparison import canonical
+    assert canonical('Februari 2025','date') == canonical('February 2025','date') == ('month','2025-02')
+    assert canonical('Sep 2025','date') == ('month','2025-09')
+    assert canonical('01-09-2025','date') != canonical('September 2025','date')
+    for invalid in ('unknown 2025','Februari 0000'):
+        with pytest.raises(ValueError):canonical(invalid,'date')

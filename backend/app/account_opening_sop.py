@@ -323,6 +323,16 @@ def evaluate_rule(rule, documents, cfg, context):
             field = rule["path"].split(".")[1]
             report = left[0].get("validation", {}).get("fields", {}).get(field, {})
             result = report.get("status", "REVIEW")
+            if isinstance(actual, dict) and {"page_count", "pages"} <= set(actual):
+                from .configuration.sop_policies import VisualPolicy, evaluate_policy
+                page_policy = cfg["profiles"][rule["path"].split(".")[0]].get("policy", {})
+                excluded = page_policy.get("exclude_final_page", False)
+                result, reason = evaluate_policy(VisualPolicy(
+                    type="visual", check="all_pages", left=rule["path"], right=rule["path"],
+                    expected_pages=None if excluded else page_policy.get("expected_pages"),
+                    exclude_final_page=excluded,
+                ), documents)
+                message += " " + reason.replace("_", " ").lower()
             if result not in {"PASS", "FAIL", "REVIEW", "NOT_APPLICABLE"}:
                 result = "REVIEW"
             if actual in (None, "") and result == "PASS":

@@ -1,4 +1,5 @@
 "use client";
+import {CaseConfiguration} from "@/components/case-configuration";
 import { FieldReprocess } from "@/components/field-reprocess";
 import { FieldRequestRecovery } from "@/components/field-request-recovery";
 import { BatchGroupingRepair } from "@/components/batch-grouping-repair";
@@ -222,6 +223,7 @@ export default function CasePage({
                 {data.documents.some(
                   (d) => d.doc_type === "ektp" && d.status === "COMPLETED",
                 ) && <EnumRevalidation caseId={id} refresh={refresh} />}
+                {data.can_adopt_configuration && <CaseConfiguration caseId={id} currentVersion={data.config_version} refresh={refresh} />}
               </details>
             )}
             <div className="case-banner">

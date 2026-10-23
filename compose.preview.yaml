@@ -29,7 +29,7 @@ x-runtime: &runtime
     - no-new-privileges:true
 
 services:
-  api:
+  preview-api:
     <<: *runtime
     ports:
       - 127.0.0.1:8100:8000
@@ -39,13 +39,13 @@ services:
       timeout: 5s
       retries: 6
       start_period: 10s
-  worker:
+  preview-worker:
     <<: *runtime
     profiles: [processing]
     command: [python, -m, app.worker]
     stop_grace_period: 120s
     depends_on:
-      api:
+      preview-api:
         condition: service_healthy
 
 volumes:

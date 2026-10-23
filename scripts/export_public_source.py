@@ -16,6 +16,7 @@ SYNTHETIC_TESTS = {
     'test_account_policy_contracts.py', 'test_configuration_store.py',
     'test_spider_enum_revalidation.py', 'test_infrastructure_settings.py', 'test_dataset_registry.py',
     'test_dataset_policy.py', 'test_extraction_service.py', 'test_configuration_contracts.py',
+    'test_page_policy.py',
 }
 ROOT_FILES = {'.gitignore', '.dockerignore', 'compose.yaml', 'compose.production.yaml', 'compose.preview.yaml', 'docs/refactor/OPERATIONAL_PREVIEW.md', 'docs/refactor/ROLLOUT.md', 'ARCHITECTURE.md', 'FOREX_SOP_RULES.md',
               'ACCOUNT_OPENING_OFFICIAL_RULES.md', 'SOP_SCORING.md', 'SPATIAL_GROUNDING.md', 'DOCUMENT_FAMILIES.md'}

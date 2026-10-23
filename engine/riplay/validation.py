@@ -5,6 +5,7 @@ from decimal import Decimal
 import math
 from validation import check_schema, clean, parse_date, current_date, confidence_values
 from riplay.schema import SCHEMA, COLUMNS, DOCUMENT_NAME
+from page_policy import required_initial_pages, initial_page_records
 
 
 def validate(
@@ -52,9 +53,12 @@ def validate(
     expected = policy.get("expected_pages")
     if not isinstance(expected, int) or isinstance(expected, bool) or expected < 1:
         raise ValueError("expected_pages must be a positive integer")
-    required = policy.get("required_initial_pages", list(range(1, expected + 1)))
-    if not isinstance(required, list) or not required or any(isinstance(n, bool) or not isinstance(n, int) or n < 1 or n > expected for n in required) or len(set(required)) != len(required):
-        raise ValueError("required_initial_pages must contain unique physical page numbers")
+    if policy.get("exclude_final_page", False):
+        expected = raw["page_initials"]["page_count"]
+    required = required_initial_pages(
+        expected, exclude_final_page=policy.get("exclude_final_page", False),
+        explicit_pages=policy.get("required_initial_pages"),
+    )
     threshold = policy.get("minimum_confidence")
     if (
         not isinstance(threshold, (int, float, Decimal))
@@ -191,9 +195,11 @@ def validate(
     if not integer(count) or count != expected:
         issue("page_initials", "EXPECTED_PAGE_COUNT_MISMATCH")
     observed = [p["page_number"] for p in pages["pages"]]
-    if any(not integer(n) for n in observed) or sorted(observed) != list(
-        range(1, expected + 1)
-    ):
+    try:
+        initial_page_records(expected, pages["pages"],
+            exclude_final_page=policy.get("exclude_final_page", False),
+            explicit_pages=policy.get("required_initial_pages"))
+    except ValueError:
         issue("page_initials", "MISSING_DUPLICATE_OR_INVALID_PAGE_RECORDS")
     for page in pages["pages"]:
         n = page["page_number"]

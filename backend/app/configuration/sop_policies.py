@@ -19,6 +19,7 @@ class VisualPolicy(BoundPolicy):
     type: Literal["visual"]
     check: Literal["presence", "consistency", "placement", "all_pages"]
     expected_pages: int | None = Field(default=None, ge=1, le=1000)
+    exclude_final_page: bool = Field(default=False, strict=True)
 
     @model_validator(mode="after")
     def meaningful_bindings(self):
@@ -28,6 +29,8 @@ class VisualPolicy(BoundPolicy):
             )
         if self.expected_pages is not None and self.check != "all_pages":
             raise ValueError("Expected page count applies only to all-page marks.")
+        if self.exclude_final_page and self.check != "all_pages":
+            raise ValueError("Final-page exemption applies only to all-page marks.")
         return self
 
 
@@ -111,7 +114,6 @@ def evaluate_policy(policy, documents):
                 type(count) is not int
                 or count < 1
                 or not isinstance(pages, list)
-                or len(pages) != count
             ):
                 return "REVIEW", "PAGE_COVERAGE_UNVERIFIED"
             if any(
@@ -119,8 +121,13 @@ def evaluate_policy(policy, documents):
                 for p in pages
             ):
                 return "REVIEW", "PAGE_COVERAGE_UNVERIFIED"
-            if {p["page_number"] for p in pages} != set(range(1, count + 1)):
+            from page_policy import initial_page_records
+            try:
+                pages = initial_page_records(count, pages, exclude_final_page=policy.exclude_final_page)
+            except ValueError:
                 return "REVIEW", "PAGE_COVERAGE_UNVERIFIED"
+            if not pages:
+                return "NOT_APPLICABLE", "NO_INITIAL_PAGES_REQUIRED"
             flags = [
                 p.get(k)
                 for p in pages

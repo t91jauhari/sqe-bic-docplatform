@@ -199,6 +199,8 @@ def validate_config(payload):
             p["policy"]
         ):
             raise ValueError(f"{name}: missing policy keys.")
+        if "exclude_final_page" in p["policy"] and type(p["policy"]["exclude_final_page"]) is not bool:
+            raise ValueError(f"{name}: exclude_final_page must be boolean.")
         if not all(
             (
                 isinstance(p.get(x), str) and p[x].strip()

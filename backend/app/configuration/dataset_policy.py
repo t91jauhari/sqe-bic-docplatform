@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 class DatasetComparisonPolicy(BaseModel):
     model_config = ConfigDict(extra='forbid', frozen=True, strict=True)
     enabled: bool = True
+    exclude_final_page: bool = False
     minimum_similarity: float = Field(ge=0, le=1)
     acceptance_similarity: float = Field(ge=0, le=1)
     minimum_length: int = Field(ge=1, le=10000)

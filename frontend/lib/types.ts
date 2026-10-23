@@ -84,7 +84,7 @@ export type Configuration = {
     id: string; label: string; enabled?: boolean; families: string[];
     report_category: string; source_ref?: string;
     policy: { type?: "compare" | "visual" | "date" | "money"; left: string; right: string; normalization?: "literal" | "casefold_whitespace"; pattern?: string | null;
-      check?: "presence" | "consistency" | "placement" | "all_pages"; expected_pages?: number | null;
+      check?: "presence" | "consistency" | "placement" | "all_pages"; expected_pages?: number | null; exclude_final_page?: boolean;
       relation?: "equal" | "on_or_after"; left_currency?: string; right_currency?: string;
       decimal_separator?: "." | ","; thousands_separator?: "." | "," | " " | null };
     schema_paths?: Record<string, string>;
@@ -274,6 +274,7 @@ export type Timeline = {
   details: Record<string, unknown>;
 };
 export type CaseDetail = CaseSummary & {
+  can_adopt_configuration?: boolean;
   context_suggestions?: {
     field: string;
     value: string;

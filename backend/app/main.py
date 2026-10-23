@@ -23,11 +23,33 @@ from app.api.dependencies import log
 from app.errors import ApplicationError, ErrorCode
 
 
+def _warm_read_caches():
+    from app.db import Case, Config, engine
+    from app.configuration.repository import get_revision
+    from app.configuration.revisions import latest_config
+    from app.report_queries import ReportAudience, ReportQueries
+
+    if getattr(getattr(engine, "dialect", None), "name", None) != "postgresql":
+        return
+    try:
+        with SessionLocal() as db:
+            orgs = list(db.scalars(select(Config.org).distinct()))
+            for org in orgs:
+                latest_config(db, org, copy_payload=False)
+                ReportQueries(db, ReportAudience(org, None)).current()
+            for config_id in db.scalars(select(Case.config_id).distinct()):
+                if config_id:
+                    get_revision(db, config_id, copy_payload=False)
+    except Exception:
+        pass
+
+
 @asynccontextmanager
 async def lifespan(_):
     from app.worker_capacity import initialize_slots
 
     initialize_slots()
+    _warm_read_caches()
     yield
 
 

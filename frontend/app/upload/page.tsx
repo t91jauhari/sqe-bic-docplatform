@@ -171,7 +171,7 @@ function UploadForm() {
             setPreview(rows);
             setGroupingOpen(false);
             key.current = crypto.randomUUID();
-            if (!caseId) setChoiceOpen(true);
+            if (!caseId && !template) setChoiceOpen(true);
           }}
         />
       )}

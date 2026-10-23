@@ -19,15 +19,23 @@ def user_view(user):
     }
 
 
-def case_view(c, db):
-    states = db.scalars(select(Document.status).where(Document.case_id == c.id)).all()
-    docs = db.scalars(select(Document).where(Document.case_id == c.id)).all()
-    payload = get_revision(db, c.config_id).payload
+def case_view(c, db, *, doc_rows=None, rev=None):
+    rows = (
+        doc_rows
+        if doc_rows is not None
+        else db.execute(
+            select(Document.doc_type, Document.status).where(Document.case_id == c.id)
+        ).all()
+    )
+    revision = (
+        rev if rev is not None else get_revision(db, c.config_id, copy_payload=False)
+    )
+    payload = revision.payload
     missing_documents = sorted(
         {
-            payload["profiles"][d.doc_type]["label"]
-            for d in docs
-            if d.doc_type in payload["profiles"] and d.status != "COMPLETED"
+            payload["profiles"][doc_type]["label"]
+            for doc_type, doc_status in rows
+            if doc_type in payload["profiles"] and doc_status != "COMPLETED"
         }
     )
     return {
@@ -41,12 +49,36 @@ def case_view(c, db):
         "transaction_flow_label": payload["templates"][c.template]["label"],
         "created_at": c.created_at,
         "updated_at": c.updated_at,
-        "documents_count": len(states),
-        "completed_count": sum(x == "COMPLETED" for x in states),
+        "documents_count": len(rows),
+        "completed_count": sum(doc_status == "COMPLETED" for _, doc_status in rows),
         "missing_documents": missing_documents,
         "created_by": c.created_by,
-        "config_version": get_revision(db, c.config_id).version,
+        "config_version": revision.version,
     }
+
+
+def case_views(cases, db):
+    rows = list(cases)
+    if not rows:
+        return []
+    case_ids = [c.id for c in rows]
+    doc_rows_by_case = {cid: [] for cid in case_ids}
+    for case_id, doc_type, doc_status in db.execute(
+        select(Document.case_id, Document.doc_type, Document.status).where(
+            Document.case_id.in_(case_ids)
+        )
+    ):
+        doc_rows_by_case[case_id].append((doc_type, doc_status))
+    revisions = {}
+    for c in rows:
+        if c.config_id not in revisions:
+            revisions[c.config_id] = get_revision(
+                db, c.config_id, copy_payload=False
+            )
+    return [
+        case_view(c, db, doc_rows=doc_rows_by_case[c.id], rev=revisions[c.config_id])
+        for c in rows
+    ]
 
 
 def doc_view(d):
@@ -77,8 +109,15 @@ def comparison_view(db, case, state):
     ).all()
     from app.configuration.dataset_policy import comparison_policy
 
-    policy = comparison_policy(get_revision(db, case.config_id).payload, case.template)
-    return compare(case, docs, state, dataset_for_case(db, case), policy=policy)
+    payload = get_revision(db, case.config_id, copy_payload=False).payload
+    policy = comparison_policy(payload, case.template)
+    return compare(
+        case,
+        docs,
+        state,
+        dataset_for_case(db, case, payload=payload),
+        policy=policy,
+    )
 
 
 def report_download_name(report, format):

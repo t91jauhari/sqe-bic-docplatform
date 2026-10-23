@@ -19,9 +19,14 @@ def __getattr__(name):
     raise AttributeError(name)
 
 
-def dataset_for_case(db, case):
+def dataset_for_case(db, case, *, payload=None):
     from .configuration.dataset_sources import resolve_dataset
-    flow = get_revision(db, case.config_id).payload["templates"][case.template]
+    cfg_payload = (
+        payload
+        if payload is not None
+        else get_revision(db, case.config_id, copy_payload=False).payload
+    )
+    flow = cfg_payload["templates"][case.template]
     return resolve_dataset(db, case.org, flow.get("dataset_id", "forex-sample-v1"))
 
 
@@ -186,7 +191,7 @@ def number(value):
 
 def canonical(value, kind, field=None):
     if blank(value):
-        return None
+        return False if kind in {"presence", "initials"} else None
     if (
         isinstance(value, str)
         and value.strip().startswith(("{", "["))
@@ -215,6 +220,15 @@ def canonical(value, kind, field=None):
     if kind == "date":
         if key(value) == "seumur hidup":
             return "SEUMUR HIDUP"
+        import calendar
+        from .value_display import MONTHS
+        month_only = re.fullmatch(r"([A-Za-z]+)[\s/-]+([0-9]{4})", str(value).strip())
+        if month_only and int(month_only[2]) > 0:
+            names = {key(name): n for n, name in enumerate(MONTHS, 1)}
+            names.update({key(name): n for n, name in enumerate(calendar.month_name) if name})
+            names.update({key(name): n for n, name in enumerate(calendar.month_abbr) if name})
+            if key(month_only[1]) in names:
+                return "month", f"{int(month_only[2]):04}-{names[key(month_only[1])]:02}"
         from validation import parse_date
 
         try:
@@ -254,7 +268,7 @@ def effective_canonical(doc, field, value, kind):
         raise ValueError("Effective normalized numeric value is invalid.") from exc
 
 
-def project(doc, field, kind):
+def project(doc, field, kind, *, policy=None):
     """Only the effective normalized result, including already validated overrides."""
     value = doc.normalized.get(field, MISSING)
     if value is MISSING:
@@ -266,12 +280,16 @@ def project(doc, field, kind):
             else value
         )
     if kind == "initials":
+        from page_policy import initial_page_records
         pages = value.get("pages", []) if isinstance(value, dict) else []
         count=value.get('page_count',3) if isinstance(value,dict) else 3
+        if policy and policy.exclude_final_page:
+            count = value.get('page_count') if isinstance(value, dict) else None
         if not isinstance(count,int) or isinstance(count,bool) or not 1<=count<=200:return None
-        required = [
-            next((p for p in pages if p.get("page_number") == n), {}) for n in range(1,count+1)
-        ]
+        try:
+            required = initial_page_records(count, pages, exclude_final_page=bool(policy and policy.exclude_final_page))
+        except ValueError:
+            return None
         marks = [p.get("footer_present") for p in required]
         return (
             False if False in marks else True if all(v is True for v in marks) else None
@@ -286,7 +304,10 @@ def project(doc, field, kind):
             else amount
         )
     if field == "issuance" and isinstance(value, dict):
-        return ", ".join(str(value[k]) for k in ("place", "date") if value.get(k))
+        place = value.get("place", value.get("place_raw"))
+        date = value.get("date", value.get("date_raw"))
+        if place or date:
+            return ", ".join(str(part) for part in (place, date) if part)
     if isinstance(value,dict) and ('raw' in value or 'amount_raw' in value or 'formatted_date' in value):
         from .value_display import display_value
         projected=display_value(value)
@@ -371,7 +392,13 @@ def compare(case, docs, state, dataset=None, *, policy=None):
                 status="PENDING", message="Extraction/revalidation has not completed."
             )
         else:
-            value = project(doc, field, source["kind"])
+            observed = doc.normalized.get(field)
+            if (source["kind"] == "initials" and policy.exclude_final_page
+                    and isinstance(observed, dict) and observed.get("page_count") == 1):
+                row.update(status="NOT_APPLICABLE", message="The only page is the exempt final page; no paraf check is required.")
+                rows.append(row)
+                continue
+            value = project(doc, field, source["kind"], policy=policy)
             row["effective_value"] = None if value is MISSING else value
             row["effective_original_value"] = doc.normalized.get(field)
             row["effective_edit_value"] = (
@@ -409,6 +436,8 @@ def compare(case, docs, state, dataset=None, *, policy=None):
                             status="MATCH",
                             message="Values match under the stated comparison policy.",
                         )
+                    elif source["kind"] == "date" and any(isinstance(v, tuple) and v[0] == "month" for v in (a, b)):
+                        row.update(status="REVIEW", message="Month-only and full-date values have different precision; no day is assumed.")
                     elif (
                         isinstance(value, (dict, list))
                         and not isinstance(expected, (dict, list))

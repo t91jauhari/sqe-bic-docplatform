@@ -3,6 +3,7 @@ import {useData} from "./platform-provider";
 
 export type DatasetPolicy = {
   enabled: boolean;
+  exclude_final_page: boolean;
   minimum_similarity: number;
   acceptance_similarity: number;
   minimum_length: number;
@@ -37,6 +38,7 @@ export function DatasetPolicyEditor({configured, onChange}: {
   return <details>
     <summary>Reference comparison tolerances</summary>
     <p>These settings compare extracted values with the reference dataset for this family. Different digits always prevent a fuzzy match. SOP scores use their own rules.</p>
+    <label className="checkbox-line"><input type="checkbox" checked={policy.exclude_final_page ?? false} onChange={e=>patch({exclude_final_page:e.target.checked})}/><span>Exclude the final page from RIPLAY paraf comparisons<small>Check initials on preceding pages only. Main signatures keep their separate checks.</small></span></label>
     <label className="checkbox-line"><input type="checkbox" checked={policy.enabled} onChange={e=>patch({enabled:e.target.checked})}/><span>Allow conservative text similarity<small>Turn off to require normalized exact matches.</small></span></label>
     {policy.enabled && <>
       <div className="form-row">{numbers.map(([key,label,min,max,step])=><label key={key}>{label}<input type="number" min={min} max={max} step={step} value={policy[key] as number} onChange={e=>{if(e.target.value!=="")patch({[key]:Number(e.target.value)});}}/></label>)}</div>
