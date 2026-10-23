@@ -1,5 +1,5 @@
 {
-  "source_commit": "54e0af31da6ee2451d3c1759d3c3447bae5f0d4c",
+  "source_commit": "a469dd8c68492b448a1bcfc18f05ab36bb031e52",
   "history_included": false,
   "customer_samples_included": false,
   "files": {
@@ -62,6 +62,74 @@
     "backend/app/account_opening_sop.py": {
       "sha256": "47f790528fa16e2d3869f423bf9b01bb74be87a62ee4c8f965f6ed2442982f8b",
       "bytes": 18315
+    },
+    "backend/app/api/README.md": {
+      "sha256": "11bf63fcc93fb11fd13c9c4dc0a164e6eea0e3e45659225adfbd2994a0f7aa07",
+      "bytes": 1777
+    },
+    "backend/app/api/__init__.py": {
+      "sha256": "d48d02128fe2c78d09c1fec8a5f92776444f761d190199af94cf35109e3b10d8",
+      "bytes": 52
+    },
+    "backend/app/api/administration.py": {
+      "sha256": "b50cc894d615f986190c94b552191de5f509a9daa1e3948a84eb00a259fdf3db",
+      "bytes": 3169
+    },
+    "backend/app/api/authentication.py": {
+      "sha256": "6b6250eb7c95ab3f17499d8b1625bb0c516c46f0bd5de192a0961c1b90a98061",
+      "bytes": 2998
+    },
+    "backend/app/api/cases.py": {
+      "sha256": "bd95b08f1b90c817f4d9d91b4f581edef53b52d7e6d2cbbf22e1202c9140e6dd",
+      "bytes": 19095
+    },
+    "backend/app/api/comparisons.py": {
+      "sha256": "ee1bd830ee4471ad04e486b951f916457ad7c7a25b90eee296da3d03ce11b6d2",
+      "bytes": 9235
+    },
+    "backend/app/api/contracts.py": {
+      "sha256": "f575fad104259420ef35946636ff0c766be31741f47a8ce009d49453426eb4ad",
+      "bytes": 3182
+    },
+    "backend/app/api/dependencies.py": {
+      "sha256": "77900b950b4f539c1da8515d936b87e6c8238ae4cd194357216b4eaafaeb1c8f",
+      "bytes": 491
+    },
+    "backend/app/api/documents.py": {
+      "sha256": "fafd6cd3a2b336c0510ecdb62796510670e113b4df989dc77e3726f4eaca085c",
+      "bytes": 14538
+    },
+    "backend/app/api/evidence.py": {
+      "sha256": "dbb556ff4ecfb1d2d637ef7a6959f59dab0aee3d6a122a100a31145b3e6f2fed",
+      "bytes": 9247
+    },
+    "backend/app/api/exports.py": {
+      "sha256": "b4821176c290b5aa16318fb78b3ec39f031252a7a5c1cbe4013a9223597f7f25",
+      "bytes": 2259
+    },
+    "backend/app/api/field_processing.py": {
+      "sha256": "08c28a8c81554705cb43f595d8ae36d37ccf53f40f2ae0bf335a4fabafbee596",
+      "bytes": 8737
+    },
+    "backend/app/api/intake.py": {
+      "sha256": "73e730d8e66f7168d9462a6483997176bc23f369b0f35137982a65e7ff59a8fa",
+      "bytes": 12011
+    },
+    "backend/app/api/notifications.py": {
+      "sha256": "cfa997a6d68d6788dd0108bbdde665086a534f004f272f4083a23a023d4cd7ea",
+      "bytes": 2630
+    },
+    "backend/app/api/operations.py": {
+      "sha256": "0d0520def1edefed5b6e3a5ca27d27e02181c20f3a5b0cd74b5188e95262e927",
+      "bytes": 3652
+    },
+    "backend/app/api/reports.py": {
+      "sha256": "e230b6342133818b6cad882c2eddfa81df02f92d6f482cbbf32a102a48df9ddf",
+      "bytes": 7616
+    },
+    "backend/app/api/views.py": {
+      "sha256": "7c565a0cc2af1c9f7b76e5581bf639121dbe529c1beacee241907a9971f22f94",
+      "bytes": 2927
     },
     "backend/app/branch_report.py": {
       "sha256": "24834edaf3147d1340d3c59758a88ba7246534e1b74eb090600ca0ee3895e206",
@@ -140,8 +208,8 @@
       "bytes": 2791
     },
     "backend/app/config_workbook.py": {
-      "sha256": "5812402d7b4a63d626dab6142cad60816d53c9dc212937046427677f6401110b",
-      "bytes": 20931
+      "sha256": "9ef68454d982e550854020dcac8bd45dacd4174a7312c1bbe638c8dd7ded5edc",
+      "bytes": 21094
     },
     "backend/app/configuration/README.md": {
       "sha256": "cd4a7347d3fd04fb652aed7d4d907c5936bc95fc05e63b22ca9a38c5e1fa349c",
@@ -184,8 +252,8 @@
       "bytes": 4468
     },
     "backend/app/configuration/contracts.py": {
-      "sha256": "d0022be388d3f14d7038e458576b43639bb7d922062676b337c254baf4099016",
-      "bytes": 2226
+      "sha256": "020e6c0c4ce64ba97322595633c4769f6578d930b04afad12652297f31eb06ef",
+      "bytes": 2301
     },
     "backend/app/configuration/dataset_policy.py": {
       "sha256": "95c998a6cd595fde6b10dac12ec4dba8707beb37e625af80fa5c6e7b37d9837f",
@@ -356,12 +424,12 @@
       "bytes": 10196
     },
     "backend/app/document_families.py": {
-      "sha256": "f79549da52c88552084c7f178b19e33a129299a083a5c6d8520ad3f46d8494ab",
-      "bytes": 3677
+      "sha256": "f82109e4d6107254061ef5c1ee66bc179ffb05cd15f45f1051628c4c830bf446",
+      "bytes": 4092
     },
     "backend/app/domain.py": {
-      "sha256": "cd03bdf0f19962aead1299b07f00f2c0044e7a172b67436071d35b4bd2aabdf7",
-      "bytes": 37384
+      "sha256": "c211887073c7729e65d8161b13e8d6919e5bca77819ef3f5730fe6335d9ec627",
+      "bytes": 37447
     },
     "backend/app/effective_corrections.py": {
       "sha256": "f11fbb49d0f2ef28cc4c06f58d488587281f0f0401dcdd566081eb8b9cbacb5a",
@@ -456,8 +524,8 @@
       "bytes": 5842
     },
     "backend/app/main.py": {
-      "sha256": "e818e579fcce2ce206a22bbba2967c2fe7021fd8aba7a0bf2583ba5fe16592dd",
-      "bytes": 98240
+      "sha256": "7854be5baa94d37d62945981c062765aa317b404e70994b5b35afd871f5adb9e",
+      "bytes": 3980
     },
     "backend/app/migrate_comparison.py": {
       "sha256": "110fa130b68d3ee631480cb8bcc6532727a507d4c6a444842d0bf12ab4adcdf0",
@@ -976,8 +1044,8 @@
       "bytes": 8349
     },
     "frontend/app/settings/page.tsx": {
-      "sha256": "fc3d64ca134bd5aa320dd5480ea3ec5e475734dbdb6be95b671bef980b3bc6fe",
-      "bytes": 52555
+      "sha256": "8e706e811f7a6b85183d086d34e3df074235c2ada98c1bb1bac7387da87856c3",
+      "bytes": 52583
     },
     "frontend/app/upload/page.tsx": {
       "sha256": "9717427ec0cb1ef92327d9cb6ba86215052458d368e96a99adddde0e99613656",
@@ -1036,8 +1104,8 @@
       "bytes": 1013
     },
     "frontend/components/document-families.tsx": {
-      "sha256": "0e9441e25faa188334cb96e3619bb146ac1b5d53342b3c98dd1ee9f818f87ab9",
-      "bytes": 10299
+      "sha256": "0b6a59599b957ca7c9a2b90a5226e8dc8d21c4ff0df39bf167ebad616d689ed5",
+      "bytes": 10916
     },
     "frontend/components/enum-revalidation.tsx": {
       "sha256": "68b81faef64e271b8f62089abacfc560c68bc70a748e97714a4a03d62f52ec7d",
@@ -1152,8 +1220,8 @@
       "bytes": 2587
     },
     "frontend/lib/document-family.ts": {
-      "sha256": "f88254038c40452e2f5703719fb3e8833982c9e2863ce929dbf8a266fbf602c4",
-      "bytes": 2214
+      "sha256": "c389fc241d341cf57b93231399cb45f734541f3b391767bcaa1d783fc23dcb88",
+      "bytes": 2285
     },
     "frontend/lib/excel-multi-sheet.ts": {
       "sha256": "1e691bf7f05b8168ee2ec78391c33f5c636ec1ff675ed8702f3d731d9c97e3e6",
@@ -1172,8 +1240,8 @@
       "bytes": 724
     },
     "frontend/lib/types.ts": {
-      "sha256": "e677508bdfe834244464ad18a24c3a0b324fc655ae8b8fc4beb3807e21a73db9",
-      "bytes": 10174
+      "sha256": "c3b36ab1ec8772e8cc8229eb0c3a16fbcd1dff555a7392de91acd07106c4f765",
+      "bytes": 10221
     },
     "frontend/next-env.d.ts": {
       "sha256": "1862ac4bbbc5192d4bf562161df66ea547ed3e67173100656ab606ae9797db2b",
@@ -1196,8 +1264,8 @@
       "bytes": 60
     },
     "frontend/tests/document-family.cjs": {
-      "sha256": "beb419961fa3639747c5ae461fbfae31cabed74cb71c6043dd024529292b37f2",
-      "bytes": 1972
+      "sha256": "6fe3c123ddd01eb7f0e045e981c534b0383b90e059e1ab4f787f6ed459f96040",
+      "bytes": 2200
     },
     "frontend/tsconfig.json": {
       "sha256": "409e626ed062b7f5bb2976252fab928b9f6fdbae6051bebf07d6e5f1a2df66dd",

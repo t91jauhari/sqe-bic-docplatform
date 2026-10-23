@@ -5,7 +5,7 @@ import {DatasetSelect} from "./dataset-select";
 import {useState} from "react";
 import {Plus, Layers, ArrowRight} from "lucide-react";
 import {Modal} from "./ui";
-import {familyCatalog} from "@/lib/document-family";
+import {familyCatalog, familyProfiles} from "@/lib/document-family";
 import type {Configuration, DocumentFamilyConfig, ProfileName} from "@/lib/types";
 
 type Props={draft:Configuration;update:(c:Configuration)=>void;family:string;select:(id:string)=>void;editable:boolean;navigate:(tab:"flows"|"profiles"|"rules")=>void};
@@ -28,6 +28,7 @@ export function DocumentFamilies({draft,update,family,select,editable,navigate}:
   <div className="profile-workflow-tabs" aria-label="Family configuration sections">{[["overview","1 · Basics"],["documents","2 · Documents & extraction"],["review","3 · Checks & reports"]].map(([key,label])=><button key={key} className={section===key?"active":""} aria-pressed={section===key} onClick={()=>setSection(key)}>{label}</button>)}</div>
   <fieldset disabled={!editable}>
   {section==="overview"&&<div>
+   <label className="checkbox-line"><input type="checkbox" checked={draft.family_catalog_mode==="explicit"} disabled={draft.family_catalog_mode==="explicit"&&!Object.values(familyProfiles).flat().every(key=>draft.profiles[key])} onChange={e=>update({...draft,family_catalog_mode:e.target.checked?"explicit":"legacy",document_families:structuredClone(catalog)})}/><span>Use exactly the families configured here<small>Starter families will no longer be added automatically. Existing cases keep their saved catalog. Restore starter profiles before returning to compatibility mode.</small></span></label>
    <h3>{f.label}</h3><small>Stable family ID: {family}. Existing cases keep their published configuration.</small>
    <label>Family name<input value={f.label} maxLength={120} onChange={e=>patch({label:e.target.value})}/></label>
    <label>What is this family used for?<textarea value={f.description||""} maxLength={2000} placeholder="For example: review the documents needed for loan applications" onChange={e=>patch({description:e.target.value})}/></label>

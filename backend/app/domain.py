@@ -221,7 +221,7 @@ def validate_config(payload):
     for tier in ["parse_tier", "extract_tier"]:
         if payload.get(tier) not in {"agentic", "agentic_plus", "cost_effective"}:
             raise ValueError("Invalid processing tier.")
-    if not set(PROFILE_NAMES).issubset(payload.get("profiles", {})):
+    if payload.get("family_catalog_mode", "legacy") != "explicit" and not set(PROFILE_NAMES).issubset(payload.get("profiles", {})):
         raise ValueError("All supported profile configurations are required.")
     if len(payload["profiles"]) > 200:
         raise ValueError("Configure at most 200 document profiles.")

@@ -23,7 +23,7 @@ export const familyProfiles: Record<DocumentFamily, ProfileName[]> = {
     ...shared,
   ],
 };
-export const familyCatalog = (cfg?: Configuration | null): Record<string,DocumentFamilyConfig> => ({
+export const familyCatalog = (cfg?: Configuration | null): Record<string,DocumentFamilyConfig> => cfg?.family_catalog_mode === "explicit" ? {...cfg.document_families} : ({
   forex: {label:"Forex",profiles:familyProfiles.forex,required:cfg?.templates.forex?.required||[],sop_rule_ids:(cfg?.sop_rules||[]).filter(r=>!(r.source_ref||"").startsWith("AO:")).map(r=>r.id),dataset_id:"forex-sample-v1",report_layout:"forex"},
   account_opening: {label:"Account Opening",profiles:familyProfiles.account_opening,required:cfg?.templates.account_opening?.required||[],sop_rule_ids:(cfg?.sop_rules||[]).filter(r=>(r.source_ref||"").startsWith("AO:")).map(r=>r.id),dataset_id:"account-opening-sample-v1",report_layout:"account_opening"},
   ...cfg?.document_families,

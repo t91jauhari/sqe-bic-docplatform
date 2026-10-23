@@ -1,5 +1,5 @@
 """Strict structural boundary; registered policies validate their own semantics."""
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -9,6 +9,7 @@ from .codec import fingerprint
 class ConfigurationEnvelope(BaseModel):
     # Extensions remain lossless while older publications retain extra sections.
     model_config = ConfigDict(extra='allow', frozen=True, strict=True)
+    family_catalog_mode: Literal['legacy', 'explicit'] = 'legacy'
     provider: str = Field(min_length=1, max_length=100)
     profiles: dict[str, dict[str, Any]] = Field(max_length=200)
     templates: dict[str, dict[str, Any]] = Field(min_length=1, max_length=100)

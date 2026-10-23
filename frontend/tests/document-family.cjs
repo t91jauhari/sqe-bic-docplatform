@@ -6,7 +6,7 @@ const source = fs.readFileSync(path.join(__dirname, '../lib/document-family.ts')
 const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
 const exportsObject = {};
 new Function('exports', compiled)(exportsObject);
-const { familyProfiles, inFamily, ruleInFamily } = exportsObject;
+const { familyProfiles, familyCatalog, inFamily, ruleInFamily } = exportsObject;
 assert.equal(familyProfiles.account_opening.length, 7);
 assert.equal(familyProfiles.forex.length, 7);
 for (const type of ['ektp', 'riplay']) {
@@ -34,3 +34,8 @@ assert(!inFamily('ektp','missing',custom));
 assert(ruleInFamily({id:'loan_check'},'loans',custom));
 assert(!ruleInFamily({id:'unrelated',source_ref:'AO:custom'},'loans',custom));
 console.log(`Family boundaries verified against ${aoRules.length} Account Opening SOP rules and shared profiles.`);
+
+const explicit={...custom,family_catalog_mode:'explicit'};
+assert.deepEqual(Object.keys(familyCatalog(explicit)),['loans']);
+assert(!inFamily('ektp','forex',explicit));
+assert(inFamily('ektp','loans',explicit));

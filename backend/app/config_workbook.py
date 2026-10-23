@@ -12,6 +12,7 @@ from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from .sop import fields, approved_scope
+from .extraction_prompts import system_instruction
 
 MIME = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 RULE_HEADERS = [
@@ -120,7 +121,7 @@ def export_config(cfg):
                 "suffix_aliases",
                 "sop_message_templates",
                 "forex_sop_policy",
-            ] + (['report_definitions'] if 'report_definitions' in cfg else [])
+            ] + (['report_definitions'] if 'report_definitions' in cfg else []) + (['family_catalog_mode'] if 'family_catalog_mode' in cfg else [])
         ],
     )
     family_rows=[]
@@ -180,7 +181,7 @@ def export_config(cfg):
                 p["parse_prompt"],
                 p["system_prompt"],
                 p["policy"],
-                p.get("system_instruction", ""),
+                system_instruction(p),
                 p.get("field_checks"),
             ]
             for name, p in cfg["profiles"].items()
@@ -380,6 +381,7 @@ def import_config(data, base):
                 "minimum_confidence"
             )
     general_keys = {
+        "family_catalog_mode",
         "report_definitions",
         "document_families",
         "provider",
@@ -418,7 +420,7 @@ def import_config(data, base):
             cfg[key] = r["value"]
         else:
             cfg[key] = r["value"]
-    required_general = general_keys - {"report_definitions", "document_families", "customer_aliases", "sop_review_bypass", "sop_review_bypass_result",
+    required_general = general_keys - {"family_catalog_mode", "report_definitions", "document_families", "customer_aliases", "sop_review_bypass", "sop_review_bypass_result",
                                         "sequential_page_extraction", "cross_page_reference",
                                         "grouping_prefixes", "suffix_aliases", "sop_message_templates", "forex_sop_policy"}
     if general_seen - {"customer_aliases"} != general_keys - {"customer_aliases"}:

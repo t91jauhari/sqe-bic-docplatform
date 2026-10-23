@@ -126,7 +126,7 @@ export default function Settings() {
     [profile, setProfile] = useState<ProfileName>("application");
   const [familySelection, setFamily] = useState<DocumentFamily>("forex");
   const families = familyCatalog(draft);
-  const family = families[familySelection] ? familySelection : "forex";
+  const family = families[familySelection] ? familySelection : Object.keys(families)[0] || "forex";
   const selectedProfile = inFamily(profile, family, draft)
     ? profile
     : families[family]?.profiles[0] || profile;

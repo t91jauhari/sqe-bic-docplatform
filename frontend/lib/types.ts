@@ -74,6 +74,7 @@ export type ContextDefinition = {
   max_length?: number;
 };
 export type Configuration = {
+  family_catalog_mode?: "legacy" | "explicit";
   report_definitions?: Record<string, {timezone: string; bindings: Record<string, {
     source: "document" | "context" | "customer" | "literal"; path?: string | null;
     default?: string | null; fallback_customer?: boolean;

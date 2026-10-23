@@ -7,11 +7,18 @@ from .configuration.native_catalog import native_catalog
 DEFAULTS = native_catalog()['families']
 
 def families(cfg):
+    mode = cfg.get('family_catalog_mode', 'legacy')
+    if mode not in {'legacy', 'explicit'}:
+        raise ValueError('Family catalog mode must be legacy or explicit.')
+    if mode == 'explicit':
+        return copy.deepcopy(cfg.get('document_families', {}))
     return {**copy.deepcopy(DEFAULTS), **cfg.get('document_families', {})}
 
 def validate_families(cfg):
     raw=cfg.get('document_families',{})
     if not isinstance(raw,dict) or len(raw)>100:raise ValueError('Configure at most 100 document families.')
+    if cfg.get('family_catalog_mode') == 'explicit' and not raw:
+        raise ValueError('An explicit catalog requires at least one configured family.')
     labels=set()
     rules={r['id'] for r in cfg.get('sop_rules',[])+cfg.get('generic_sop_rules',[])}
     for key,f in families(cfg).items():
