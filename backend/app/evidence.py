@@ -19,8 +19,16 @@ VISUAL_WORDS = (
 
 def visual_fields(raw):
     for field, value in raw.items():
-        if any(word in field.lower() for word in VISUAL_WORDS):
-            if field == "page_initials" and isinstance(value, dict):
+        observation = isinstance(value, dict) and bool(
+            {"present", "footer_present", "signature_present"} & set(value)
+        )
+        pages = (
+            isinstance(value, dict)
+            and "page_count" in value
+            and isinstance(value.get("pages"), list)
+        )
+        if observation or pages or any(word in field.lower() for word in VISUAL_WORDS):
+            if pages or field == "page_initials" and isinstance(value, dict):
                 for i, page in enumerate(value.get("pages", [])):
                     if isinstance(page, dict):
                         yield f"{field}.pages.{i}", page
@@ -67,6 +75,7 @@ def rectangle(box, page):
 
 def build_evidence(doc, response):
     from .spatial_grounding import normalize_response
+
     response = normalize_response(response)
     raw = response["extract_result"]
     metadata = response.get("extract_metadata") or {}
@@ -112,9 +121,7 @@ def build_evidence(doc, response):
                     ),
                 )
                 if isinstance(observation, dict)
-                else observation
-                if isinstance(observation, bool)
-                else None
+                else observation if isinstance(observation, bool) else None
             )
             item = {
                 "field": field,
@@ -129,7 +136,12 @@ def build_evidence(doc, response):
             }
             try:
                 spatial = metadata.get("spatial_evidence", {}).get(field, [])
-                box = boxes.get(field) or (spatial[0] if spatial else None) or field_meta.get(field) or {}
+                box = (
+                    boxes.get(field)
+                    or (spatial[0] if spatial else None)
+                    or field_meta.get(field)
+                    or {}
+                )
                 if not box and candidates.get(field):
                     raise ValueError(
                         "Parse field has no unique localized visual region; select its region for review"
@@ -141,7 +153,11 @@ def build_evidence(doc, response):
                     or page_number < 1
                 ):
                     details = metadata.get("spatial_errors", {}).get(field)
-                    raise ValueError("; ".join(details) if details else "Missing or invalid page number")
+                    raise ValueError(
+                        "; ".join(details)
+                        if details
+                        else "Missing or invalid page number"
+                    )
                 expected = (
                     observation.get("page_number")
                     if isinstance(observation, dict)
@@ -173,9 +189,9 @@ def build_evidence(doc, response):
                 store().put(key, data, "image/png")
                 item.update(
                     available=True,
-                    review_status="REVIEW"
-                    if box.get("link_review_required")
-                    else "PENDING",
+                    review_status=(
+                        "REVIEW" if box.get("link_review_required") else "PENDING"
+                    ),
                     link_review_required=bool(box.get("link_review_required")),
                     page_number=page_number,
                     bbox=box,
@@ -202,9 +218,11 @@ def apply_evidence_review(report, evidence):
             if field:
                 field.setdefault("issues", []).append(
                     {
-                        "code": "CROP_EVIDENCE_REQUIRED"
-                        if not item["available"]
-                        else "CROP_LINK_REVIEW_REQUIRED",
+                        "code": (
+                            "CROP_EVIDENCE_REQUIRED"
+                            if not item["available"]
+                            else "CROP_LINK_REVIEW_REQUIRED"
+                        ),
                         "severity": "REVIEW",
                     }
                 )

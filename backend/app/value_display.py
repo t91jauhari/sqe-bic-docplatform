@@ -1,29 +1,11 @@
 """Readable presentation only; effective values and machine exports remain structured."""
 
+from .configuration.seed_catalog import seed_value
+
 import re
 
-MONTHS = [
-    "Januari",
-    "Februari",
-    "Maret",
-    "April",
-    "Mei",
-    "Juni",
-    "Juli",
-    "Agustus",
-    "September",
-    "Oktober",
-    "November",
-    "Desember",
-]
-HIDDEN = {
-    "evidence",
-    "citation",
-    "confidence",
-    "extraction_confidence",
-    "bounding_boxes",
-    "page_dimensions",
-}
+MONTHS = seed_value("value_display.MONTHS")
+HIDDEN = seed_value("value_display.HIDDEN")
 
 
 def date_text(value):
@@ -45,14 +27,20 @@ def display_value(value):
     if not isinstance(value, dict):
         return str(value)
     if "selected" in value:
-        parts=[]
-        if value.get('selected'):parts.append(display_value(value['selected']))
-        if value.get('other_description'):parts.append(display_value(value['other_description']))
-        if value.get('raw') not in (None,''):
-            raw=display_value(value['raw'])
-            currency=str(value.get('currency') or '')
-            parts.append((currency+' '+raw).strip() if currency and currency.casefold() not in raw.casefold() else raw)
-        return ' · '.join(parts) if parts else display_value(value['selected'])
+        parts = []
+        if value.get("selected"):
+            parts.append(display_value(value["selected"]))
+        if value.get("other_description"):
+            parts.append(display_value(value["other_description"]))
+        if value.get("raw") not in (None, ""):
+            raw = display_value(value["raw"])
+            currency = str(value.get("currency") or "")
+            parts.append(
+                (currency + " " + raw).strip()
+                if currency and currency.casefold() not in raw.casefold()
+                else raw
+            )
+        return " · ".join(parts) if parts else display_value(value["selected"])
     if "currency_raw" in value and "amount_raw" in value:
         amount = (
             " ".join(
@@ -62,12 +50,18 @@ def display_value(value):
             )
             or "Missing"
         )
-        return amount+'/'+str(value['unit_raw']) if amount!='Missing' and value.get('unit_raw') else amount
+        return (
+            amount + "/" + str(value["unit_raw"])
+            if amount != "Missing" and value.get("unit_raw")
+            else amount
+        )
     if "formatted_date" in value:
         return display_value(value["formatted_date"])
-    if 'table_complete' in value and isinstance(value.get('items'),list):
-        items='; '.join(display_value(item) for item in value['items']) or 'Missing'
-        return ('Incomplete table · ' if value['table_complete'] is False else '')+items
+    if "table_complete" in value and isinstance(value.get("items"), list):
+        items = "; ".join(display_value(item) for item in value["items"]) or "Missing"
+        return (
+            "Incomplete table · " if value["table_complete"] is False else ""
+        ) + items
     if any(k in value for k in ("name", "address", "phone")):
         parts = [
             value.get(k)
@@ -94,23 +88,25 @@ def display_value(value):
     presence = (
         "present"
         if "present" in value
-        else "stamp_present"
-        if "stamp_present" in value
-        else None
+        else "stamp_present" if "stamp_present" in value else None
     )
     if presence:
         parts = [
-            "Needs review"
-            if value[presence] is None
-            else display_value(value[presence])
+            (
+                "Needs review"
+                if value[presence] is None
+                else display_value(value[presence])
+            )
         ]
         if "complete" in value:
             parts.append(
                 "Complete"
                 if value["complete"] is True
-                else "Incomplete"
-                if value["complete"] is False
-                else "Completeness needs review"
+                else (
+                    "Incomplete"
+                    if value["complete"] is False
+                    else "Completeness needs review"
+                )
             )
         if value.get("text"):
             parts.append(str(value["text"]))

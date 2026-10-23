@@ -1,4 +1,5 @@
 """Frozen case inputs and independently dispatched SOP/report jobs."""
+
 from .configuration.repository import get_revision
 
 
@@ -75,7 +76,7 @@ def fingerprint(snapshot):
 
 
 def queue_case(db, case_id):
-    from .domain import audit
+    from app.auditing import audit
 
     case = db.scalar(select(Case).where(Case.id == case_id).with_for_update())
     frozen = inputs(db, case)
@@ -172,7 +173,7 @@ def publish_inbox(db, case, count, missing):
 
 
 def process_case_run(run_id):
-    from .domain import audit
+    from app.auditing import audit
     from .reporting import persist_report
 
     with SessionLocal.begin() as db:
@@ -229,7 +230,9 @@ def process_case_run(run_id):
                         "result": "ERROR",
                         "eligible": False,
                         "message": d.get("error")
-                        or templates.get("processing.incomplete", "Document processing incomplete."),
+                        or templates.get(
+                            "processing.incomplete", "Document processing incomplete."
+                        ),
                         "evidence": {"document_id": d["id"]},
                     }
                 )
@@ -241,7 +244,10 @@ def process_case_run(run_id):
                             "field": d["doc_type"] + "." + k,
                             "result": issue.get("severity", "REVIEW"),
                             "eligible": False,
-                            "message": templates.get("processing.native_quality", "Native document quality check"),
+                            "message": templates.get(
+                                "processing.native_quality",
+                                "Native document quality check",
+                            ),
                             "evidence": {"document_id": d["id"]},
                         }
                     )
@@ -252,7 +258,9 @@ def process_case_run(run_id):
                     "eligible": False,
                     "field": t,
                     "result": "FAIL",
-                    "message": templates.get("processing.required_missing", "Required document missing."),
+                    "message": templates.get(
+                        "processing.required_missing", "Required document missing."
+                    ),
                     "actual": None,
                     "expected": t,
                     "evidence": {},
@@ -266,15 +274,21 @@ def process_case_run(run_id):
         status = (
             "REVIEW"
             if not applicable and not errors
-            else "ERROR"
-            if errors
-            else "FAIL"
-            if any(f["result"] == "FAIL" for f in effective_findings)
-            else "REVIEW"
-            if missing
-            or grouping_findings
-            or any(f["result"] == "REVIEW" for f in effective_findings)
-            else "PASS"
+            else (
+                "ERROR"
+                if errors
+                else (
+                    "FAIL"
+                    if any(f["result"] == "FAIL" for f in effective_findings)
+                    else (
+                        "REVIEW"
+                        if missing
+                        or grouping_findings
+                        or any(f["result"] == "REVIEW" for f in effective_findings)
+                        else "PASS"
+                    )
+                )
+            )
         )
         from .sop_scoring import point_summary
         from .forex_sop import package_summary
@@ -301,17 +315,23 @@ def process_case_run(run_id):
         snapshot["status"] = (
             "PROCESSING_ERROR"
             if errors
-            else "WAITING_DOCUMENTS"
-            if missing
-            else "NEEDS_REVIEW"
-            if any(
-                (not e.get("available") or e.get("link_review_required"))
-                for d in docs
-                for e in d.get("validation", {}).get("visual_evidence", [])
+            else (
+                "WAITING_DOCUMENTS"
+                if missing
+                else (
+                    "NEEDS_REVIEW"
+                    if any(
+                        (not e.get("available") or e.get("link_review_required"))
+                        for d in docs
+                        for e in d.get("validation", {}).get("visual_evidence", [])
+                    )
+                    or status == "REVIEW"
+                    or any(
+                        f["result"] in {"REVIEW", "ERROR"} for f in effective_findings
+                    )
+                    else "READY"
+                )
             )
-            or status == "REVIEW"
-            or any(f["result"] in {"REVIEW", "ERROR"} for f in effective_findings)
-            else "READY"
         )
         with SessionLocal.begin() as db:
             run = db.get(CaseRun, run_id)

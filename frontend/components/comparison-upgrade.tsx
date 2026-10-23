@@ -5,6 +5,7 @@ import { ArrowRightLeft, Eye, CheckCircle2 } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Configuration } from "@/lib/types";
 import { ComparisonFields, type FieldOptions } from "@/components/comparison-fields";
+import { PolicyRules } from "./policy-rules";
 
 type Candidate = { id: string; label: string; left: string; right: string; families: string[] };
 type Preview = { source_version: number; basis_sha256: string; converted_rule_ids: string[]; payload: Configuration };
@@ -49,7 +50,7 @@ export function ComparisonUpgrade({ configuration, version, editable, onApply, f
   useEffect(() => { setPreview(null); setPreviewSource(null); setSelected([]); }, [configuration, version, family]);
   if (!editable) return null;
   const available = candidates.filter(candidate => candidate.families.includes(family) && configuration.sop_rules?.some(rule => rule.id === candidate.id));
-  const configured = (configuration.generic_sop_rules || []).filter(rule => rule.families.includes(family));
+  const configured = (configuration.generic_sop_rules || []).filter(rule => rule.families.includes(family) && (!rule.policy.type || rule.policy.type === "compare"));
   const previewCurrent = preview && previewSource === configuration && preview.source_version === version && previewFamily === family;
   async function inspect() {
     setBusy(true); setError(""); setPreview(null);
@@ -61,7 +62,7 @@ export function ComparisonUpgrade({ configuration, version, editable, onApply, f
     } catch (error) { setError(error instanceof Error ? error.message : "Preview failed."); }
     finally { setBusy(false); }
   }
-  return <><section className="panel settings-card" aria-labelledby="new-comparison-title">
+  return <><PolicyRules configuration={configuration} version={version} family={family} editable={editable} onApply={onApply}/><section className="panel settings-card" aria-labelledby="new-comparison-title">
     <h2 id="new-comparison-title">Add a text comparison</h2>
     <p>Compare two configured fields in this family. Matching values pass for one point; missing, unclear or different values fail. This check does not perform visual verification.</p>
     <div className="form-grid">

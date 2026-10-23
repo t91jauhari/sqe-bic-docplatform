@@ -44,6 +44,13 @@ connector credentials remain decryptable.
 
 ## Rollback
 
+Check operator capability before rolling workers back. Old releases cannot
+evaluate newly published configured_visual, configured_date or configured_money
+policies. Preserve a compatible worker for cases pinned to those publications,
+drain them first, or deploy a forward fix. Retained legacy Config rows alone do
+not make an old evaluator compatible with a new policy. Never repin cases merely
+to make rollback succeed.
+
 Stop new workers before starting old workers. Return traffic to the recorded old
 images with legacy configuration reads/writes. The additive configuration tables
 can remain; do not drop historical rows or migration records. Dual publication
@@ -56,3 +63,17 @@ retry. Never blindly replay paid submissions after a restore.
 No activation is recorded until these steps have actually run against the chosen
 deployment target. A generated compose file or a successful build is not a
 completed cutover.
+
+## Local acceptance boundary
+
+The selected target is local verification first. A copied synthetic preview
+database was opened by the accepted Step41 API on a separate loopback port; both
+old and new APIs authenticated and read published configuration version 7.
+The temporary old API was stopped and the current isolated API restarted.
+No worker, provider request or original application database participated.
+The production frontend build is served separately on port 3100 against API8100.
+This proves local compatibility for existing settings, not rollback of new
+operator policies to old workers or a remote production cutover. A real cutover
+still requires a coordinated database/object capture and server-specific receipt
+reconciliation. The existing database and object restore tests are recovery
+evidence, not a claim that separately timed captures form a coordinated backup.

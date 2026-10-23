@@ -5,7 +5,8 @@ import time
 from llama_cloud import APIError
 
 from .db import Case, Config, Document, Job, SessionLocal
-from .domain import audit, refresh_case, serial
+from app.auditing import audit, serial
+from app.case_lifecycle import refresh_case
 from sqlalchemy import select
 from .evidence import build_evidence, apply_evidence_review
 from .provider import ProcessingIssue, run_provider, validate_extraction
@@ -19,8 +20,9 @@ def process_job(job_id, heartbeat=lambda: None):
         job = db.get(Job, job_id)
         if not job or job.status == "COMPLETED":
             return
-        if job.action == 'reprocess_fields':
+        if job.action == "reprocess_fields":
             from .field_reprocessing import process_fields
+
             db.rollback()
             return process_fields(job_id, heartbeat)
         job.status = "RUNNING"
@@ -31,6 +33,7 @@ def process_job(job_id, heartbeat=lambda: None):
         case.updated_at = time.time()
         cfg = get_revision(db, case.config_id).payload
         from .document_families import extraction_config
+
         cfg = extraction_config(cfg, case.template)
         audit(
             db,
@@ -62,6 +65,7 @@ def process_job(job_id, heartbeat=lambda: None):
             response, classification = run_provider(doc, cfg, beat)
         if response is not None:
             from .spatial_grounding import normalize_response
+
             response = normalize_response(response)
             with SessionLocal.begin() as db:
                 stored = db.get(Document, doc.id)
@@ -72,7 +76,10 @@ def process_job(job_id, heartbeat=lambda: None):
                 stored.metadata_json = serial(response.get("extract_metadata") or {})
                 stored.classification = classification
             # Save raw extraction before validation so invalid schemas never cause another paid job.
-            if cfg.get("provider") == "spider-ai" and cfg["profiles"][doc.doc_type].get("validation_adapter") != "schema":
+            if (
+                cfg.get("provider") == "spider-ai"
+                and cfg["profiles"][doc.doc_type].get("validation_adapter") != "schema"
+            ):
                 from .spider_result import extraction_report
 
                 report = extraction_report(doc, cfg, response)
@@ -87,9 +94,10 @@ def process_job(job_id, heartbeat=lambda: None):
 
             attach_field_evidence(report, build_field_evidence(doc, response))
             with SessionLocal.begin() as db:
-                db.scalar(select(Case).where(Case.id==doc.case_id).with_for_update())
+                db.scalar(select(Case).where(Case.id == doc.case_id).with_for_update())
                 from .profile_context import apply_context
-                report=apply_context(db,doc,cfg,report)
+
+                report = apply_context(db, doc, cfg, report)
                 stored = db.get(Document, doc.id)
                 stored.normalized = report["normalized"]
                 stored.validation = report
@@ -97,7 +105,7 @@ def process_job(job_id, heartbeat=lambda: None):
                 stored.status = "COMPLETED"
                 stored.error = ""
         with SessionLocal.begin() as db:
-            db.scalar(select(Case).where(Case.id==doc.case_id).with_for_update())
+            db.scalar(select(Case).where(Case.id == doc.case_id).with_for_update())
             job = db.get(Job, job_id)
             job.status = "COMPLETED"
             job.lease_until = 0
@@ -113,7 +121,8 @@ def process_job(job_id, heartbeat=lambda: None):
             )
             refresh_case(db, doc.case_id)
             from .profile_context import queue_dependents
-            queue_dependents(db,db.get(Document,doc.id),cfg)
+
+            queue_dependents(db, db.get(Document, doc.id), cfg)
     except Exception as exc:
         if isinstance(exc, ProcessingIssue):
             message = str(exc)

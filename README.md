@@ -3,9 +3,11 @@
 Python/FastAPI document processing, configurable document profiles, SOP controls,
 audited review and Kertas Kerja reports, with a Next.js interface.
 
-Refactoring is in progress. Native compatibility and remaining API services,
-browser acceptance, and deployment activation are still tracked separately.
-This snapshot is not a completed production release.
+The modular backend refactor is verified locally: application services, immutable
+configuration entities, typed SOP policies and configurable family scoring.
+Historical case replay, backend/engine checks and frontend production build are
+covered. Server-specific deployment and production cutover remain separate.
+This snapshot does not claim an activated production release.
 
 This source export deliberately omits customer documents, extraction fixtures,
 reference workbook values, browser screenshots, secrets and previous Git history.

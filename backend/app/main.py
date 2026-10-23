@@ -1,4 +1,5 @@
 """Application composition, lifecycle and middleware."""
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Response
 from fastapi.responses import JSONResponse
@@ -9,13 +10,18 @@ from app.db import SessionLocal
 from app.settings import settings
 from app.configuration.api import router as configuration_router
 from app.extraction.api import router as extraction_settings_router
-from app.configuration.routes import router as configuration_upgrade_router, compatibility_router
+from app.configuration.routes import (
+    router as configuration_upgrade_router,
+    compatibility_router,
+)
 from app.configuration.dataset_routes import router as dataset_registry_router
 from app.configuration.datasets import DatasetIntegrityError
 from app.configuration.report_routes import router as report_configuration_router
 from app.configuration.account_policy_routes import router as account_policy_router
 from app.api.views import report_download_name  # Compatibility export.
 from app.api.dependencies import log
+from app.errors import ApplicationError, ErrorCode
+
 
 @asynccontextmanager
 async def lifespan(_):
@@ -24,7 +30,21 @@ async def lifespan(_):
     initialize_slots()
     yield
 
+
 app = FastAPI(title="SQE Document Automation API", version="0.2.0", lifespan=lifespan)
+
+
+@app.exception_handler(ApplicationError)
+async def application_rejection(request, exc):
+    statuses = {
+        ErrorCode.FORBIDDEN: 403,
+        ErrorCode.NOT_FOUND: 404,
+        ErrorCode.CONFLICT: 409,
+        ErrorCode.TOO_LARGE: 413,
+        ErrorCode.INVALID_INPUT: 422,
+    }
+    return JSONResponse(status_code=statuses[exc.code], content={"detail": exc.detail})
+
 
 app.include_router(configuration_router)
 
@@ -40,9 +60,11 @@ app.include_router(report_configuration_router)
 
 app.include_router(account_policy_router)
 
+
 @app.exception_handler(DatasetIntegrityError)
 async def dataset_integrity_failure(request, exc):
     return JSONResponse(status_code=409, content={"detail": str(exc)})
+
 
 @app.exception_handler(S3Error)
 @app.exception_handler(StorageHTTPError)
@@ -54,6 +76,7 @@ async def storage_unavailable(request, exc):
             "detail": "Document storage is unavailable. Check MinIO connectivity, bucket and server credentials, then retry."
         },
     )
+
 
 @app.middleware("http")
 async def security_headers(request, call_next):
@@ -70,33 +93,47 @@ async def security_headers(request, call_next):
     response.headers["Cache-Control"] = "no-store"
     return response
 
+
 @app.get("/api/health")
 def health():
     with SessionLocal() as db:
         db.execute(select(1))
     return {"status": "ok", "version": "0.3.0"}
 
+
 from app.api.authentication import router as authentication_router
+
 app.include_router(authentication_router)
 from app.api.operations import router as operations_router
+
 app.include_router(operations_router)
 from app.api.administration import router as administration_router
+
 app.include_router(administration_router)
 from app.api.intake import router as intake_router
+
 app.include_router(intake_router)
 from app.api.documents import router as documents_router
+
 app.include_router(documents_router)
 from app.api.cases import router as cases_router
+
 app.include_router(cases_router)
 from app.api.comparisons import router as comparisons_router
+
 app.include_router(comparisons_router)
 from app.api.evidence import router as evidence_router
+
 app.include_router(evidence_router)
 from app.api.field_processing import router as field_processing_router
+
 app.include_router(field_processing_router)
 from app.api.notifications import router as notifications_router
+
 app.include_router(notifications_router)
 from app.api.reports import router as reports_router
+
 app.include_router(reports_router)
 from app.api.exports import router as exports_router
+
 app.include_router(exports_router)

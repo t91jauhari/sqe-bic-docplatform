@@ -6,7 +6,8 @@ import json
 
 from .configuration.profiles import profile_schema, schema_report
 from .db import SessionLocal
-from .domain import LABELS, get_profile, serial
+from app.native_profiles import LABELS, get_profile
+from app.auditing import serial
 from .settings import ROOT, settings
 
 
@@ -15,11 +16,13 @@ from .extraction.contracts import ProcessingIssue
 
 def checkpoint(doc_id, status=None, **state):
     from .extraction.state_repository import SqlProviderState
+
     SqlProviderState(SessionLocal).checkpoint(doc_id, status, **state)
 
 
 def state_of(doc_id):
     from .extraction.state_repository import SqlProviderState
+
     return SqlProviderState(SessionLocal).read(doc_id)
 
 
@@ -35,6 +38,7 @@ def fixture_response(doc_type):
 def run_provider(doc, cfg, heartbeat):
     """Compatibility facade; callers transition through the application service."""
     from .extraction.service import extract_document
+
     result = extract_document(doc, cfg, heartbeat)
     return result.response, result.classification
 
@@ -58,13 +62,18 @@ def run_fixture(doc, cfg, heartbeat):
 
 def run_llama(doc, cfg, heartbeat):
     """Reject historical integrations without submitting another paid job."""
-    raise ProcessingIssue("Llama provider has been removed. Publish a Spider-AI configuration and explicitly upgrade the case before retrying.")
+    raise ProcessingIssue(
+        "Llama provider has been removed. Publish a Spider-AI configuration and explicitly upgrade the case before retrying."
+    )
 
 
 def validate_extraction(doc, cfg, response, authoritative=None):
     from .configuration.field_checks import apply_field_checks
+
     if cfg["profiles"][doc.doc_type].get("validation_adapter") == "schema":
-        return apply_field_checks(schema_report(doc, cfg, response), cfg['profiles'][doc.doc_type])
+        return apply_field_checks(
+            schema_report(doc, cfg, response), cfg["profiles"][doc.doc_type]
+        )
     if cfg.get("provider") == "spider-ai":
         from .spider_result import extraction_report
 
@@ -96,9 +105,9 @@ def validate_extraction(doc, cfg, response, authoritative=None):
                 "normalization_enum_raw_fallback_fields", ["religion"]
             )
         )
-    native_fields=set(profile['schema']['properties'])
+    native_fields = set(profile["schema"]["properties"])
     report = profile["validate"](
-        {k:v for k,v in effective.items() if k in native_fields},
+        {k: v for k, v in effective.items() if k in native_fields},
         response.get("extract_metadata"),
         policy,
         datetime.now(ZoneInfo("Asia/Jakarta")).date(),
@@ -109,13 +118,25 @@ def validate_extraction(doc, cfg, response, authoritative=None):
     report["original_raw"] = raw
     report["review_overrides"] = doc.overrides
     # Registered native validators do not know optional profile extension fields.
-    core = set(profile['schema']['properties'])
-    for key in set(cfg['profiles'][doc.doc_type].get('schema', profile['schema'])['properties']) - core:
+    core = set(profile["schema"]["properties"])
+    for key in (
+        set(
+            cfg["profiles"][doc.doc_type].get("schema", profile["schema"])["properties"]
+        )
+        - core
+    ):
         value = effective.get(key)
         if key in effective:
             from .schema_descriptions import validate_extension_value
-            validate_extension_value(value,cfg['profiles'][doc.doc_type]['schema']['properties'][key],key)
-        report['normalized'][key] = value
-        report.setdefault('fields', {})[key] = {'raw_value':raw.get(key),'normalized_value':value,
-            'status':'REVIEW' if value is None else 'PASS','issues':[]}
-    return serial(apply_field_checks(report, cfg['profiles'][doc.doc_type]))
+
+            validate_extension_value(
+                value, cfg["profiles"][doc.doc_type]["schema"]["properties"][key], key
+            )
+        report["normalized"][key] = value
+        report.setdefault("fields", {})[key] = {
+            "raw_value": raw.get(key),
+            "normalized_value": value,
+            "status": "REVIEW" if value is None else "PASS",
+            "issues": [],
+        }
+    return serial(apply_field_checks(report, cfg["profiles"][doc.doc_type]))

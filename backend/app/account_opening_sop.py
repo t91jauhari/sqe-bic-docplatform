@@ -27,17 +27,21 @@ def _name_abbreviation(left, right):
         if x == y:
             continue
         elif (
-            re.fullmatch(r"[^\W\d_]\.?", x, re.UNICODE)
-            and len(y) > 1 and x[0] == y[0]
+            re.fullmatch(r"[^\W\d_]\.?", x, re.UNICODE) and len(y) > 1 and x[0] == y[0]
         ) or (
-            re.fullmatch(r"[^\W\d_]\.?", y, re.UNICODE)
-            and len(x) > 1 and y[0] == x[0]
+            re.fullmatch(r"[^\W\d_]\.?", y, re.UNICODE) and len(x) > 1 and y[0] == x[0]
         ):
             abbreviated = True
         elif (
-            x.endswith('.') and len(x) > 2 and y.startswith(x[:-1]) and len(y) > len(x[:-1])
+            x.endswith(".")
+            and len(x) > 2
+            and y.startswith(x[:-1])
+            and len(y) > len(x[:-1])
         ) or (
-            y.endswith('.') and len(y) > 2 and x.startswith(y[:-1]) and len(x) > len(y[:-1])
+            y.endswith(".")
+            and len(y) > 2
+            and x.startswith(y[:-1])
+            and len(x) > len(y[:-1])
         ):
             abbreviated = True
         else:
@@ -54,11 +58,12 @@ def _birth_parts(value):
     match = re.search(
         r"(\d{4}[-/.]\d{1,2}[-/.]\d{1,2}|"
         r"\d{1,2}\s*[-/.]\s*\d{1,2}\s*[-/.]\s*\d{4}|"
-        r"\d{1,2}[\s-]+[A-Za-z]+[\s,-]+\d{4})\s*$", value,
+        r"\d{1,2}[\s-]+[A-Za-z]+[\s,-]+\d{4})\s*$",
+        value,
     )
     if not match:
         raise ValueError("Complete birth date is missing.")
-    place = value[:match.start()].strip(' ,/;-')
+    place = value[: match.start()].strip(" ,/;-")
     if not place:
         raise ValueError("Birth place is missing.")
     return normalize(place), parse_date(match.group(1)).isoformat()
@@ -73,9 +78,11 @@ def sources():
     return [
         {
             "source_ref": r["source_ref"],
-            "scope_basis": "ACCOUNT_DOCUMENT_SYSTEM"
-            if r["sheet"] == "SOP System"
-            else "YES_SELECTED",
+            "scope_basis": (
+                "ACCOUNT_DOCUMENT_SYSTEM"
+                if r["sheet"] == "SOP System"
+                else "YES_SELECTED"
+            ),
             "instruction": r["values"][1],
             "guidance": r["values"][2] if len(r["values"]) > 2 else "",
             "original_flag": "Yes" if r["included"] else "No",
@@ -94,15 +101,19 @@ def fields():
             "field": f["key"],
             "path": name + "." + f["key"],
             "label": f["label"],
-            "type": "signature_region"
-            if f["type"] == "visual" and "signature" in f["key"]
-            else "stamp_region"
-            if f["type"] == "visual"
-            else "identifier"
-            if f["type"] == "identifier"
-            else "date"
-            if f["type"] == "date"
-            else "text",
+            "type": (
+                "signature_region"
+                if f["type"] == "visual" and "signature" in f["key"]
+                else (
+                    "stamp_region"
+                    if f["type"] == "visual"
+                    else (
+                        "identifier"
+                        if f["type"] == "identifier"
+                        else "date" if f["type"] == "date" else "text"
+                    )
+                )
+            ),
         }
         for name, p in REFERENCE["profiles"].items()
         for f in p["fields"]
@@ -111,6 +122,7 @@ def fields():
 
 def evaluate_rule(rule, documents, cfg, context):
     from .configuration.account_policies import parse_policy
+
     settings = parse_policy(rule["comparison_policy"])
     kind = settings["kind"]
     actual, left = value_at(documents, rule["path"])
@@ -124,9 +136,10 @@ def evaluate_rule(rule, documents, cfg, context):
 
     def tpl(key):
         """Look up a message template with graceful fallback to the hardcoded default."""
-        from .domain import SOP_MESSAGE_TEMPLATES
+        from app.native_profiles import SOP_MESSAGE_TEMPLATES
 
         return templates.get(key, SOP_MESSAGE_TEMPLATES.get(key, ""))
+
     if kind == "document":
         result = (
             "PASS"
@@ -137,15 +150,24 @@ def evaluate_rule(rule, documents, cfg, context):
             )
             else "FAIL"
         )
-    elif settings.get('trigger'):
+    elif settings.get("trigger"):
         from .configuration.account_policies import condition_result
-        trigger = condition_result(documents, settings['trigger'])
+
+        trigger = condition_result(documents, settings["trigger"])
         if trigger is False:
-            result = 'NOT_APPLICABLE'
+            result = "NOT_APPLICABLE"
         elif trigger is True:
-            result = 'PASS' if any(document['doc_type'] == settings['target'] and document['status'] == 'COMPLETED' for document in documents) else 'FAIL'
+            result = (
+                "PASS"
+                if any(
+                    document["doc_type"] == settings["target"]
+                    and document["status"] == "COMPLETED"
+                    for document in documents
+                )
+                else "FAIL"
+            )
         else:
-            message += ' ' + tpl('ao.conditional_unresolved')
+            message += " " + tpl("ao.conditional_unresolved")
     elif kind in {
         "conditional_edd",
         "conditional_bo",
@@ -165,27 +187,29 @@ def evaluate_rule(rule, documents, cfg, context):
                 trigger = (
                     True
                     if normalize(risk) == "risiko tinggi"
-                    else False
-                    if normalize(risk) in {"risiko rendah", "risiko sedang"}
-                    else None
+                    else (
+                        False
+                        if normalize(risk) in {"risiko rendah", "risiko sedang"}
+                        else None
+                    )
                 )
             elif kind == "conditional_bo":
                 acting = values.get("acting_for")
                 trigger = (
                     True
                     if normalize(acting) == "beneficial owner"
-                    else False
-                    if normalize(acting) == "diri sendiri"
-                    else None
+                    else False if normalize(acting) == "diri sendiri" else None
                 )
             elif kind == "conditional_visit":
                 referral = values.get("referral_source")
                 trigger = (
                     True
                     if normalize(referral) == "marketing"
-                    else False
-                    if normalize(referral) in {"walk in customer", "lainnya"}
-                    else None
+                    else (
+                        False
+                        if normalize(referral) in {"walk in customer", "lainnya"}
+                        else None
+                    )
                 )
             elif kind == "conditional_signature":
                 # A declared difference or audited visual comparison may establish applicability; presence alone never does.
@@ -193,9 +217,7 @@ def evaluate_rule(rule, documents, cfg, context):
                 trigger = (
                     True
                     if observation == "YES"
-                    else False
-                    if observation == "NO"
-                    else None
+                    else False if observation == "NO" else None
                 )
                 if "signature_difference" in visible:
                     trigger = True
@@ -225,9 +247,7 @@ def evaluate_rule(rule, documents, cfg, context):
                         d["doc_type"] == target and d["status"] == "COMPLETED"
                         for d in documents
                     )
-                    else "FAIL"
-                    if target in cfg["profiles"]
-                    else "REVIEW"
+                    else "FAIL" if target in cfg["profiles"] else "REVIEW"
                 )
             else:
                 message += " " + tpl("ao.conditional_unresolved")
@@ -252,7 +272,13 @@ def evaluate_rule(rule, documents, cfg, context):
             except (ValueError, TypeError):
                 pass
     elif kind == "identity_name":
-        if len(left) == len(right) == 1 and isinstance(actual, str) and isinstance(expected, str) and actual.strip() and expected.strip():
+        if (
+            len(left) == len(right) == 1
+            and isinstance(actual, str)
+            and isinstance(expected, str)
+            and actual.strip()
+            and expected.strip()
+        ):
             if normalize(actual) == normalize(expected):
                 result = "PASS"
             elif _name_abbreviation(actual, expected):
@@ -276,9 +302,15 @@ def evaluate_rule(rule, documents, cfg, context):
             and expected
         ):
             from validation import parse_date
+
             try:
                 form_place, form_date = _birth_parts(expected)
-                result = "PASS" if normalize(place) == form_place and parse_date(birth).isoformat() == form_date else "FAIL"
+                result = (
+                    "PASS"
+                    if normalize(place) == form_place
+                    and parse_date(birth).isoformat() == form_date
+                    else "FAIL"
+                )
             except (ValueError, TypeError, OverflowError):
                 result = "FAIL"
                 message += " Complete explicit birth place and date are required; a missing component is not inferred from NIK."
@@ -328,10 +360,18 @@ def evaluate_rule(rule, documents, cfg, context):
             )
             pattern = settings.get("required_pattern")
             allowed = settings.get("allowed_values")
-            if pattern and not all(isinstance(v, str) and re.fullmatch(pattern, v.strip()) for v in (actual, expected)):
+            if pattern and not all(
+                isinstance(v, str) and re.fullmatch(pattern, v.strip())
+                for v in (actual, expected)
+            ):
                 result = "FAIL"
-                message += " Both document values must satisfy the required literal format."
-            if allowed and not all(isinstance(v, str) and normalize(v) in {normalize(a) for a in allowed} for v in (actual, expected)):
+                message += (
+                    " Both document values must satisfy the required literal format."
+                )
+            if allowed and not all(
+                isinstance(v, str) and normalize(v) in {normalize(a) for a in allowed}
+                for v in (actual, expected)
+            ):
                 result = "FAIL"
                 message += " Both document values must use an approved code."
             for pair in settings.get("companion_matches", []):
@@ -339,11 +379,20 @@ def evaluate_rule(rule, documents, cfg, context):
                 second, second_docs = value_at(documents, pair["other_path"])
                 matched = (
                     len(first_docs) == len(second_docs) == 1
-                    and isinstance(first, str) and isinstance(second, str)
-                    and bool(first.strip()) and bool(second.strip())
+                    and isinstance(first, str)
+                    and isinstance(second, str)
+                    and bool(first.strip())
+                    and bool(second.strip())
                     and normalize(first) == normalize(second)
                 )
-                component_checks.append({**pair, "actual": first, "expected": second, "result": "PASS" if matched else "FAIL"})
+                component_checks.append(
+                    {
+                        **pair,
+                        "actual": first,
+                        "expected": second,
+                        "result": "PASS" if matched else "FAIL",
+                    }
+                )
                 if not matched:
                     result = "FAIL"
                     message += " Customer job title must also match verbatim; employer signatory/officer titles cannot substitute."
@@ -375,7 +424,10 @@ def evaluate_rule(rule, documents, cfg, context):
     if result in {"PASS", "FAIL"}:
         checked_paths = [(rule["path"], left), (rule.get("other_path"), right)]
         for component in component_checks:
-            checked_paths.extend((path, value_at(documents, path)[1]) for path in (component["path"], component["other_path"]))
+            checked_paths.extend(
+                (path, value_at(documents, path)[1])
+                for path in (component["path"], component["other_path"])
+            )
         for path, refs in checked_paths:
             if not path:
                 continue
@@ -430,35 +482,21 @@ def evaluate_rule(rule, documents, cfg, context):
     }
     if signature_review_required:
         finding["signature_review_required"] = True
-        finding["evidence"]["supporting_paths"] = ["ektp.owner_signature", "account_opening_form.customer_signature"]
+        from .configuration.seed_catalog import seed_value
+
+        finding["evidence"]["supporting_paths"] = settings.get(
+            "supporting_paths"
+        ) or seed_value("account_identity.signature_paths")
     if component_checks:
         finding["evidence"]["component_checks"] = component_checks
+    if settings.get("supporting_paths"):
+        finding["evidence"]["supporting_paths"] = settings["supporting_paths"]
     return finding
 
 
 def score(findings):
-    def roll(values):
-        return (
-            0 if 0 in values else 1 if values and all(v == 1 for v in values) else None
-        )
+    from .configuration.scoring import category_scores, ScoreGroups, defaults
 
-    scores = {}
-    for category in CATEGORIES:
-        results = [
-            f["result"]
-            for f in findings
-            if f.get("eligible")
-            and f["category"] == category
-            and f["result"] != "NOT_APPLICABLE"
-        ]
-        scores[category] = (
-            0
-            if "FAIL" in results
-            else 1
-            if results and all(v == "PASS" for v in results)
-            else None
-        )
-    scores["total_a"] = roll([scores[c] for c in CATEGORIES[:3]])
-    scores["total_b"] = roll([scores[c] for c in CATEGORIES[3:]])
-    scores["total"] = roll([scores["total_a"], scores["total_b"]])
-    return scores
+    return category_scores(
+        findings, ScoreGroups.model_validate(defaults()["account_opening"])
+    )

@@ -1,15 +1,19 @@
 """Exports HTTP boundary."""
+
 from fastapi import APIRouter
 import csv
 import io
 from fastapi import Depends, HTTPException, Response
 from sqlalchemy import select
 from app.db import Document, SessionLocal
-from app.domain import LABELS, audit, latest_config
+from app.native_profiles import LABELS
+from app.auditing import audit
+from app.configuration.revisions import latest_config
 from app.reporting import csv_safe
 from app.security import current_user, scoped
 
-router = APIRouter(tags=['exports'])
+router = APIRouter(tags=["exports"])
+
 
 @router.get("/api/exports/{doc_type}")
 def export_csv(doc_type: str, user=Depends(current_user)):
@@ -21,12 +25,19 @@ def export_csv(doc_type: str, user=Depends(current_user)):
                 select(Document).where(Document.doc_type == doc_type), Document, user
             ).order_by(Document.created_at)
         ).all()
-        columns = list(latest_config(db,user.org).payload['profiles'][doc_type]['columns'])
-        known = {k for k,_ in columns}
+        columns = list(
+            latest_config(db, user.org).payload["profiles"][doc_type]["columns"]
+        )
+        known = {k for (k, _) in columns}
         for doc in docs:
             for key in doc.normalized:
-                if key not in known and not key.startswith('_') and key != 'page_results':
-                    columns.append([key,key]);known.add(key)
+                if (
+                    key not in known
+                    and (not key.startswith("_"))
+                    and (key != "page_results")
+                ):
+                    columns.append([key, key])
+                    known.add(key)
         stream = io.StringIO(newline="")
         writer = csv.writer(stream)
         writer.writerow(
@@ -48,7 +59,7 @@ def export_csv(doc_type: str, user=Depends(current_user)):
                     d.status,
                     d.validation_status,
                 ]
-                + [csv_safe(d.normalized.get(k)) for k, _ in columns]
+                + [csv_safe(d.normalized.get(k)) for (k, _) in columns]
             )
         audit(
             db,

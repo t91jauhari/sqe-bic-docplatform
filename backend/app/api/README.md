@@ -23,11 +23,17 @@ not import `app.main` or call another HTTP endpoint as a service.
 `dependencies` contains shared role dependencies. Configuration and provider
 administration retain their own package routers and application services.
 
-This first split deliberately preserves existing endpoint bodies and transaction
-boundaries. Some routers still orchestrate database queries directly. Further
-service extraction must preserve organization/branch authorization, immutable case
-configuration pins, audit writes and provider receipt semantics. Moving a handler
-does not by itself complete that service separation.
+Feature routes delegate 43 operations to `app.application`. Application services
+own transaction orchestration and use transport-independent errors, access checks,
+DTOs and upload ports. Authentication cookies and binary HTTP responses stay at
+the HTTP boundary. Configuration and provider administration have their own
+services. Services do not import FastAPI, Starlette, API routers or `app.domain`.
+
+`app.contracts` and `app.projections` own shared models and projections; the API
+modules re-export them for compatibility. `app.domain` is a compatibility facade;
+bootstrap, validation, auditing, routing and case lifecycle have separate owners.
+This remains a modular monolith with SQLAlchemy transactions and asynchronous
+workers. Registered algorithms, authentication and state transitions remain code.
 
 Keep public paths and request/response contracts compatible. API tests should
 exercise behavior through the composed application; patch a dependency in the

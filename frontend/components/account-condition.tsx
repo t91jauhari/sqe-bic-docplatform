@@ -7,6 +7,15 @@ export function AccountCondition({value,onChange,fields}: {value:string;onChange
   let policy:Record<string,unknown>;
   try {policy=JSON.parse(value);} catch {return null;}
   if (!policy || typeof policy!=="object" || Array.isArray(policy)) return null;
+  if (policy.require_two_signatures===true) {
+    const paths=Array.isArray(policy.supporting_paths)?policy.supporting_paths as string[]:[];
+    return <fieldset className="panel"><legend>Signature evidence bindings</legend><p>Choose the two source signing regions. The reviewer must inspect both before accepting a permitted name abbreviation.</p>
+      {[0,1].map(index=><label key={index}>Signing region {index+1}<select value={paths[index]||""} onChange={event=>{const next=[paths[0]||"",paths[1]||""];next[index]=event.target.value;onChange(JSON.stringify({...policy,supporting_paths:next}));}}>
+        <option value="">Use historical source region</option>{fields.filter(field=>field.type==="signature_region").map(field=><option key={field.path} value={field.path}>{field.document} · {field.label}</option>)}
+      </select></label>)}
+      {paths.length>0&&<button type="button" onClick={()=>{const next={...policy};delete next.supporting_paths;onChange(JSON.stringify(next));}}>Use historical evidence bindings</button>}
+    </fieldset>;
+  }
   if (typeof policy.kind!=="string" || !policy.kind.startsWith("conditional_")) return null;
   const trigger=policy.trigger as Condition|undefined;
   if (trigger && (typeof trigger!=="object" || typeof trigger.path!=="string" || !Array.isArray(trigger.true_values) || !Array.isArray(trigger.false_values) || [...trigger.true_values,...trigger.false_values].some(value=>typeof value!=="string"))) return <p role="alert">Correct the condition structure in the policy field below before using the editor.</p>;

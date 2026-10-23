@@ -2,7 +2,8 @@
 
 import re
 from difflib import SequenceMatcher
-from .domain import route, SOP_MESSAGE_TEMPLATES
+from app.filename_routing import route
+from app.native_profiles import SOP_MESSAGE_TEMPLATES
 from .configuration.identity import expands, tokens
 
 
@@ -51,9 +52,8 @@ def plan_grouping(filenames, cfg, overrides=None):
                 continue
             # Prefer a natural-cased display name over an ALL-CAPS variant
             # (EKTP filenames are often fully uppercased).
-            better = (
-                not row["candidate_name"].isupper()
-                and (current.isupper() or row["candidate_name"].istitle())
+            better = not row["candidate_name"].isupper() and (
+                current.isupper() or row["candidate_name"].istitle()
             )
             if better:
                 names[identity] = row["candidate_name"]
@@ -156,11 +156,18 @@ def identity_conflicts(documents, cfg=None):
     }
     policy = None
     if cfg is not None and "identity_policy" in cfg:
-        from .configuration.identity import IdentityPolicy, conflicting_pairs, validate_bindings
+        from .configuration.identity import (
+            IdentityPolicy,
+            conflicting_pairs,
+            validate_bindings,
+        )
 
         policy = IdentityPolicy.model_validate(cfg["identity_policy"])
         validate_bindings(policy, cfg["profiles"])
-        paths = {binding.profile: tuple(binding.field_path.split(".")) for binding in policy.bindings}
+        paths = {
+            binding.profile: tuple(binding.field_path.split("."))
+            for binding in policy.bindings
+        }
     for doc in documents:
         if doc.get("status") != "COMPLETED" or doc.get("doc_type") not in paths:
             continue

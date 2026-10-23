@@ -83,7 +83,10 @@ export type Configuration = {
   generic_sop_rules?: {
     id: string; label: string; enabled?: boolean; families: string[];
     report_category: string; source_ref?: string;
-    policy: { type?: "compare"; left: string; right: string; normalization?: "literal" | "casefold_whitespace"; pattern?: string | null };
+    policy: { type?: "compare" | "visual" | "date" | "money"; left: string; right: string; normalization?: "literal" | "casefold_whitespace"; pattern?: string | null;
+      check?: "presence" | "consistency" | "placement" | "all_pages"; expected_pages?: number | null;
+      relation?: "equal" | "on_or_after"; left_currency?: string; right_currency?: string;
+      decimal_separator?: "." | ","; thousands_separator?: "." | "," | " " | null };
     schema_paths?: Record<string, string>;
     applicability?: { context_key: string; equals: string } | null;
   }[];
@@ -136,6 +139,7 @@ export type Configuration = {
   cross_page_reference?: boolean;
 };
 export type DocumentFamilyConfig = {
+  scoring_policy?: {total_a:string[];total_b:string[]};
   comparison_policy?: Partial<import("@/components/dataset-policy").DatasetPolicy>;
   report_definition?: NonNullable<Configuration["report_definitions"]>[string] | null;
   label: string;

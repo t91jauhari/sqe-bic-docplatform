@@ -14,6 +14,7 @@ CATEGORIES = (
     "OFFICER_REVIEW_APPROVAL",
 )
 from .configuration.contexts import enum_options
+
 CONTEXT = enum_options({})  # Compatibility export for older callers.
 OPERATORS = {
     "account_check": None,
@@ -61,16 +62,12 @@ def catalog(name):
 
 
 def defaults():
+    from .configuration.seed_catalog import seed_value
+
     return {
         "workflow": catalog("workflow"),
         "sop_rules": catalog("rules"),
-        "report_context": {
-            "region_name": "",
-            "category": "Forex",
-            "activity": "Document review",
-            "inspection_type": "SOP",
-            "period": "",
-        },
+        **seed_value("bootstrap.sop"),
         "report_mapping": {c: c for c in CATEGORIES},
     }
 
@@ -217,9 +214,37 @@ def validate_business(cfg):
         if op == "account_check":
             try:
                 from .configuration.account_policies import parse_policy
+
                 account_policy = parse_policy(r["comparison_policy"])
-                if account_policy.get('trigger') and account_policy['trigger']['path'] not in registry:
-                    raise ValueError('Unknown conditional source field')
+                if account_policy.get("supporting_paths"):
+                    from .configuration.sop_policies import (
+                        VisualPolicy,
+                        validate_visual_binding,
+                    )
+
+                    for evidence_path in account_policy["supporting_paths"]:
+                        if evidence_path.split(".", 1)[0] not in {
+                            r["path"].split(".", 1)[0],
+                            r.get("other_path", "").split(".", 1)[0],
+                        }:
+                            raise ValueError(
+                                "Signature evidence must come from the two compared document profiles."
+                            )
+                        validate_visual_binding(
+                            cfg["profiles"],
+                            evidence_path,
+                            VisualPolicy(
+                                type="visual",
+                                check="presence",
+                                left=evidence_path,
+                                right=evidence_path,
+                            ),
+                        )
+                if (
+                    account_policy.get("trigger")
+                    and account_policy["trigger"]["path"] not in registry
+                ):
+                    raise ValueError("Unknown conditional source field")
                 if (
                     not isinstance(account_policy, dict)
                     or not r["source_ref"].startswith("AO:")
@@ -242,7 +267,9 @@ def validate_business(cfg):
                 ):
                     raise ValueError("Unknown Account Opening check")
                 for pair in account_policy.get("companion_matches", []):
-                    if not isinstance(pair, dict) or any(pair.get(key) not in registry for key in ("path", "other_path")):
+                    if not isinstance(pair, dict) or any(
+                        pair.get(key) not in registry for key in ("path", "other_path")
+                    ):
                         raise ValueError("Unknown Account Opening companion field")
                 pattern = account_policy.get("required_pattern")
                 if pattern is not None:
@@ -250,14 +277,20 @@ def validate_business(cfg):
                         raise ValueError("Invalid literal format pattern")
                     re.compile(pattern)
                 allowed = account_policy.get("allowed_values")
-                if allowed is not None and (not isinstance(allowed, list) or not allowed or any(not isinstance(value, str) or not value for value in allowed)):
+                if allowed is not None and (
+                    not isinstance(allowed, list)
+                    or not allowed
+                    or any(not isinstance(value, str) or not value for value in allowed)
+                ):
                     raise ValueError("Invalid approved code list")
                 if account_policy.get("kind") == "identity_name" and (
                     r["path"] != "ektp.name"
                     or r.get("other_path") != "account_opening_form.customer_name"
                     or account_policy.get("require_two_signatures") is not True
                 ):
-                    raise ValueError("Identity abbreviation review requires both official customer signature sources")
+                    raise ValueError(
+                        "Identity abbreviation review requires both official customer signature sources"
+                    )
             except (ValueError, TypeError, KeyError, re.error):
                 raise ValueError("Invalid Account Opening check policy")
         condition = r.get("condition_operator", "always")
@@ -271,7 +304,9 @@ def validate_business(cfg):
                 if isinstance(values, str) and condition == "in"
                 else [values]
             )
-            if key not in enum_options(cfg) or not set(values) <= set(enum_options(cfg)[key]):
+            if key not in enum_options(cfg) or not set(values) <= set(
+                enum_options(cfg)[key]
+            ):
                 raise ValueError("Invalid case-context condition.")
         if condition == "document_present" and r.get("condition_value") not in {
             f["document"] for f in fields()
@@ -309,20 +344,26 @@ def evaluate(documents, cfg, context):
 
     def tpl(key):
         """Look up a message template with graceful fallback to the hardcoded default."""
-        from .domain import SOP_MESSAGE_TEMPLATES
+        from app.native_profiles import SOP_MESSAGE_TEMPLATES
 
         return templates.get(key, SOP_MESSAGE_TEMPLATES.get(key, ""))
 
     for r in cfg.get("sop_rules", []):
         if not r["enabled"]:
             continue
-        if r.get("operator") == "configured_compare":
+        if r.get("operator") in {
+            "configured_compare",
+            "configured_visual",
+            "configured_date",
+            "configured_money",
+        }:
             from .configuration.generic_sop import evaluate_generic
 
             findings.append(evaluate_generic(r, documents, context))
             continue
         if r.get("source_ref", "").startswith("SOP3:"):
             from .forex_sop import evaluate_rule as evaluate_forex_rule
+
             findings.append(evaluate_forex_rule(r, documents, cfg, context))
             continue
         if r.get("operator") == "account_check":
@@ -571,28 +612,6 @@ def evaluate(documents, cfg, context):
 
 
 def score(findings):
-    def roll(values):
-        return (
-            0 if 0 in values else 1 if values and all(v == 1 for v in values) else None
-        )
+    from .configuration.scoring import category_scores, ScoreGroups, defaults
 
-    scores = {}
-    for category in CATEGORIES:
-        results = [
-            f["result"]
-            for f in findings
-            if f.get("eligible")
-            and f.get("category") == category
-            and f["result"] != "NOT_APPLICABLE"
-        ]
-        scores[category] = (
-            0
-            if "FAIL" in results
-            else 1
-            if results and all(r == "PASS" for r in results)
-            else None
-        )
-    scores["total_a"] = roll([scores[CATEGORIES[0]], scores[CATEGORIES[1]]])
-    scores["total_b"] = roll([scores[CATEGORIES[2]], scores[CATEGORIES[3]]])
-    scores["total"] = roll([scores["total_a"], scores["total_b"]])
-    return scores
+    return category_scores(findings, ScoreGroups.model_validate(defaults()["forex"]))

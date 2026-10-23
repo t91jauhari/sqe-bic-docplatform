@@ -1,11 +1,13 @@
 """Add independent Spider instructions without changing the active provider."""
+
 from .configuration.publication import persist_revision
 
 
 import copy
 from sqlalchemy import select, text
 from .db import Config, SessionLocal
-from .domain import latest_config, audit
+from app.configuration.revisions import latest_config
+from app.auditing import audit
 from .spider_provider import DEFAULT_INSTRUCTION
 
 
@@ -21,11 +23,13 @@ def seed_spider():
             for profile in payload["profiles"].values():
                 profile.setdefault("system_instruction", DEFAULT_INSTRUCTION)
             if payload != previous.payload:
-                persist_revision(db, Config(
+                persist_revision(
+                    db,
+                    Config(
                         org=org,
                         version=previous.version + 1,
                         payload=payload,
                         published_by="system.spider-ai",
-                    )
+                    ),
                 )
                 audit(db, org, "system", "configuration.spider_instructions_seeded")

@@ -1,7 +1,9 @@
 """Shared authorization policies and request-independent API infrastructure."""
+
 import logging
 import secrets
-from app.security import hash_password, require_roles
+from app.crypto import hash_password
+from app.security import require_roles
 
 WRITE = require_roles("bank_admin", "branch_admin", "officer", "reviewer")
 REVIEW = require_roles("bank_admin", "branch_admin", "reviewer")

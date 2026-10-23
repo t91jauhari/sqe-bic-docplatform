@@ -1,3 +1,24 @@
+# Current backend architecture
+
+The refactored backend is a modular monolith: HTTP adapters call application
+services; services orchestrate SQLAlchemy transactions and registered domain
+capabilities; provider adapters and durable workers perform external processing.
+Shared DTOs, access checks, errors and upload ports are transport independent.
+Configuration publications and case pins preserve behavior across revisions.
+
+Seven entity tables store family/profile/variant/flow/report/SOP definitions for
+new publications. Typed JSON schemas keep nested configuration evolvable. Old
+publications compile losslessly through their original storage version. Seed
+catalogs supply explicit initialization and historical compatibility only.
+No startup business publication, full event sourcing or microservice split is
+required. Security, evaluator algorithms and state transitions belong in code;
+customer-specific settings and approved business policy belong in configuration.
+
+The original application remains available during isolated verification.
+Production activation requires the deployment runbook and coordinated backups.
+
+---
+
 # v0.3 update
 
 See [release notes](docs/RELEASE_0_3.md) for the current evidence/RIPLAY behavior and remaining tasks.

@@ -46,17 +46,17 @@ def export_config(cfg):
         s.append(headers)
         for row in rows:
             values = [
+                (
                     json.dumps(v, ensure_ascii=False)
                     if isinstance(v, (dict, list))
-                    else "YES"
-                    if v is True
-                    else "NO"
-                    if v is False
-                    else v
-                    for v in row
-                ]
+                    else "YES" if v is True else "NO" if v is False else v
+                )
+                for v in row
+            ]
             if any(isinstance(value, str) and len(value) > 32767 for value in values):
-                raise ValueError(f'{name}: a setting exceeds the Excel cell limit; use configuration JSON export.')
+                raise ValueError(
+                    f"{name}: a setting exceeds the Excel cell limit; use configuration JSON export."
+                )
             s.append(values)
         for c in s[1]:
             c.font = Font(color="FFFFFF", bold=True)
@@ -102,10 +102,29 @@ def export_config(cfg):
         "General Settings",
         ["key", "value"],
         [
-            [k, cfg.get(k, {}) if k in {"forex_sop_policy", "document_families", "customer_aliases", "suffix_aliases", "sop_message_templates"}
-             else cfg.get(k, []) if k == "grouping_prefixes"
-             else cfg.get(k, "PASS") if k == "sop_review_bypass_result"
-             else cfg[k]]
+            [
+                k,
+                (
+                    cfg.get(k, {})
+                    if k
+                    in {
+                        "forex_sop_policy",
+                        "document_families",
+                        "customer_aliases",
+                        "suffix_aliases",
+                        "sop_message_templates",
+                    }
+                    else (
+                        cfg.get(k, [])
+                        if k == "grouping_prefixes"
+                        else (
+                            cfg.get(k, "PASS")
+                            if k == "sop_review_bypass_result"
+                            else cfg[k]
+                        )
+                    )
+                ),
+            ]
             for k in [
                 "provider",
                 "maker_checker",
@@ -121,15 +140,19 @@ def export_config(cfg):
                 "suffix_aliases",
                 "sop_message_templates",
                 "forex_sop_policy",
-            ] + (['report_definitions'] if 'report_definitions' in cfg else []) + (['family_catalog_mode'] if 'family_catalog_mode' in cfg else [])
+            ]
+            + (["report_definitions"] if "report_definitions" in cfg else [])
+            + (["family_catalog_mode"] if "family_catalog_mode" in cfg else [])
         ],
     )
-    family_rows=[]
-    for key,value in cfg.get('document_families',{}).items():
-        if len(json.dumps(value,ensure_ascii=False))>32767:
-            raise ValueError(f'{key}: family configuration exceeds the Excel cell limit; use configuration JSON export.')
-        family_rows.append([key,value])
-    sheet('Document Families',['family_id','configuration_json'],family_rows)
+    family_rows = []
+    for key, value in cfg.get("document_families", {}).items():
+        if len(json.dumps(value, ensure_ascii=False)) > 32767:
+            raise ValueError(
+                f"{key}: family configuration exceeds the Excel cell limit; use configuration JSON export."
+            )
+        family_rows.append([key, value])
+    sheet("Document Families", ["family_id", "configuration_json"], family_rows)
     sheet(
         "Workflow",
         [
@@ -339,15 +362,18 @@ def import_config(data, base):
             fail(name, n, list(r).index(key) + 1, "Invalid JSON.")
             return default
 
-    if 'Document Families' in w.sheetnames:
-        family_values={}
-        for n,r in rows('Document Families',['family_id','configuration_json']):
-            key=r['family_id']
-            if not isinstance(key,str) or key in family_values:
-                fail('Document Families',n,1,'Family IDs must be distinct strings.')
+    if "Document Families" in w.sheetnames:
+        family_values = {}
+        for n, r in rows("Document Families", ["family_id", "configuration_json"]):
+            key = r["family_id"]
+            if not isinstance(key, str) or key in family_values:
+                fail("Document Families", n, 1, "Family IDs must be distinct strings.")
                 continue
-            family_values[key]=parse('Document Families',n,r,'configuration_json',{})
-        if family_values or 'document_families' in cfg:cfg['document_families']=family_values
+            family_values[key] = parse(
+                "Document Families", n, r, "configuration_json", {}
+            )
+        if family_values or "document_families" in cfg:
+            cfg["document_families"] = family_values
 
     wf = []
     for n, r in rows(
@@ -406,11 +432,24 @@ def import_config(data, base):
             fail("General Settings", n, 1, "Unknown or duplicate setting.")
             continue
         general_seen.add(key)
-        if key in {"report_definitions", "document_families", "name_directory", "customer_aliases", "suffix_aliases", "sop_message_templates", "forex_sop_policy"}:
+        if key in {
+            "report_definitions",
+            "document_families",
+            "name_directory",
+            "customer_aliases",
+            "suffix_aliases",
+            "sop_message_templates",
+            "forex_sop_policy",
+        }:
             cfg[key] = parse("General Settings", n, r, "value", {})
         elif key == "grouping_prefixes":
             cfg[key] = parse("General Settings", n, r, "value", [])
-        elif key in {"maker_checker", "sop_review_bypass", "sequential_page_extraction", "cross_page_reference"}:
+        elif key in {
+            "maker_checker",
+            "sop_review_bypass",
+            "sequential_page_extraction",
+            "cross_page_reference",
+        }:
             if r["value"] not in {"YES", "NO"}:
                 fail("General Settings", n, 2, "Use YES or NO.")
             cfg[key] = r["value"] == "YES"
@@ -420,14 +459,30 @@ def import_config(data, base):
             cfg[key] = r["value"]
         else:
             cfg[key] = r["value"]
-    required_general = general_keys - {"family_catalog_mode", "report_definitions", "document_families", "customer_aliases", "sop_review_bypass", "sop_review_bypass_result",
-                                        "sequential_page_extraction", "cross_page_reference",
-                                        "grouping_prefixes", "suffix_aliases", "sop_message_templates", "forex_sop_policy"}
+    required_general = general_keys - {
+        "family_catalog_mode",
+        "report_definitions",
+        "document_families",
+        "customer_aliases",
+        "sop_review_bypass",
+        "sop_review_bypass_result",
+        "sequential_page_extraction",
+        "cross_page_reference",
+        "grouping_prefixes",
+        "suffix_aliases",
+        "sop_message_templates",
+        "forex_sop_policy",
+    }
     if general_seen - {"customer_aliases"} != general_keys - {"customer_aliases"}:
         # Old-format workbooks may not have the new keys; only fail if core keys are missing.
         missing_core = required_general - general_seen
         if missing_core:
-            fail("General Settings", 1, 1, f"Missing required settings: {', '.join(sorted(missing_core))}.")
+            fail(
+                "General Settings",
+                1,
+                1,
+                f"Missing required settings: {', '.join(sorted(missing_core))}.",
+            )
     seen = set()
     profile_headers = [
         "document_type",
@@ -437,10 +492,13 @@ def import_config(data, base):
         "system_prompt",
         "policy_json",
     ]
-    if 'Document Profiles' in w:
-        for column in range(7, w['Document Profiles'].max_column + 1):
-            header = w['Document Profiles'].cell(1, column).value
-            if header in {'system_instruction', 'field_checks_json'} and header not in profile_headers:
+    if "Document Profiles" in w:
+        for column in range(7, w["Document Profiles"].max_column + 1):
+            header = w["Document Profiles"].cell(1, column).value
+            if (
+                header in {"system_instruction", "field_checks_json"}
+                and header not in profile_headers
+            ):
                 profile_headers.append(header)
     for n, r in rows("Document Profiles", profile_headers):
         name = r["document_type"]
@@ -450,8 +508,10 @@ def import_config(data, base):
         seen.add(name)
         if "system_instruction" in r:
             cfg["profiles"][name]["system_instruction"] = r["system_instruction"]
-        if 'field_checks_json' in r and r['field_checks_json'] is not None:
-            cfg['profiles'][name]['field_checks'] = parse('Document Profiles', n, r, 'field_checks_json', {})
+        if "field_checks_json" in r and r["field_checks_json"] is not None:
+            cfg["profiles"][name]["field_checks"] = parse(
+                "Document Profiles", n, r, "field_checks_json", {}
+            )
         cfg["profiles"][name].update(
             label=r["label"],
             suffixes=parse("Document Profiles", n, r, "suffixes_json", []),
@@ -515,7 +575,7 @@ def import_config(data, base):
                     value = w["Transaction Flows"].cell(n, extended[key]).value
                     if value is not None:
                         flow[key] = value
-                    elif key!='dataset_id' or flow.get(key,'absent') is not None:
+                    elif key != "dataset_id" or flow.get(key, "absent") is not None:
                         flow.pop(key, None)
             if "report_context_json" in extended:
                 try:
@@ -548,7 +608,7 @@ def import_config(data, base):
             continue
         cfg["report_context"][r["key"]] = str(r["value"] or "")
     if not errors:
-        from .domain import validate_config
+        from app.configuration.validation import validate_config
 
         try:
             validate_config(cfg)

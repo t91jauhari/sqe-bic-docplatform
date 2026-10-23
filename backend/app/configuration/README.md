@@ -1,3 +1,30 @@
+# Versioned configuration storage
+
+New publications use storage_version 2 with seven dedicated entity tables for
+families, profiles, variants, flows, reports and both SOP rule forms. Older v1
+publications retain their original ordered entry storage and compile losslessly.
+Identity bindings, scopes, contexts and reference datasets have dedicated tables.
+Seven explicit PostgreSQL migrations enforce revision immutability and prevent
+late child inserts. SQLite tests use metadata and application digest protection;
+PostgreSQL integration tests cover actual mutation guards.
+
+Typed contracts cover text, date, amount/currency, visual evidence, conditions,
+field checks, contexts, dataset comparison and reporting. Active settings are
+case-pinned. Catalog files are bootstrap/historical compatibility inputs only.
+Application services use the configuration repository/publication boundaries.
+All writers retain caller-owned transactions and audit events.
+
+Apply migrations and imports explicitly; startup never publishes or upgrades
+business definitions. CONFIGURATION_STORAGE_MODE defaults to legacy; dual mode
+writes both stores atomically. Verify/normalized reads require dual mode and all
+historical imports. Readiness fails closed if schema/checksums/history differ.
+Production activation follows docs/refactor/ROLLOUT.md.
+
+The following notes record the earlier incremental implementation; Step42 above
+supersedes their pending entity/policy/UI work statements.
+
+---
+
 # Configuration storage — first implementation slice
 
 `store.py` introduces separate publication and entry tables. It does not modify

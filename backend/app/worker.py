@@ -14,7 +14,9 @@ from temporalio.worker import Worker
 
 from .case_processing import process_case_run, publish_inbox
 from .db import Case, CaseRun, Document, Job, SessionLocal
-from .domain import audit, refresh_case, seed
+from app.auditing import audit
+from app.case_lifecycle import refresh_case
+from app.configuration.bootstrap import seed
 from .processor import process_job
 from .settings import settings
 from .workflow import CaseSOPWorkflow, DocumentWorkflow

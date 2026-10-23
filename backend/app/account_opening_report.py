@@ -1,5 +1,7 @@
 """Account Opening Kertas Kerja layout, preserving evidence sheets and machine snapshots."""
 
+from .configuration.seed_catalog import seed_value
+
 import copy
 import io
 from openpyxl import load_workbook
@@ -8,29 +10,7 @@ from .sop import value_at
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-HEADERS = [
-    "No",
-    "Finding Status",
-    "Data Count",
-    "Customer Name",
-    "Account No.",
-    "Transaction Type",
-    "Inputter",
-    "Approver",
-    "Transaction Carrier",
-    "Transaction Date",
-    "Inspection Date",
-    "Data Completion",
-    "Customer Signature",
-    "Officer Review & Approval",
-    "Total A",
-    "Document Completion",
-    "Document Verification",
-    "Observations",
-    "Total B",
-    "Total",
-    "Remarks (Product)",
-]
+HEADERS = seed_value("account_opening_report.HEADERS")
 
 
 def render(snapshots, legacy):
@@ -44,7 +24,8 @@ def render(snapshots, legacy):
         sheet.cell(11, col, label)
     for number, snap in enumerate(snapshots, 1):
         from .configuration.reporting import project_report
-        projected, timezone = project_report(snap, 'account_opening')
+
+        projected, timezone = project_report(snap, "account_opening")
         scores = snap.get("scores", {})
         remarks = []
         for finding in snap["findings"]:
@@ -54,25 +35,25 @@ def render(snapshots, legacy):
                 )
         remarks += ["Required document missing: " + v for v in snap.get("missing", [])]
         # The supplied schema labels this as an existing account, not the new account.
-        if not projected['account']:
+        if not projected["account"]:
             remarks.append(
                 "New account number is not a separate field in the supplied extraction specification; provide document-supported report context rather than copying an existing account number."
             )
         values = [
             number,
-            "Yes"
-            if scores.get("total") == 0
-            else "Review"
-            if scores.get("total") is None
-            else "No",
+            (
+                "Yes"
+                if scores.get("total") == 0
+                else "Review" if scores.get("total") is None else "No"
+            ),
             1,
-            projected['customer'],
-            projected['account'],
-            projected['transaction_type'],
-            projected['inputter'],
-            projected['approver'],
-            projected['carrier'],
-            projected['transaction_date'],
+            projected["customer"],
+            projected["account"],
+            projected["transaction_type"],
+            projected["inputter"],
+            projected["approver"],
+            projected["carrier"],
+            projected["transaction_date"],
             datetime.fromtimestamp(
                 snap.get("sop_completed_at", snap["generated_at"]),
                 ZoneInfo(timezone),
@@ -123,6 +104,7 @@ def render(snapshots, legacy):
     sheet.cell(end + 2, 4, "Scored cases")
     sheet.cell(end + 3, 4, "Unresolved cases")
     from .report_summary import write_summary
+
     summary_end = write_summary(sheet, end + 1, snapshots)
     sheet.print_area = f"A1:U{summary_end}"
     stream = io.BytesIO()

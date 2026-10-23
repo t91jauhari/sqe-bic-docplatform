@@ -1,4 +1,5 @@
 """Add Account Opening configuration immutably; preserve existing cases and Forex settings."""
+
 from .configuration.publication import persist_revision
 
 
@@ -12,7 +13,10 @@ RELEASE = "account-opening-workbook-v1"
 def seed_account_opening():
     from sqlalchemy import select, text
     from .db import Config, SessionLocal
-    from .domain import latest_config, default_config, audit, validate_config
+    from app.configuration.revisions import latest_config
+    from app.configuration.bootstrap import default_config
+    from app.auditing import audit
+    from app.configuration.validation import validate_config
 
     rules = json.loads(
         (Path(__file__).parent / "config_data/account_opening_rules.json").read_text(
@@ -96,12 +100,14 @@ def seed_account_opening():
             }
             payload.setdefault("seed_releases", []).append(RELEASE)
             validate_config(payload)
-            persist_revision(db, Config(
+            persist_revision(
+                db,
+                Config(
                     org=org,
                     version=old.version + 1,
                     payload=payload,
                     published_by="system.account-workbook-v1",
-                )
+                ),
             )
             audit(
                 db,

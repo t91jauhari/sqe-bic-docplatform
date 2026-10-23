@@ -1,5 +1,7 @@
 """Server-computed Kertas Kerja scores and deterministic remarks, one row per case."""
 
+from .configuration.seed_catalog import seed_value
+
 import io
 import json
 from datetime import datetime
@@ -11,28 +13,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from .sop import CATEGORIES, value_at
 from .value_display import display_value
 
-HEADERS = [
-    "No.",
-    "Finding Status",
-    "Data Count",
-    "Customer Name",
-    "Account No.",
-    "Transaction Type",
-    "Inputter",
-    "Approver",
-    "Transaction Carrier",
-    "Transaction Date",
-    "Inspection Date",
-    "Data Completion",
-    "Customer Signature",
-    "Total A",
-    "Document Completion",
-    "Officer Review & Approval",
-    "Total B",
-    "Total",
-    "BIC Remarks",
-    "Product Remarks",
-]
+HEADERS = seed_value("kertas_kerja.HEADERS")
 
 
 def text(value):
@@ -52,34 +33,38 @@ def excel_value(value):
 
 def remarks(snapshot):
     from .forex_report_layout import readable_remarks
+
     return readable_remarks(snapshot)
 
 
 def row(snapshot, n):
     from .configuration.reporting import project_report
-    projected, timezone = project_report(snapshot, 'forex')
+
+    projected, timezone = project_report(snapshot, "forex")
     scores = snapshot.get("scores", {})
 
     results = [f["result"] for f in snapshot["findings"] if f.get("eligible")]
     finding = (
         "Yes"
         if "FAIL" in results
-        else "Review"
-        if any(x in {"REVIEW", "ERROR"} for x in results)
-        or snapshot["validation_status"] == "ERROR"
-        else "No"
+        else (
+            "Review"
+            if any(x in {"REVIEW", "ERROR"} for x in results)
+            or snapshot["validation_status"] == "ERROR"
+            else "No"
+        )
     )
     return [
         n,
         finding,
         1,
-        projected['customer'],
-        projected['account'],
-        projected['transaction_type'],
-        projected['inputter'],
-        projected['approver'],
-        projected['carrier'],
-        projected['transaction_date'],
+        projected["customer"],
+        projected["account"],
+        projected["transaction_type"],
+        projected["inputter"],
+        projected["approver"],
+        projected["carrier"],
+        projected["transaction_date"],
         datetime.fromtimestamp(
             snapshot.get("sop_completed_at", snapshot["generated_at"]),
             ZoneInfo(timezone),
@@ -147,6 +132,7 @@ def _legacy_workbook(snapshots):
         s.cell(summary + 3, 4, "Unresolved cases")
         s.cell(summary + 3, col, len(values) - len(known))
     from .report_summary import write_summary
+
     summary_end = write_summary(s, summary + 1, snapshots)
     s.column_dimensions["S"].hidden = True
     from openpyxl.utils import get_column_letter
@@ -315,28 +301,101 @@ def workbook(snapshots):
     from .account_opening_report import workbook as render
 
     from openpyxl import load_workbook
+
     book = load_workbook(io.BytesIO(render(snapshots, _legacy_workbook)))
     from .forex_report_layout import apply_layout
+
     apply_layout(book, snapshots)
     summary = book.create_sheet("SOP Rule Points")
-    summary.append(["Customer", "Case", "Earned", "Possible", "Percentage", "Failed", "Pending visual review", "Resolved", "Provisional"])
+    summary.append(
+        [
+            "Customer",
+            "Case",
+            "Earned",
+            "Possible",
+            "Percentage",
+            "Failed",
+            "Pending visual review",
+            "Resolved",
+            "Provisional",
+        ]
+    )
     details = book.create_sheet("SOP Point Detail")
-    details.append(["Customer", "Rule", "Result", "Points", "Possible", "Evaluation type", "Reason"])
+    details.append(
+        [
+            "Customer",
+            "Rule",
+            "Result",
+            "Points",
+            "Possible",
+            "Evaluation type",
+            "Reason",
+        ]
+    )
     package = book.create_sheet("Forex SOP Package")
-    package.append(["Customer", "Checkpoint", "Result", "Points", "Possible", "Field checks", "Package coverage", "Description"])
+    package.append(
+        [
+            "Customer",
+            "Checkpoint",
+            "Result",
+            "Points",
+            "Possible",
+            "Field checks",
+            "Package coverage",
+            "Description",
+        ]
+    )
     for snap in snapshots:
         forex = snap.get("sop_packages", {}).get("forex")
         if forex:
             for checkpoint in forex["checkpoints"]:
                 applicable = checkpoint["result"] != "NOT_APPLICABLE"
-                package.append([text(snap.get("customer")),checkpoint["rule_id"],checkpoint["result"],int(checkpoint["result"]=="PASS"),int(applicable),", ".join(checkpoint["child_rules"]),f"{forex['coverage']['present']}/15",checkpoint.get("label","")])
+                package.append(
+                    [
+                        text(snap.get("customer")),
+                        checkpoint["rule_id"],
+                        checkpoint["result"],
+                        int(checkpoint["result"] == "PASS"),
+                        int(applicable),
+                        ", ".join(checkpoint["child_rules"]),
+                        f"{forex['coverage']['present']}/15",
+                        checkpoint.get("label", ""),
+                    ]
+                )
         points = snap.get("sop_summary")
         if not points:
             continue  # Historical snapshots retain their original contract.
-        summary.append([text(snap.get("customer")), text(snap.get("reference")), *[points.get(k) for k in ("earned", "possible", "percentage", "failed", "pending", "resolved", "provisional")]])
+        summary.append(
+            [
+                text(snap.get("customer")),
+                text(snap.get("reference")),
+                *[
+                    points.get(k)
+                    for k in (
+                        "earned",
+                        "possible",
+                        "percentage",
+                        "failed",
+                        "pending",
+                        "resolved",
+                        "provisional",
+                    )
+                ],
+            ]
+        )
         for f in snap.get("findings", []):
             eligible = f.get("eligible", True) and f["result"] != "NOT_APPLICABLE"
-            details.append([text(snap.get("customer")), text(f["rule_id"]), f["result"], int(eligible and f["result"] == "PASS"), int(eligible), f.get("evaluation_type"), f.get("reason_code")])
+            details.append(
+                [
+                    text(snap.get("customer")),
+                    text(f["rule_id"]),
+                    f["result"],
+                    int(eligible and f["result"] == "PASS"),
+                    int(eligible),
+                    f.get("evaluation_type"),
+                    f.get("reason_code"),
+                ]
+            )
     for sheet in (summary, details, package):
         sheet.freeze_panes = "A2"
         for column in sheet.columns:

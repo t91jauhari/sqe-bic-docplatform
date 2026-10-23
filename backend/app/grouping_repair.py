@@ -1,4 +1,5 @@
 """Repair one historical batch without repeating provider extraction."""
+
 from .configuration.repository import get_revision
 
 
@@ -20,7 +21,8 @@ from .db import (
     Job,
     Report,
 )
-from .domain import audit, refresh_case
+from app.auditing import audit
+from app.case_lifecycle import refresh_case
 from .grouping import plan_grouping
 from .security import authorized
 
