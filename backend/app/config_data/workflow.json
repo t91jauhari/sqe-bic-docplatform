@@ -1,0 +1,132 @@
+[
+  {
+    "order": 1,
+    "step_id": "upload",
+    "action": "upload",
+    "enabled": true,
+    "preset": "pdf_bulk",
+    "timeout_seconds": 300,
+    "read_poll_retries": 0,
+    "on_error": "notify_error",
+    "parameters": {
+      "max_files": 100,
+      "max_mb": 30
+    }
+  },
+  {
+    "order": 2,
+    "step_id": "group",
+    "action": "group_by_customer",
+    "enabled": true,
+    "preset": "filename_customer",
+    "timeout_seconds": 60,
+    "read_poll_retries": 0,
+    "on_error": "review_grouping",
+    "parameters": {
+      "merge_historical_cases": false
+    }
+  },
+  {
+    "order": 3,
+    "step_id": "classify",
+    "action": "classify",
+    "enabled": true,
+    "preset": "llama_document_type",
+    "timeout_seconds": 1200,
+    "read_poll_retries": 3,
+    "on_error": "review_classification",
+    "parameters": {
+      "minimum_confidence": 0.85,
+      "conflict": "review"
+    }
+  },
+  {
+    "order": 4,
+    "step_id": "parse",
+    "action": "parse",
+    "enabled": true,
+    "preset": "document_profile",
+    "timeout_seconds": 1200,
+    "read_poll_retries": 3,
+    "on_error": "notify_error",
+    "parameters": {
+      "tier": "agentic_plus",
+      "version": "latest"
+    }
+  },
+  {
+    "order": 5,
+    "step_id": "extract",
+    "action": "extract",
+    "enabled": true,
+    "preset": "document_profile",
+    "timeout_seconds": 1200,
+    "read_poll_retries": 3,
+    "on_error": "notify_error",
+    "parameters": {
+      "tier": "agentic_plus",
+      "schema_version": "pinned"
+    }
+  },
+  {
+    "order": 6,
+    "step_id": "validate",
+    "action": "normalize_validate",
+    "enabled": true,
+    "preset": "document_only",
+    "timeout_seconds": 120,
+    "read_poll_retries": 0,
+    "on_error": "review",
+    "parameters": {
+      "external_verification": false,
+      "cctv": false
+    }
+  },
+  {
+    "order": 7,
+    "step_id": "sop",
+    "action": "case_sop",
+    "enabled": true,
+    "preset": "yes_and_sop3",
+    "timeout_seconds": 300,
+    "read_poll_retries": 0,
+    "on_error": "draft_report",
+    "parameters": {
+      "source_filter": "YES",
+      "include_sop3_system": true,
+      "external_verification": false
+    }
+  },
+  {
+    "order": 8,
+    "step_id": "report",
+    "action": "render_report",
+    "enabled": true,
+    "preset": "forex_kertas_kerja",
+    "timeout_seconds": 120,
+    "read_poll_retries": 0,
+    "on_error": "notify_error",
+    "parameters": {
+      "formats": [
+        "xlsx",
+        "pdf"
+      ],
+      "one_row_per_case": true
+    }
+  },
+  {
+    "order": 9,
+    "step_id": "notify",
+    "action": "notify",
+    "enabled": true,
+    "preset": "inbox",
+    "timeout_seconds": 30,
+    "read_poll_retries": 3,
+    "on_error": "notify_error",
+    "parameters": {
+      "progress": true,
+      "completion": true,
+      "review": true
+    }
+  }
+]

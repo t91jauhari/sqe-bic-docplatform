@@ -1,0 +1,26 @@
+{
+  "forex": {
+    "timezone": "Asia/Jakarta",
+    "bindings": {
+      "customer": {"source": "document", "path": "application.remitter.name", "fallback_customer": true},
+      "account": {"source": "document", "path": "application.remitter_account_number"},
+      "transaction_type": {"source": "document", "path": "application.transaction_type"},
+      "inputter": {"source": "context", "path": "transaction_inputter"},
+      "approver": {"source": "context", "path": "transaction_approver"},
+      "carrier": {"source": "context", "path": "transaction_carrier", "default": "UNKNOWN"},
+      "transaction_date": {"source": "document", "path": "application.transaction_date"}
+    }
+  },
+  "account_opening": {
+    "timezone": "Asia/Jakarta",
+    "bindings": {
+      "customer": {"source": "customer"},
+      "account": {"source": "context", "path": "new_account_number"},
+      "transaction_type": {"source": "literal", "default": "Account Opening"},
+      "inputter": {"source": "document", "path": "account_opening_form.cs_name"},
+      "approver": {"source": "document", "path": "account_opening_form.supervisor_name"},
+      "carrier": {"source": "context", "path": "transaction_carrier", "default": "UNKNOWN"},
+      "transaction_date": {"source": "document", "path": "account_opening_form.transaction_date"}
+    }
+  }
+}

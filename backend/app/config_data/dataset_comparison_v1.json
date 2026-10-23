@@ -1,0 +1,14 @@
+{
+  "enabled": true,
+  "minimum_similarity": 0.90,
+  "acceptance_similarity": 0.96,
+  "minimum_length": 8,
+  "maximum_length": 2000,
+  "acceptance_minimum_length": 20,
+  "long_text_length": 40,
+  "short_edit_limit": 1,
+  "long_edit_limit": 2,
+  "descriptive_fields": ["notes", "details", "occupation", "document_place", "creation_place", "birth_place", "village", "district"],
+  "excluded_fields": ["currency", "gender", "blood_type", "religion", "marital_status", "citizenship", "account_type", "payment_type", "transaction_type", "beneficiary_status", "payer_status"],
+  "excluded_suffixes": ["_code", "_id", "_number"]
+}

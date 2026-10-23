@@ -1,0 +1,61 @@
+name: ${DEPLOYMENT_NAME:?Set a unique deployment name}
+x-runtime: &runtime
+  image: ${BACKEND_IMAGE:?Use an immutable backend image tag or digest}
+  environment: &environment
+    APP_ENV: production
+    APP_SECRET: ${APP_SECRET:?Set the existing application encryption secret}
+    DATABASE_URL: ${DATABASE_URL:?Set the production PostgreSQL URL}
+    STORAGE_DRIVER: minio
+    MINIO_ENDPOINT: ${MINIO_ENDPOINT:?Set the TLS object storage endpoint}
+    MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?Set the object storage access key}
+    MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?Set the object storage secret key}
+    MINIO_BUCKET: ${MINIO_BUCKET:?Set the existing document bucket}
+    MINIO_SECURE: "true"
+    WORKFLOW_DRIVER: temporal
+    TEMPORAL_ADDRESS: ${TEMPORAL_ADDRESS:?Set the Temporal service address}
+    TEMPORAL_TASK_QUEUE: ${TEMPORAL_TASK_QUEUE:?Set a deployment-specific task queue}
+    WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:-4}
+    ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?Set the HTTPS application origin}
+    SECURE_COOKIE: "true"
+    CONFIGURATION_STORAGE_MODE: ${CONFIGURATION_STORAGE_MODE:-legacy}
+    CONFIGURATION_READ_MODE: ${CONFIGURATION_READ_MODE:-legacy}
+    DATASET_READ_MODE: ${DATASET_READ_MODE:-bundled}
+  restart: unless-stopped
+  read_only: true
+  tmpfs:
+    - /tmp:size=512m,mode=1777
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+services:
+  api:
+    <<: *runtime
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+  worker:
+    <<: *runtime
+    command: [python, -m, app.worker]
+    depends_on:
+      api:
+        condition: service_healthy
+    stop_grace_period: 120s
+  web:
+    image: ${FRONTEND_IMAGE:?Use an immutable frontend image tag or digest}
+    ports:
+      - "127.0.0.1:${WEB_PORT:-3100}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL

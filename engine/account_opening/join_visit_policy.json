@@ -1,0 +1,30 @@
+{
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "day_first": true,
+  "required_fields": [
+    "customer_name",
+    "cif",
+    "visit_date",
+    "marketing_name",
+    "ktp_photo_check",
+    "identity_address_check",
+    "current_address_check",
+    "phone_check",
+    "email_check",
+    "birth_check",
+    "mother_name_check",
+    "visitor",
+    "supervisor",
+    "visitor_signature",
+    "supervisor_signature"
+  ],
+  "conditional_fields": [
+    "email_check",
+    "birth_check"
+  ],
+  "conditional_rules": {},
+  "stamp_policy_confirmed": false,
+  "business_calendar_confirmed": false,
+  "business_holidays": []
+}

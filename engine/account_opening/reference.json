@@ -1,0 +1,2415 @@
+{
+  "source_name": "01-Account-Opening-Reference-Doc-and-dataset.xlsx",
+  "sha256": "0b3c553881a8df2fe28c2980205e26bc168991e014ef8481edccbdad15b863a0",
+  "profiles": {
+    "join_visit": {
+      "label": "Form Join Visit",
+      "fields": [
+        {
+          "key": "customer_name",
+          "label": "Nama Nasabah",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for customer name.\n• Trim leading/trailing spaces.\n• OCR must capture full name accurately.\n• Detect numeric-only or symbol-only inputs.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 29,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "cif",
+          "label": "CIF",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Must be numeric only; reject non-numeric characters.\n• OCR must capture all digits correctly.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 30,
+          "source_type": "String (Numeric Identifier)"
+        },
+        {
+          "key": "visit_date",
+          "label": "Tanggal Visit/Kunjungan",
+          "type": "date",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept multiple input formats (e.g. 1/6/1993, 01-06-1993, DD-MMM-YYYY, YYYY-MM-DD or other valid format of date).\n• System auto-converts to DD-MM-YYYY format.\n• Validate that the date is not in the future.\n• OCR must correctly extract day, month, and year even with mixed language formats.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 31,
+          "source_type": "Date (DD-MM-YYYY)"
+        },
+        {
+          "key": "marketing_name",
+          "label": "Nama Marketing Pembawa Form",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for staff/marketing name.\n• Allow letters, punctuation, and spaces.\n• Trim extra spaces.\n• OCR must detect full name correctly.\n• Detect blank or invalid entries.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 32,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "ktp_photo_check",
+          "label": "Foto KTP Nasabah",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values Sesuai or Tidak Sesuai.\n• Detect  remark field for verification note (e.g., “ok”, “different photo”).\n• OCR must detect enum value and notes clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Sesuai",
+            "Tidak Sesuai"
+          ],
+          "source_row": 33,
+          "source_type": "Enum (Sesuai/Tidak Sesuai)"
+        },
+        {
+          "key": "identity_address_check",
+          "label": "Alamat KTP",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values.\n• Detect  remarks describing matching result.\n• OCR must read “Sesuai/Tidak Sesuai” plus note field.\n• Used to confirm identity consistency between KTP & form.",
+          "match_note": "",
+          "enum_values": [
+            "Sesuai",
+            "Tidak Sesuai"
+          ],
+          "source_row": 34,
+          "source_type": "Enum (Sesuai/Tidak Sesuai)"
+        },
+        {
+          "key": "current_address_check",
+          "label": "Alamat Tinggal Sekarang",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Sesuai / Tidak Sesuai.\n• Detect remarks (e.g., “same as KTP”, “different city”).\n• OCR must capture both enum value and note.\n• Field used for current residence verification.",
+          "match_note": "",
+          "enum_values": [
+            "Sesuai",
+            "Tidak Sesuai"
+          ],
+          "source_row": 35,
+          "source_type": "Enum (Sesuai/Tidak Sesuai)"
+        },
+        {
+          "key": "phone_check",
+          "label": "Nomor Handphone",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values.\n• OCR must detect both enum and note text.\n• Field used for contact data matching.",
+          "match_note": "",
+          "enum_values": [
+            "Sesuai",
+            "Tidak Sesuai"
+          ],
+          "source_row": 36,
+          "source_type": "Enum (Sesuai/Tidak Sesuai)"
+        },
+        {
+          "key": "email_check",
+          "label": "Alamat Email",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Restrict to enumerated values.\n• Remarks field optional if no email available.\n• OCR must detect enum value correctly.",
+          "match_note": "",
+          "enum_values": [
+            "Sesuai",
+            "Tidak Sesuai"
+          ],
+          "source_row": 37,
+          "source_type": "Enum (Sesuai/Tidak Sesuai)"
+        },
+        {
+          "key": "birth_check",
+          "label": "Tempat Tanggal Lahir",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Restrict to Sesuai / Tidak Sesuai.\n• Mandatory remarks to record discrepancy if any.\n• OCR must capture text accurately.\n• Used to cross-verify birth data with KTP and CIF.",
+          "match_note": "",
+          "enum_values": [
+            "Sesuai",
+            "Tidak Sesuai"
+          ],
+          "source_row": 38,
+          "source_type": "Enum (Sesuai/Tidak Sesuai)"
+        },
+        {
+          "key": "mother_name_check",
+          "label": "Nama Ibu Kandung",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Sesuai / Tidak Sesuai.\n• Mandatory remark required.\n• OCR must capture enum and notes accurately.\n• Used for security question validation.",
+          "match_note": "",
+          "enum_values": [
+            "Sesuai",
+            "Tidak Sesuai"
+          ],
+          "source_row": 39,
+          "source_type": "Enum (Sesuai/Tidak Sesuai)"
+        },
+        {
+          "key": "visitor",
+          "label": "Dibuat Oleh (Visitor name  & Role)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for visitor’s name and position.\n• Allow letters, punctuation, and spaces.\n• OCR must capture both name and job title clearly.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 40,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "supervisor",
+          "label": "Diterima Oleh (Penerima name & Supervisor name/ Head of Operations)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for supervisor name and title.\n• Allow letters, punctuation, and spaces.\n• OCR must detect both parts accurately.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 41,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "visitor_signature",
+          "label": "Tanda tangan pembuat (visitor)",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Must be handwritten signature (not typed).\n• OCR must classify as signature area.\n• System must record signer identity and timestamp.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 42,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "supervisor_signature",
+          "label": "Tanda tangan penerima (supervisor)",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Must show supervisor’s signature or e-sign approval.\n• OCR must detect signature presence.\n• Store with approver’s name, role, and timestamp.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 43,
+          "source_type": "String (text)"
+        },
+        {
+          "key": "confirmation_stamp",
+          "label": "Stempel konfirmasi (by supervisor/same-level)",
+          "type": "visual",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "Must meet stamp requirement number 22. Stamp on spv verification",
+          "match_note": "tidak ada ketentuan untuk distempel",
+          "enum_values": [],
+          "source_row": 44,
+          "source_type": "Image / Binary (stamp)"
+        }
+      ]
+    },
+    "edd": {
+      "label": "Form EDD",
+      "fields": [
+        {
+          "key": "transaction_type",
+          "label": "Pilihan jenis transaksi",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values: Pembukaan Usaha, EDD Berkala, Transaksi.\n• OCR must capture value clearly.\n• Detect blank or invalid entries.",
+          "match_note": "",
+          "enum_values": [
+            "Pembukaan hubungan usaha",
+            "EDD berkala",
+            "transaksi"
+          ],
+          "source_row": 51,
+          "source_type": "Enum (Pembukaan hubungan usaha/EDD berkala/transaksi)"
+        },
+        {
+          "key": "person_type",
+          "label": "Pilihan perorangan ",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to : Calon Nasabah, Nasabah,  Pemilik Manfaat(Beneficial Owner), WIC.\n• Mandatory field.\n• OCR must detect correct selection.",
+          "match_note": "",
+          "enum_values": [
+            "Calon Nasabah",
+            "Nasabah",
+            "Pemilik Manfaat(Beneficial Owner)",
+            "WIC"
+          ],
+          "source_row": 52,
+          "source_type": "Enum ( Calon Nasabah, Nasabah,  Pemilik Manfaat(Beneficial Owner), WIC.)"
+        },
+        {
+          "key": "customer_name",
+          "label": "Nama",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for name.\n• Detect letters, numbers, punctuation (., -, ').\n• Trim leading/trailing spaces.\n• OCR must capture full name accurately.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 53,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "cif",
+          "label": "Nomor CIF",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Numeric-only value (no letters).\n• Detect invalid characters.\n• OCR must capture digits correctly.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 54,
+          "source_type": "String / Numeric Identifier"
+        },
+        {
+          "key": "product",
+          "label": "Jenis Produk / Layanan Bank",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to predefined list (Simas Gold, Simas Diamond, TabunganKu, Simas Digi, Simas TARA, etc.).\n• Must detect product  list.\n• OCR must capture full product name.",
+          "match_note": "",
+          "enum_values": [
+            "Simas Gold",
+            "Simas Diamond",
+            "TabunganKu",
+            "Simas Digi",
+            "Simas TARA"
+          ],
+          "source_row": 55,
+          "source_type": "Enum (Simas Gold, Simas Diamond, TabunganKu, Simas Digi, Simas TARA)"
+        },
+        {
+          "key": "screening_dttot",
+          "label": "Screening – DTTOT / DPPSPM",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 56,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "screening_negative_news",
+          "label": "Screening – Informasi Negative (News)",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 57,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "screening_watchlist",
+          "label": "Screening -Watchlist",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 58,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "screening_no_match",
+          "label": "Screening - Tidak ditemukan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 59,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "high_risk_occupation",
+          "label": "Kriteria High Risk – Pekerjaan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 60,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "high_risk_country",
+          "label": "Kriteria High Risk – Negara",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 61,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "high_risk_business",
+          "label": "Kriteria High Risk – Bidang Usaha",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 62,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "high_risk_pep",
+          "label": "Kriteria High Risk – Politically Exposed Person",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 63,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "high_risk_watchlist",
+          "label": "Kriteria High Risk - Screening Watchlist",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 64,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "high_risk_other",
+          "label": "Kriteria High Risk - Lainnya",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to Ya / Tidak (Yes/No).\n• OCR must detect result clearly.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 65,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "edd_result",
+          "label": "Hasil EDD",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept free-text.\n• Allow letters, numbers, punctuation.\n• Summarize key EDD conclusions.\n• OCR must capture full text clearly.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 66,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "occupation",
+          "label": "Informasi jabatan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 67,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "beneficial_owner_wealth",
+          "label": "Sumber kekayaan dan latar belakang dari  beneficial owner (jika ada)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 68,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "pep_information",
+          "label": "Informasi PEP pada calon nasabah/nasabah/ BO/WIC (jika ada)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 69,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "other_funds",
+          "label": "Sumber dana lainnya (jika ada)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 70,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "other_business",
+          "label": "Jenis usaha/bidang usaha lainnya di dalam negeri ataupun di luar negeri (jika ada)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 71,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "other_business_location",
+          "label": "Lokasi usaha dan status tempat usaha lainnya (jika ada)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 72,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "supporting_information",
+          "label": "Informasi pendukung lainnya seperti antara lain ",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 73,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "product_transactions",
+          "label": "Produk bank apa yang digunakan dan transaksi yang akan sering dilakukan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 74,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "pep_family",
+          "label": "Apakah nasabah memiliki keuarga inti (1 layer vertikal dan horizontal) yang menjabat sebagai pejabat negara/pejabat pemerintahan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 75,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "pep_family_details",
+          "label": "Jika iya sebutkan ",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 76,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "business_partners",
+          "label": "Informasi mitra usaha calon nasabah/nasabah/BO/WIC (jika memiliki usaha, siapa dan jenis usaha dan mitra usaha tersebut)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 77,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "transaction_information",
+          "label": "Informais tambahan untuk transaksi nasabah *) (diisi untuk EDD yang dilakukan terhadap transaksi nasabah)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 78,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "counterparty_relationship",
+          "label": "Hubungan nasabah dengan penerima atau pengirim atau pelaku transaksi",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 79,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "transaction_purpose",
+          "label": "Tujuan transaksi nasabah dengan penerima atau pengirim atau pelaku transaksi",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 80,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "profile_transaction_relation",
+          "label": "Deskripsikan keterkaitan prdil nasabah dengan transaksi yang dilakukan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 81,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "additional_edd_information",
+          "label": "Informasi relevan launnya dari hasil EDD  yang dilakukan (jika ada)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 82,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "edd_attachments",
+          "label": "Informasi hasil EDD dapat dilampirkan pada formulir ini",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for occupation.\n• Allow letters, numbers, punctuation.\n• OCR must detect full text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 83,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "edd_officer",
+          "label": "Nama pihak yang melakukan EDD",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text\n• Allow letters, punctuation, and spaces.\n• OCR must capture both name and job title clearly.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 84,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "supervisor",
+          "label": "Nama SPV/HO/Pejabat Setara",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text\n• Allow letters, punctuation, and spaces.\n• OCR must detect both parts accurately.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 85,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "edd_officer_signature",
+          "label": "Tanda tanganpihak yang melakukan EDD",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept valid image files.\n• Must not be blank, corrupted, or mismatched.\n• OCR must recognize signature region as non-text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 86,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "supervisor_signature",
+          "label": "Tanda tangan SPV/HO/Pejabat Setara",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept valid image files.\n• Must not be blank, corrupted, or mismatched.\n• OCR must recognize signature region as non-text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 87,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "verification_stamp",
+          "label": "Stempel verifikasi tandatangan",
+          "type": "visual",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "Must meet stamp requirement number 18. Stamp on nasabah signer",
+          "match_note": "tidak ada ketentuan untuk distempel",
+          "enum_values": [],
+          "source_row": 88,
+          "source_type": "Image / Binary (stamp)"
+        },
+        {
+          "key": "confirmation_stamp",
+          "label": "Stempel konfirmasi (by supervisor/se-level)",
+          "type": "visual",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "Must meet stamp requirement number 22. Stamp on spv verification",
+          "match_note": "tidak ada ketentuan untuk distempel",
+          "enum_values": [],
+          "source_row": 89,
+          "source_type": "Image / Binary (stamp)"
+        }
+      ]
+    },
+    "account_opening_form": {
+      "label": "Form Pembukaan Rekening",
+      "fields": [
+        {
+          "key": "form_type",
+          "label": "Jenis Formulir",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Pembukaan rekening, pengkinian rekening)\n• Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Pembukaan rekening",
+            "Pengkinian Rekening"
+          ],
+          "source_row": 96,
+          "source_type": "Enum (Pembukaan rekening / Pengkinian Rekening)"
+        },
+        {
+          "key": "branch",
+          "label": "Kantor Cabang",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must accept free-text for branch name. Allow letters, numbers, and punctuation. Trim leading/trailing spaces.\n• Trim leading/trailing/multiple spaces; normalize unicode accents.\n• OCR must capture full line; no truncation.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 97,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "transaction_date",
+          "label": "Tanggal",
+          "type": "date",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must recognize multiple date formats (e.g. 10 Juni 2025, 10/06/2025, 2025-06-10). Transaction date must be business working days and cannot be future-dated.\n• Auto-standardize to DD-MM-YYYY; validate logical ranges (not weekend/holiday, not in the future).\n• Accept common separators (`/`, `-`, space); zero-pad day/month when needed.\n• OCR must capture day, month (or month name), and year correctly.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 98,
+          "source_type": "Date (DD-Month Name-YYYY)"
+        },
+        {
+          "key": "customer_status",
+          "label": "Status Nasabah",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values Baru/Lama.\n• Case-insensitive; store standardized code/value per master list.\n• Detect blank/invalid entries; display inline error message.\n• Log selection with user ID and timestamp for audit.\n• Restrict to `Baru` / `Lama` per definition; do not use Yes/No; mandatory.",
+          "match_note": "",
+          "enum_values": [
+            "Baru",
+            "Lama"
+          ],
+          "source_row": 99,
+          "source_type": "Enum (Baru/Lama)"
+        },
+        {
+          "key": "existing_account",
+          "label": "Saya memliki rekening di Bank Sinarmas",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values Yes/No. Mandatory field.\n• Case-insensitive\n• Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 100,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "existing_account_number",
+          "label": "No Rekening Bank Sinarmas",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must validate numeric identifier. Reject non-numeric characters.\n• Accept digits (and optional spaces/dashes at input), store as clean string without separators.\n• Detect non-numeric characters when numeric-only. Remove spaces if found at the beginning, middle, or end.\n• OCR must capture all digits; checksum/format validation if applicable.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 101,
+          "source_type": "String (numeric identifier)"
+        },
+        {
+          "key": "account_type",
+          "label": "Tipe Rekening",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Tunggal, Gabungan)\n• Case-insensitive; store standardized code/value per master list.\n• Detectject blank/invalid entries; display inline error message.\n• Log selection with user ID and timestamp for audit.",
+          "match_note": "",
+          "enum_values": [
+            "Tunggal",
+            "Gabungan"
+          ],
+          "source_row": 102,
+          "source_type": "Enum (Tunggal/ Gabungan)"
+        },
+        {
+          "key": "currency",
+          "label": "Mata Uang",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to ISO 4217 3-letter codes (IDR, USD, etc.). Store in uppercase.\n• Case-insensitive; store standardized code/value per master list.\n• Detect blank/invalid entries; display inline error message.\n• Log selection with user ID and timestamp for audit.\n• Restrict to ISO 4217 codes; store uppercase; map symbol to code during OCR (e.g., `Rp`→`IDR`).",
+          "match_note": "",
+          "enum_values": [
+            "IDR",
+            "Valas"
+          ],
+          "source_row": 103,
+          "source_type": "Enum (IDR/Valas)"
+        },
+        {
+          "key": "acting_for",
+          "label": "Bertindak Untuk",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Diri Sendiri, Beneficial Owner). Mandatory field.\n• Case-insensitive; store standardized code/value per master list.\n• Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Diri Sendiri",
+            "Beneficial  Owner"
+          ],
+          "source_row": 104,
+          "source_type": "Enum (Diri Sendiri / Beneficial  Owner)"
+        },
+        {
+          "key": "customer_name",
+          "label": "Nama Lengkap",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must accept free-text for full name. Allow letters, numbers, and punctuation. Trim leading/trailing spaces.\n• Trim leading/trailing/multiple spaces; normalize unicode accents.\n• OCR must capture full line; no truncation.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 105,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "birth_place_date",
+          "label": "Tempat / Tanggal Lahir",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "Date must follow date requirements:\n• Accept multiple input formats (e.g., 1/6/1993, 01-06-1993, DD month name YYYY. or other valid format of date).\n• System auto-converts to DD-MM-YYYY format.\n• Validate that the date is not in the future.\n• OCR must correctly extract day, month, and year.\n\nTempat lahir must follow City requirements:\n• Accept free-text for city/place names (letters, spaces, and punctuation).\n• Trim leading and trailing spaces automatically.\n• Reject numeric or symbol-only inputs (e.g., “123”, “@@”).",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 106,
+          "source_type": "String + Date (DD-Month Name-YYYY)"
+        },
+        {
+          "key": "gender",
+          "label": "Jenis Kelamin",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Pria/Wanita). Case-insensitive.\n• Case-insensitive; store standardized code/value per master list.\n• Reject blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Pria",
+            "Wanita"
+          ],
+          "source_row": 107,
+          "source_type": "Enum (Pria / Wanita)"
+        },
+        {
+          "key": "marital_status",
+          "label": "Status Pernikahan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Lajang, Menikah, Duda/janda). Case-insensitive.\n• Case-insensitive; store standardized code/value per master list.\n• Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Lajang",
+            "Menikah",
+            "Duda/ Janda"
+          ],
+          "source_row": 108,
+          "source_type": "Enum (Lajang, Menikah, Duda/ Janda)"
+        },
+        {
+          "key": "citizenship",
+          "label": "Kewarganegaraan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (WNI/WNA). Case-insensitive.\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "WNI",
+            "WNA"
+          ],
+          "source_row": 109,
+          "source_type": "Enum (WNI / WNA)"
+        },
+        {
+          "key": "identity_type",
+          "label": "Jenis Identitas",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (E-KTP/Passport). Must match code list.\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "E-KTP",
+            "Paspor"
+          ],
+          "source_row": 110,
+          "source_type": "Enum (E-KTP/Paspor)"
+        },
+        {
+          "key": "identity_number",
+          "label": "Nomor Identitas",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must validate numeric/alphanumeric identifier. Reject invalid characters. Must match the selected Identity Type.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • OCR must capture full line; no truncation. Remove spaces if found at the beginning, middle, or end.\n • Accept digits (and optional spaces/dashes at input)\n • OCR must capture all digits; checksum/format validation if applicable.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 111,
+          "source_type": "String (numerik identifikasi)"
+        },
+        {
+          "key": "identity_valid_until",
+          "label": "Berlaku s/d",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept either “SEUMUR HIDUP” or valid date (DD-MM-YYYY).\n• System must detect and interpret both formats.\n• OCR must not confuse text as date.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 112,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "supporting_identity_type",
+          "label": "Jenis identitas pendukung",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Restrict to enumerated values (KITAP, KITAS, Lainnya). Optional field.\n • Case-insensitive\n • Detect blank/invalid entries.",
+          "match_note": "",
+          "enum_values": [
+            "KITAP",
+            "KITAS",
+            "Lainnya"
+          ],
+          "source_row": 113,
+          "source_type": "Enum (KITAP, KITAS, Lainnya)"
+        },
+        {
+          "key": "supporting_identity_number",
+          "label": "Nomor Identitas Pendukung",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must validate numeric/alphanumeric identifier. Must match the selected Supporting Identity Type. Optional\n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • OCR must capture full line; no truncation.\n • Accept digits (and optional spaces/dashes at input), store as clean string without separators.\n • OCR must capture all digits; checksum/format validation if applicable.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 114,
+          "source_type": "String (numerik identifikasi)"
+        },
+        {
+          "key": "supporting_identity_valid_until",
+          "label": "Nomor Identitas Pendukung Berlaku s/d",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept either “SEUMUR HIDUP” or valid date (DD-MM-YYYY).\n• System must detect and interpret both formats.\n• OCR must not confuse text as date.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 115,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "tin_ssn",
+          "label": "No. TIN/SSN",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Fill if customer mark as WNA\n• accept string / alphanumeric\n• Accept digits (and optional spaces/dashes at input)\n• OCR must capture all digits; checksum/format validation if applicable.\n",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 116,
+          "source_type": "String (text, numerik identifikasi)"
+        },
+        {
+          "key": "mother_name",
+          "label": "Nama Gadis Ibu kandung",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept letters, punctuation, and spaces.\n• OCR must capture both name and position.\n• Trim extra spaces.\n• Detect numeric-only or missing role titles.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 117,
+          "source_type": "string (text)"
+        },
+        {
+          "key": "npwp",
+          "label": "NPWP (jika ada)",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Detect enum if (Sama dengan E-KTP or jika berbeda mohon dicantumkan)\n• Validate NPWP structure 99.999.999.9-999.999 or same NIK formatAccept only digits and allowed separators (., -).\n• OCR must detect all digits and separators.",
+          "match_note": "",
+          "enum_values": [
+            "Sama dengan E-KTP",
+            "Jika berbeda mohon dicantumkan"
+          ],
+          "source_row": 118,
+          "source_type": "Enum (Sama dengan E-KTP, Jika berbeda mohon dicantumkan)"
+        },
+        {
+          "key": "current_address_choice",
+          "label": "Alamat Tempat Tinggal (Sama/Berbeda)",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Detect opsion that mark by customer(Sama dengan E-KTP or Berbeda)",
+          "match_note": "",
+          "enum_values": [
+            "Sama dengan E-KTP",
+            "Berbeda"
+          ],
+          "source_row": 119,
+          "source_type": "Enum (Sama dengan E-KTP/Berbeda)"
+        },
+        {
+          "key": "current_address",
+          "label": "Alamat Terkini",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept free-text with letters, numbers, commas, and punctuation.\n• Trim and normalize spaces.\n• OCR must capture full address line without truncation.\n• Detect incomplete or unreadable entries.\n• Can be empty if alamat same as eKTP",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 120,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "rt",
+          "label": "RT",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept numeric values up to 3 digits.\n• System must auto left-pad with zeros (e.g., 4 → 004).\n• OCR must read all digits correctly.\n• Can be empty if alamat same as eKTP",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 121,
+          "source_type": "String / Numeric"
+        },
+        {
+          "key": "rw",
+          "label": "RW",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Same as RT rules.\n• System must auto left-pad with zeros (e.g., 4 → 004).\n• Reject if contains letters or symbols.\n• Can be empty if alamat same as eKTP",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 122,
+          "source_type": "String / Numeric"
+        },
+        {
+          "key": "village",
+          "label": "Kelurahan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Allow characters/string and letters, numbers, punctuation, and spaces.\n• OCR must capture full text (no truncation).\n• Can be empty if alamat same as eKTP",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 123,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "district",
+          "label": "Kecamatan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Same as Kelurahan.\n• OCR must not split words incorrectly.\n• Can be empty if alamat same as eKTP",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 124,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "city",
+          "label": "Kota",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept text only (letters + spaces).\n• Trim extra spaces.\n• OCR must capture full city/place name.\n• Detect numeric or symbol-only input.\n• Can be empty if alamat same as eKTP",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 125,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "postal_code",
+          "label": "Kode Pos",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept numeric postal code\n• Reject non-numeric or empty fields.\n• OCR must capture digits accurately.\n• Can be empty if alamat same as eKTP",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 126,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "province",
+          "label": "Provinsi",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Accept text only (letters + spaces).\n• Trim extra spaces.\n• OCR must capture full city/place name.\n• Detect numeric or symbol-only input.\n• Can be empty if alamat same as eKTP",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 127,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "mailing_address_choice",
+          "label": "Alamat Surat Menyurat",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Sama dengan E-KTP, Kantor, dan Tempat Tinggal Terkini).\n• Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Sama dengan E-KTP",
+            "Kantor",
+            "Tempat Tinggal"
+          ],
+          "source_row": 128,
+          "source_type": "Enum (Sama dengan E-KTP, Kantor, Tempat Tinggal)"
+        },
+        {
+          "key": "residence_status",
+          "label": "Status Tempat Tinggal",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Milik Sendiri, Milik Orang Tua, Sewa/Kost, Instansi/Dinas)\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Milik Sendiri",
+            "Milik Orang Tua",
+            "Sewa/Kost",
+            "Instansi/Dinas"
+          ],
+          "source_row": 129,
+          "source_type": "Enum (Milik Sendiri, Milik Orang Tua,  Sewa/Kost,  Instansi/Dinas)"
+        },
+        {
+          "key": "education",
+          "label": "Pendidikan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "Enum (SD, SMP, SMA/SMK, Diploma, S1,  S2, S3)",
+          "match_note": "",
+          "enum_values": [
+            "SD",
+            "SMP",
+            "SMA/SMK",
+            "Diploma",
+            "S1",
+            "S2",
+            "S3"
+          ],
+          "source_row": 130,
+          "source_type": "Enum (SD, SMP, SMA/SMK, Diploma, S1,  S2, S3)"
+        },
+        {
+          "key": "home_phone",
+          "label": "Nomor Telepon Rumah",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must accept free-text for phone numbers including +/spaces/parentheses/dashes.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 131,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "mobile_phone",
+          "label": "No Handphone/Seluler",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must accept digit for phone numbers including +/spaces/parentheses/dashes.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 132,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "email",
+          "label": "Email",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must validate email format.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • Validate email format (RFC 5322); lowercase domain; reject disposable domains if policy applies.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 133,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "occupation",
+          "label": "Pekerjaan Utama",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Pegawai Negeri, Pegawai Swasta, Pelajar/Mahasiswa, Wiraswasta, Profesional, Ibu Rumah Tangga, Pensiunan, Lainnya).\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Pegawai Negeri",
+            "Pegawai Swasta",
+            "Pelajar/Mahasiswa",
+            "Wiraswasta",
+            "Profesional",
+            "Ibu Rumah Tangga",
+            "Pensiunan",
+            "Lainnya"
+          ],
+          "source_row": 134,
+          "source_type": "Enum (Pegawai Negeri, Pegawai Swasta, Pelajar/Mahasiswa, Wiraswasta, Profesional, Ibu Rumah Tangga, Pensiunan, Lainnya)"
+        },
+        {
+          "key": "employment_status",
+          "label": "Satus Pekerjaan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Tetap, Paruh Waktu, Kontrak, Honorer, Lainnya)\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Tetap",
+            "Paruh Waktu",
+            "Kontrak",
+            "Honorer",
+            "Lainnya"
+          ],
+          "source_row": 135,
+          "source_type": "Enum (Tetap, Paruh Waktu, Kontrak, Honorer, Lainnya)"
+        },
+        {
+          "key": "business_sector",
+          "label": "Bidang Usaha",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Jasa Keuangan, Industri, Pemerintahan, Pedagang, Non Pemerintahan, Lainnya)\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Jasa Keuangan",
+            "Industri",
+            "Pemerintahan",
+            "Pedagang",
+            "Non Pemerintahan",
+            "Lainnya"
+          ],
+          "source_row": 136,
+          "source_type": "Enum (Jasa Keuangan, Industri, Pemerintahan, Pedagang, Non Pemerintahan, Lainnya)"
+        },
+        {
+          "key": "company_name",
+          "label": "Nama Perusahaan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for company name.\n• Allow letters, numbers, and punctuation (e.g., “&”, “.”, “-”).\n• Trim leading and trailing spaces.\n• OCR must capture uppercase and lowercase letters correctly.\n• Reject empty or symbol-only inputs.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 137,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "position",
+          "label": "Jabatan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept letters, punctuation, and spaces.\n• OCR must capture both name and position.\n• Trim extra spaces.\n• Detect numeric-only or missing role titles.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 138,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "employed_since",
+          "label": "Bekerja Sejak",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept multiple date formats (YYYY-MM-DD, DD/MM/YYYY, DD-MM-YYYY). Month year only, year only\n• Validate date ≤ today’s date (no future entries).\n• OCR must detect full numeric components.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 139,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "office_address",
+          "label": "Alamat kantor",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text with letters, numbers, commas, and punctuation.\n• Trim and normalize spaces.\n• OCR must capture full address line without truncation.\n• Reject incomplete or unreadable entries.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 140,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "office_city",
+          "label": "Kota Alamat kantor",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept text only (letters + spaces).\n• Trim extra spaces.\n• OCR must capture full city/place name.\n• Detect numeric or symbol-only input.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 141,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "office_postal_code",
+          "label": "Kode Pos Alamat kantor",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept numeric postal code\n• Reject non-numeric or empty fields.\n• OCR must capture digits accurately.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 142,
+          "source_type": "String (numeric, text)"
+        },
+        {
+          "key": "office_province",
+          "label": "Provinsi Kantor",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept text only (letters + spaces).\n• Trim extra spaces.\n• OCR must capture full city/place name.\n• Detect numeric or symbol-only input.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 143,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "office_phone",
+          "label": "No. Telp Alamat Kantor (Nexus-> No. Telp)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must accept free-text for phone numbers including +/spaces/parentheses/dashes.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 144,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "office_extension",
+          "label": "ext Kantor (on Nexus ext)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must accept free-text for extension number.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • OCR must capture full line; no truncation.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 145,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "monthly_income",
+          "label": "Pendapatan per Bulan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated ranges (s/dRp5 Juta, >Rp5Juta-10 Juta, >Rp10Juta-25 Juta, >Rp25Juta-Rp50Juta,>50Juta-Rp100Juta, >100Juta)\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "s/dRp5 Juta",
+            ">Rp5Juta-10 Juta",
+            ">Rp10Juta-25 Juta",
+            ">Rp25Juta-Rp50Juta",
+            ">50Juta-Rp100Juta",
+            ">100Juta"
+          ],
+          "source_row": 146,
+          "source_type": "Enum (s/dRp5 Juta, >Rp5Juta-10 Juta, >Rp10Juta-25 Juta, >Rp25Juta-Rp50Juta,>50Juta-Rp100Juta, >100Juta)"
+        },
+        {
+          "key": "opening_purpose",
+          "label": "Tujuan Pembukaan Rekening",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated purposes (Simpanan, Keperluan Pribadi, Keperluan Usaha, Lainnya)\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Simpanan",
+            "Keperluan Pribadi",
+            "Keperluan Usaha",
+            "Lainnya"
+          ],
+          "source_row": 147,
+          "source_type": "Enum (Simpanan, Keperluan Pribadi, Keperluan Usaha, Lainnya)"
+        },
+        {
+          "key": "source_of_funds",
+          "label": "Sumber Dana",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated sources (Penghasilan, Pinjaman, Bisnis, Lainnya)\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Penghasilan",
+            "Pinjaman",
+            "Bisnis",
+            "Lainnya"
+          ],
+          "source_row": 148,
+          "source_type": "Enum (Penghasilan, Pinjaman, Bisnis, Lainnya)"
+        },
+        {
+          "key": "additional_income_source",
+          "label": "Sumber Penghasilan Tambahan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated sources (Investasi, Warisan, Lainnya)\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.\n",
+          "match_note": "",
+          "enum_values": [
+            "Investasi",
+            "Warisan",
+            "Lainnya"
+          ],
+          "source_row": 149,
+          "source_type": "Enum (Investasi, Warisan, Lainnya)"
+        },
+        {
+          "key": "additional_monthly_income",
+          "label": "Rata-rata penghasilan tambahan per bulan (jika ada)",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Restrict to enumerated ranges (s/dRp5 Juta, >Rp5Juta-10 Juta, >Rp10Juta-25 Juta, >Rp25Juta-Rp50Juta,>50Juta-Rp100Juta, >100Juta)\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "s/dRp5 Juta",
+            ">Rp5Juta-10 Juta",
+            ">Rp10Juta-25 Juta",
+            ">Rp25Juta-Rp50Juta",
+            ">50Juta-Rp100Juta",
+            ">100Juta"
+          ],
+          "source_row": 150,
+          "source_type": "Enum (s/dRp5 Juta, >Rp5Juta-10 Juta, >Rp10Juta-25 Juta, >Rp25Juta-Rp50Juta,>50Juta-Rp100Juta, >100Juta)"
+        },
+        {
+          "key": "transaction_frequency",
+          "label": "Frekuensi Transaksi Per Bulan (Debit & Kredit)",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated ranges (0-10 kali, 11-20 kali, 21-30 kali, >30 kali)\n • Case-insensitive; store standardized code/value per master list.\n • Detect  blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "0-10 kali",
+            "11-20 kali",
+            "21-30 kali",
+            ">30 kali"
+          ],
+          "source_row": 151,
+          "source_type": "Enum (0-10 kali, 11-20 kali, 21-30 kali, >30 kali)"
+        },
+        {
+          "key": "transaction_average",
+          "label": "Rata-Rata Transaksi Per Bulan (Debit & Kredit)",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated ranges (RP 5 Juta, Rp 10 Juta, RP 25Juta, Rp 50Juta, Rp 100 Juta, > Rp100juta)\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "RP 5 Juta",
+            "Rp 10 Juta",
+            "RP 25Juta",
+            "Rp 50Juta",
+            "Rp 100 Juta",
+            "> Rp100juta"
+          ],
+          "source_row": 152,
+          "source_type": "Enum (RP 5 Juta, Rp 10 Juta, RP 25Juta, Rp 50Juta, Rp 100 Juta, > Rp100juta)"
+        },
+        {
+          "key": "facilities",
+          "label": "Fasilitas Layanan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated facilities (Kartu ATM/Debit, Mobile Banking, Internet Banking, Phone Banking). Multiple selections allowed. Mandatory field.\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Kartu ATM/Debit",
+            "Mobile Banking",
+            "Internet Banking",
+            "Phone Banking"
+          ],
+          "source_row": 153,
+          "source_type": "Enum (Kartu ATM/Debit, Mobile Banking, Internet Banking, Phone Banking)"
+        },
+        {
+          "key": "atm_card_number",
+          "label": "No. Kartu ATM/Debit",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept only numeric or alphanumeric characters.\n• Strip spaces/dashes before saving.\n• OCR must capture all digits clearly.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 154,
+          "source_type": "String (text, numeric identifier)"
+        },
+        {
+          "key": "pin_maker_id",
+          "label": "PIN Maker ID",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System validate numeric/string identifier. Detect non-numeric characters.\n • Accept digits (and optional spaces/dashes at input), store as clean string without separators.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 155,
+          "source_type": "String (text, numeric identifier)"
+        },
+        {
+          "key": "token_id",
+          "label": "Token ID",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System validate numeric/string identifier. Detect non-numeric characters.\n • Accept digits (and optional spaces/dashes at input), store as clean string without separators.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 156,
+          "source_type": "String (text, numeric identifier)"
+        },
+        {
+          "key": "sms_notification",
+          "label": "SMS Notidikasi",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System validate numeric/string identifier. Detect non-numeric characters.\n • Accept digits (and optional spaces/dashes at input), store as clean string without separators.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 157,
+          "source_type": "String (text, numeric identifier)"
+        },
+        {
+          "key": "foreign_tax_obligation",
+          "label": "Saya memiliki kewajiban pajak di negara lain (selain indonesia)",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Restrict to enumerated values Ya if customer have and let it blank if customer dont have.\n • Checlist: Yes, Blank: No. \n • Case-insensitive; store standardized code/value per master list.\n • Reject blank/invalid entries\n",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 158,
+          "source_type": "Enum (Ya/Tidak)"
+        },
+        {
+          "key": "consent",
+          "label": "Checklist Persetujuan",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values Setuju/Tidak Setuju\n • Detect blank/invalid entries",
+          "match_note": "",
+          "enum_values": [
+            "Setuju",
+            "Tidak Setuju"
+          ],
+          "source_row": 159,
+          "source_type": "Enum (Setuju/Tidak Setuju)"
+        },
+        {
+          "key": "consent_place",
+          "label": "Kota Checklist Persetujuan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept text only (letters + spaces).\n• Trim extra spaces.\n• OCR must capture full city/place name.\n• Reject numeric or symbol-only input.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 160,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "consent_date",
+          "label": "Tanggal Checklist Persetujuan",
+          "type": "date",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept multiple input formats (e.g. 1/6/1993, 01-06-1993, DD-MMM-YYYY, YYYY-MM-DD or other valid format of date).\n• System auto-converts to DD-MM-YYYY format.\n• Validate that the date is not in the future.\n• OCR must correctly extract day, month, and year even with mixed language formats.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 161,
+          "source_type": "Date (DD-Month Name-YYYY)"
+        },
+        {
+          "key": "signing_customer_name",
+          "label": "Nama nasabah",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept free-text\n• OCR must capture full name without truncation.\n• Reject numeric only or incomplete input.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 162,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "customer_signature",
+          "label": "Tanda tangan nasabah",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Upload image/binary (PNG/JPG)\n • Must be a real handwritten signature/stamp (no typed font)\n •  OCR should classify as non-text region",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 163,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "meterai",
+          "label": "Materai",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Must show valid denomination text (“Rp10 000”).\n• Validate if thats real materai/not fake\n• Reject blank or cropped image.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 164,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "cif",
+          "label": "Nomor CIF",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must validate numeric identifier. \n • Accept digits (and optional spaces/dashes at input), store as clean string without separators..\n • OCR must capture all digits",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 165,
+          "source_type": "String (Numeric Identifier)"
+        },
+        {
+          "key": "classification_code",
+          "label": "Kode Golongan",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must validate numeric identifier. \n • Accept digits (and optional spaces/dashes at input), store as clean string without separators.\n • OCR must capture all digits; checksum/format validation if applicable.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 166,
+          "source_type": "String (Numeric Identifier)"
+        },
+        {
+          "key": "bank_relationship",
+          "label": "Keterkaitan Dengan Bank Sinarmas",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values Terkait/Tidak Terkait\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.\n • Log selection with user ID and timestamp for audit.",
+          "match_note": "",
+          "enum_values": [
+            "Terkait",
+            "Tidak Terkait"
+          ],
+          "source_row": 167,
+          "source_type": "Enum (Terkait / Tidak Terkait)"
+        },
+        {
+          "key": "dhn_check",
+          "label": "Pemeriksaan DHN",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values Ya/Tidak\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 168,
+          "source_type": "Enum (Ya / Tidak)"
+        },
+        {
+          "key": "risk_category",
+          "label": "Kategori Risiko",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values Risiko Tinggi, RIsiko Sedang, Risiko Rendah\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Risiko Tinggi",
+            "RIsiko Sedang",
+            "Risiko Rendah"
+          ],
+          "source_row": 169,
+          "source_type": "Enum (Risiko Tinggi, RIsiko Sedang, Risiko Rendah)"
+        },
+        {
+          "key": "sector",
+          "label": "Sektor",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Individual, Personal, Lainnya). Other: Must match code list\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Individual",
+            "Personal",
+            "Lainnya"
+          ],
+          "source_row": 170,
+          "source_type": "Enum (Individual, Personal, Lainnya)"
+        },
+        {
+          "key": "industry",
+          "label": "Industri",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must accept free-text for industry type. Allow letters and punctuation. \n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • OCR must capture full line; no truncation.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 171,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "target",
+          "label": "Target",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must accept free-text for target type. Allow letters and punctuation. Optional field.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • OCR must capture full line; no truncation.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 172,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "referral_source",
+          "label": "Referensi dari",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values (Walk In Customer, Marketing, Lainnya)\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Walk In Customer",
+            "Marketing",
+            "Lainnya"
+          ],
+          "source_row": 173,
+          "source_type": "Enum (Walk In Customer, Marketing, Lainnya)"
+        },
+        {
+          "key": "marketing_code",
+          "label": "Kode Marketing",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must accept free-text for marketing code. Optional field.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • OCR must capture full line; no truncation.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 174,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "referral_other",
+          "label": "Lainnya, sebutkan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• System must accept free-text for other documents description.\n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • OCR must capture full line; no truncation.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 175,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "identity_copy_check",
+          "label": "Dokumen Wajib – Fotocopy E-KTP/Paspor",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Restrict to enumerated values Ya/Tidak. Must record result.\n • Case-insensitive\n • Detect blank/invalid entries; still accepted if it blank, mean no need to attach this document again",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 176,
+          "source_type": "Enum(Ya/Tidak)"
+        },
+        {
+          "key": "npwp_copy_check",
+          "label": "Dokumen Wajib – Fotocopy NPWP",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Restrict to enumerated values Ya/Tidak. Must record result.\n • Case-insensitive\n • Detect blank/invalid entries; still accepted if it blank, mean no need to attach this document again",
+          "match_note": "",
+          "enum_values": [
+            "Ya",
+            "Tidak"
+          ],
+          "source_row": 177,
+          "source_type": "Enum  (Ya/Tidak)"
+        },
+        {
+          "key": "other_required_documents",
+          "label": "Dokumen Wajib – Lainnya, sebutkan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• System must accept free-text for description of other mandatory documents. Detect the mentioned \"Lainnya\" by customer\n • Trim leading/trailing/multiple spaces; normalize unicode accents.\n • OCR must capture full line; no truncation.\n • Detect blank/invalid entries; still accepted if it blank, mean no need to attach this document again",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 178,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "cs_name",
+          "label": "Nama Customer Service",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept free-text\n• OCR must capture full name without truncation.\n• Reject numeric only or incomplete input.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 179,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "cs_date",
+          "label": "Tanggal Diproses oleh Customer Service",
+          "type": "date",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept multiple date formats (09/10/2025).\n• System must auto-convert to standard DD/MM/YYYY.\n• Date must be a valid business working day and not future-dated.\n• OCR must correctly extract day, month, and year digits.\n• Detect invalid or impossible dates.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 180,
+          "source_type": "Date (DD-MM-YYYY)"
+        },
+        {
+          "key": "supervisor_name",
+          "label": "Nama Supervisor / Kepala Operasional /Pimpinan Cabang",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept free-text\n• OCR must capture full name without truncation.\n• Reject numeric only or incomplete input.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 181,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "supervisor_date",
+          "label": "Tanggal Diperiksa oleh Supervisor / Kepala Operasional/Pimpinan Cabang",
+          "type": "date",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept multiple input formats (e.g. 1/6/1993, 01-06-1993, DD-MMM-YYYY, YYYY-MM-DD or other valid format of date).\n• System auto-converts to DD-MM-YYYY format.\n• Date must be a valid business working day and not future dated\n• OCR must correctly extract day, month, and year even with mixed language formats.\n• Reject invalid or impossible dates.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 182,
+          "source_type": "Date (DD-MM-YYYY)"
+        },
+        {
+          "key": "supervisor_approval",
+          "label": "Persetujuan Supervisor",
+          "type": "enum",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Restrict to enumerated values Setuju/Tidak Setuju.\n • Case-insensitive; store standardized code/value per master list.\n • Detect blank/invalid entries; display inline error message.",
+          "match_note": "",
+          "enum_values": [
+            "Setuju",
+            "Tidak Setuju"
+          ],
+          "source_row": 183,
+          "source_type": "Enum (Setuju / Tidak Setuju)"
+        },
+        {
+          "key": "cs_signature",
+          "label": "Tanda tanganpihak Customer service",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept valid image files.\n• Must not be blank, corrupted, or mismatched.\n• OCR must recognize signature region as non-text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 184,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "supervisor_signature",
+          "label": "Tanda tangan Supervisor / Kepala Operasional /Pimpinan Cabang",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept valid image files.\n• Must not be blank, corrupted, or mismatched.\n• OCR must recognize signature region as non-text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 185,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "verification_stamp",
+          "label": "Stempel verifikasi tandatangan",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "Must meet stamp requirement number 18",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 186,
+          "source_type": "Image / Binary (stamp)"
+        },
+        {
+          "key": "confirmation_stamp",
+          "label": "Stempel konfirmasi (by supervisor/se-level)",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "Must meet stamp requirement number 22",
+          "match_note": "hanya jika nasabah tidak datang ke cabang",
+          "enum_values": [],
+          "source_row": 187,
+          "source_type": "Image / Binary (stamp)"
+        },
+        {
+          "key": "cs_stamp",
+          "label": "Stempel customer service",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "Must meet stamp requirement number 5",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 188,
+          "source_type": "Image / Binary (stamp)"
+        }
+      ]
+    },
+    "signature_difference": {
+      "label": "Surat Pernyataan Beda Tanda Tangan",
+      "fields": [
+        {
+          "key": "customer_name",
+          "label": "Nama",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept only alphabetic characters and spaces.\n• Trim leading/trailing spaces automatically.\n• OCR must match name exactly with form/system data.\n• Reject entries containing numbers or special symbols.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 211,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "identity_number",
+          "label": "Nomor Identitas",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• allow strings or digits\n• OCR must capture every digit accurately.\n• Detect entries with spaces, dots, or non-numeric characters.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 212,
+          "source_type": "String (numerik identifikasi)"
+        },
+        {
+          "key": "identity_address",
+          "label": "Alamat Sesuai Identitas",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept letters and spaces (city or place name).\n• No digits or punctuation allowed.\n• OCR must not misread as numbers.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 213,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "account_number",
+          "label": "Nomor Rekening",
+          "type": "identifier",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept only numeric or alphanumeric characters.\n• Strip spaces/dashes before saving.\n• OCR must capture all digits clearly.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 214,
+          "source_type": "String (numerik identifikasi)"
+        },
+        {
+          "key": "signature_one",
+          "label": "Tanda Tangan  1",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept valid image files.\n• Must not be blank, corrupted, or mismatched.\n• OCR must recognize signature region as non-text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 215,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "signature_two",
+          "label": "Tanda Tangan 2",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept valid image files.\n• Must not be blank, corrupted, or mismatched.\n• OCR must recognize signature region as non-text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 216,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "creation_place",
+          "label": "Kota / Tempat Surat Dibuat",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept text only (letters + spaces).\n• Trim extra spaces.\n• OCR must capture full city/place name.\n• Reject numeric or symbol-only input.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 217,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "creation_date",
+          "label": "Tanggal Surat Dibuat",
+          "type": "date",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept multiple input formats (e.g. 1/6/1993, 01-06-1993, DD-MMM-YYYY, YYYY-MM-DD or other valid format of date).\n• System auto-converts to DD-MM-YYYY format.\n• Date must be a valid business working day and not future dated\n• OCR must correctly extract day, month, and year even with mixed language formats.\n• Reject invalid or impossible dates.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 218,
+          "source_type": "Date (DD-Month Name - YYYY)"
+        },
+        {
+          "key": "declarant_name",
+          "label": "Nama Pembuat Pernyataan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept only alphabetic characters and spaces.\n• Trim leading/trailing spaces automatically.\n• OCR must match name exactly with form/system data.\n• Reject entries containing numbers or special symbols.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 219,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "declarant_signature",
+          "label": "Tanda Tangan Pembuat Pernyataan",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept valid image files.\n• Must not be blank, corrupted, or mismatched.\n• OCR must recognize signature region as non-text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 220,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "meterai",
+          "label": "Meterai / Cap",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": true,
+          "requirement": "• Must show valid denomination text (“Rp10 000”).\n• Validate if thats real materai/not fake\n• Reject blank or cropped image.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 221,
+          "source_type": "Image / Binary (stamp image)"
+        },
+        {
+          "key": "verification_stamp",
+          "label": "Stamp verification",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "Must meet stamp requirement on number 18",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 222,
+          "source_type": "Image/Binary"
+        }
+      ]
+    },
+    "company_reference": {
+      "label": "Surat Referensi Perusahaan",
+      "fields": [
+        {
+          "key": "company_name",
+          "label": "Nama Perusahaan",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text for company name.\n• Allow letters, numbers, and punctuation (e.g., “&”, “.”, “-”).\n• Trim leading and trailing spaces.\n• OCR must capture uppercase and lowercase letters correctly.\n• Reject empty or symbol-only inputs.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 229,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "letter_date",
+          "label": "Tanggal Surat",
+          "type": "date",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept multiple input formats (e.g. 1/6/1993, 01-06-1993, DD-MMM-YYYY, YYYY-MM-DD or other valid format of date).\n• System auto-converts to DD-MM-YYYY format.\n• Date must not be future dated\n• OCR must correctly extract day, month, and year even with mixed language formats.\n• Reject invalid or impossible dates.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 230,
+          "source_type": "Date (DD-Month Name-YYYY"
+        },
+        {
+          "key": "letter_number",
+          "label": "Nomor Surat",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept string,  numeric or alphanumeric characters.\n• Detect strip spaces/dashes. ",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 231,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "letter_purpose",
+          "label": "Tujuan Surat",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Free text for remarks.\n• Allow letters, numbers, and punctuation.\n• OCR must capture complete text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 232,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "subject",
+          "label": "Perihal",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Free text for remarks.\n• Allow letters, numbers, and punctuation.\n• OCR must capture complete text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 233,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "customer_name",
+          "label": "Nama Nasabah (disebutkan dalam surat)",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text.\n• Trim leading/trailing spaces.\n• OCR must capture full name accurately (case-sensitive not required).",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 234,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "customer_position",
+          "label": "Jabatan Nasabah",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept letters, punctuation, and spaces.\n• OCR must capture both name and position.\n• Trim extra spaces.\n• Detect numeric-only or missing role titles.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 235,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "partnership_date",
+          "label": "Tanggal Menjadi Partner",
+          "type": "date",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept multiple input formats (e.g. 1/6/1993, 01-06-1993, DD-MMM-YYYY, YYYY-MM-DD or other valid format of date).\n• System auto-converts to DD-MM-YYYY format.\n• Date must not be future dated\n• OCR must correctly extract day, month, and year even with mixed language formats.\n• Reject invalid or impossible dates.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 236,
+          "source_type": "Date (YYYY-MM-DD)"
+        },
+        {
+          "key": "signatory_name",
+          "label": "Nama Penandatangan Surat",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text.\n• Trim leading/trailing spaces.\n• OCR must capture full name accurately (case-sensitive not required).",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 237,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "signatory_position",
+          "label": "Jabatan Penandatangan Surat",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept letters, punctuation, and spaces.\n• OCR must capture both name and position.\n• Trim extra spaces.\n• Detect numeric-only or missing role titles.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 238,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "signatory_phone",
+          "label": "Nomor Telepon Penandatangan Surat",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept text with punctuation, numbers, and phone symbols (+, (, ), -).\n• OCR must capture complete line of text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 239,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "signatory_signature",
+          "label": "Tanda Tangan Penandatangan Surat",
+          "type": "visual",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept valid image files.\n• Must not be blank, corrupted, or mismatched.\n• OCR must recognize signature region as non-text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 240,
+          "source_type": "Image / Binary (signature image)"
+        },
+        {
+          "key": "branch_address",
+          "label": "Alamat Kantor Cabang / Branch Office",
+          "type": "text",
+          "mandatory": true,
+          "conditional": false,
+          "requirement": "• Accept free-text with letters, numbers, commas, and punctuation.\n• Trim and normalize spaces.\n• OCR must capture full address line without truncation.\n• Reject incomplete or unreadable entries.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 241,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "confirmation_customer_name",
+          "label": "Nama Nasabah (Konfirmasi Transaksi)",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept free-text.\n• Trim leading/trailing spaces.\n• OCR must capture full name accurately (case-sensitive not required).",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 242,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "confirmation_phone",
+          "label": "Nomor Telepon (Konfirmasi Transaksi)",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept text with punctuation, numbers, and phone symbols (+, (, ), -).\n• OCR must capture complete line of text.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 243,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "confirmation_result",
+          "label": "Hasil Konfirmasi",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept free-text with letters, numbers, commas, and punctuation.\n• Trim and normalize spaces.\n• OCR must capture full address line without truncation.\n• Reject incomplete or unreadable entries.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 244,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "confirmation_date",
+          "label": "Tanggal Konfirmasi Transaksi",
+          "type": "date",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept multiple input formats (e.g. 1/6/1993, 01-06-1993, DD-MMM-YYYY, YYYY-MM-DD or other valid format of date).\n• System auto-converts to DD-MM-YYYY format.\n• Date must not be future dated\n• OCR must correctly extract day, month, and year even with mixed language formats.\n• Reject invalid or impossible dates.",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 245,
+          "source_type": "Date (YY-MM-DD)"
+        },
+        {
+          "key": "confirmation_time",
+          "label": "Jam Konfirmasi Transaksi",
+          "type": "time",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• System must accept time format HH:MM. \n• Must validate correct 24-hour time. ",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 246,
+          "source_type": "Time (HH:MM)"
+        },
+        {
+          "key": "confirmation_officer",
+          "label": "Nama Petugas Konfirmasi",
+          "type": "text",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "• Accept free-text.\n• Trim leading/trailing spaces.\n• OCR must capture full name accurately (case-sensitive not required).",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 247,
+          "source_type": "String (teks)"
+        },
+        {
+          "key": "confirmation_stamp",
+          "label": "Stamp comfirmation from supervisor",
+          "type": "visual",
+          "mandatory": false,
+          "conditional": false,
+          "requirement": "Must meet stamp requirement on number 22",
+          "match_note": "",
+          "enum_values": [],
+          "source_row": 248,
+          "source_type": "Image / Binary (signature image)"
+        }
+      ]
+    }
+  }
+}

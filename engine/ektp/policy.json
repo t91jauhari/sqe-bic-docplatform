@@ -1,0 +1,54 @@
+{
+  "number_locale": "id_ID",
+  "day_first": true,
+  "two_digit_year_pivot": 49,
+  "timezone": "Asia/Jakarta",
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "gender_values": [
+    "Laki-Laki",
+    "Perempuan"
+  ],
+  "blood_type_values": [
+    "A",
+    "B",
+    "AB",
+    "O",
+    "-"
+  ],
+  "religion_values": [
+    "Islam",
+    "Kristen",
+    "Katolik",
+    "Hindu",
+    "Buddha",
+    "Konghucu",
+    "Penghayat Kepercayaan",
+    "Kepercayaan Terhadap Tuhan Yang Maha Esa",
+    "Penghayat Kepercayaan/Kepercayaan Terhadap Tuhan Yang Maha Esa"
+  ],
+  "marital_status_values": [
+    "Belum Kawin",
+    "Kawin",
+    "Cerai Hidup",
+    "Cerai Mati"
+  ],
+  "citizenship_values": [
+    "WNI",
+    "WNA"
+  ],
+  "stamp_rule_confirmed": false,
+  "stamp_required": null,
+  "required_stamp_text_fragments": [],
+  "stamp_rule_reference": "Configure an authorized requirement reference in the document profile.",
+  "stamp_requirement_number": "6",
+  "enum_aliases": {
+    "religion": {
+      "KATHOLIK": "Katolik",
+      "BUDHA": "Buddha"
+    }
+  },
+  "enum_raw_fallback_fields": [
+    "religion"
+  ]
+}

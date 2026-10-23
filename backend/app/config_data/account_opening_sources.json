@@ -1,0 +1,674 @@
+[
+  {
+    "source_ref": "AO:SOP 1:1",
+    "sheet": "SOP 1",
+    "row": 2,
+    "values": [
+      1,
+      "Melakukan Penarikan data List Of Accounts Opened & meminta logbook pembukaan rekening ke petugas cabang",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP 1:2",
+    "sheet": "SOP 1",
+    "row": 3,
+    "values": [
+      2,
+      "Sampling pemeriksaan berdasarkan resiko (misal utamakan pembukaan yang Form dibawa marketing)",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP 1:3",
+    "sheet": "SOP 1",
+    "row": 4,
+    "values": [
+      3,
+      "Periksa data dengan penelusuran ke sistem terhadap Sumber Dana setoran awal (Tunai/PB/Transfer) sesuai ketentuan",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP 1:4",
+    "sheet": "SOP 1",
+    "row": 5,
+    "values": [
+      4,
+      "Periksa Form Checklist Visiting dan Konfirmasi SPV kepada nasabah atas Pembukaan Rekening tersebut",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP 1:5",
+    "sheet": "SOP 1",
+    "row": 6,
+    "values": [
+      5,
+      "Pastikan Pencatatan pada Logbook Pembukaan Rekening telah dilengkapi oleh SPV/HO",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP 1:6",
+    "sheet": "SOP 1",
+    "row": 7,
+    "values": [
+      6,
+      "Periksa Tanda Terima Kartu ATM pada Logbook Kartu ATM",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP 1:7",
+    "sheet": "SOP 1",
+    "row": 8,
+    "values": [
+      7,
+      "Memastikan proses pembukaan rekening sampai dengan pengambilan/aktivasi kartu ATM melalui rekaman CCTV",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP 1:8",
+    "sheet": "SOP 1",
+    "row": 9,
+    "values": [
+      8,
+      "Periksa Upload Identitas pada Pega CS telah dilakukan",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP 1:9",
+    "sheet": "SOP 1",
+    "row": 10,
+    "values": [
+      9,
+      "Form Survey untuk nasabah WIC (Untuk nasabah dengan kriteria tertentu). Misalnya: – Alamat tempat tinggal nasabah cukup jauh ke lokasi cabang pembuka rekening – Tujuan pembukaan rekening tidak jelas, dll.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP 1:10",
+    "sheet": "SOP 1",
+    "row": 11,
+    "values": [
+      10,
+      "Untuk nasabah Beneficial Owner wajib melampirkan Form Beneficial Owner",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP 1:11",
+    "sheet": "SOP 1",
+    "row": 12,
+    "values": [
+      11,
+      "Form EDD untuk nasabah yang masuk kategori High Risk",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP 1:12",
+    "sheet": "SOP 1",
+    "row": 13,
+    "values": [
+      12,
+      "Untuk Special Rate Tabungan wajib dilakukan pengecekan memo persetujuan, masa berlaku, dan setting pada sistem",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP System:1",
+    "sheet": "SOP System",
+    "row": 2,
+    "values": [
+      1,
+      "eKTP → Form Pembukaan Rekening",
+      "NIK ↔ Nomor Identitas",
+      "Must match exactly (16 digits)."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:2",
+    "sheet": "SOP System",
+    "row": 3,
+    "values": [
+      2,
+      "eKTP → Form Pembukaan Rekening",
+      "Nama ↔ Nama Lengkap",
+      "Must be same spelling; minor abbreviation allowed if supported by signature match."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:3",
+    "sheet": "SOP System",
+    "row": 4,
+    "values": [
+      3,
+      "eKTP → Form Pembukaan Rekening",
+      "Tempat Lahir & Tanggal Lahir ↔ Tempat/Tanggal Lahir",
+      "Must match."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:4",
+    "sheet": "SOP System",
+    "row": 5,
+    "values": [
+      4,
+      "eKTP → Form Join Visit",
+      "Nama ↔ Nama Nasabah",
+      "Must match exactly."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:5",
+    "sheet": "SOP System",
+    "row": 6,
+    "values": [
+      5,
+      "eKTP → Form Pembukaan Rekening",
+      "Jenis Kelamin ↔ Jenis Kelamin",
+      "Must match laki-laki -> pria and perempuan -> wanita"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:6",
+    "sheet": "SOP System",
+    "row": 7,
+    "values": [
+      6,
+      "eKTP → Form Pembukaan Rekening",
+      "Kewarganegaraan ↔ Kewarganegaraan",
+      "Must match (“WNI” / “WNA”)."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:7",
+    "sheet": "SOP System",
+    "row": 8,
+    "values": [
+      7,
+      "eKTP → Form Pembukaan Rekening",
+      "Pekerjaan ↔ Pekerjaan Utama",
+      "Cross-check occupation category."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:8",
+    "sheet": "SOP System",
+    "row": 9,
+    "values": [
+      8,
+      "Form Join Visit → Form Pembukaan Rekening",
+      "CIF ↔ Nomor CIF",
+      "Must be identical and traceable in CBS."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:9",
+    "sheet": "SOP System",
+    "row": 10,
+    "values": [
+      9,
+      "Form EED → Form Pembukaan Rekening",
+      "Nomor CIF ↔ Nomor CIF (Form Pembukaan Rekening No. 68)",
+      "Must match."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:10",
+    "sheet": "SOP System",
+    "row": 11,
+    "values": [
+      10,
+      "Form EED → Surat Referensi Perusahaan",
+      "Nama Nasabah / Jabatan ↔ Nama & Jabatan Nasabah (disebut dalam Surat Referensi)",
+      "Must match verbatim."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:11",
+    "sheet": "SOP System",
+    "row": 12,
+    "values": [
+      11,
+      "Surat Pernyataan Beda Tanda Tangan → Form Pembukaan Rekening",
+      "Nama ↔ Nama Lengkap",
+      "Must match."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:12",
+    "sheet": "SOP System",
+    "row": 13,
+    "values": [
+      12,
+      "Surat Pernyataan Beda Tanda Tangan → Specimen Signature on System",
+      "Tanda Tangan 1 vs 2 ↔ Specimen di System",
+      "Should resemble form variation."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:13",
+    "sheet": "SOP System",
+    "row": 14,
+    "values": [
+      13,
+      "Form RIPLAY → Form Pembukaan Rekening",
+      "Nama Nasabah ↔ Nama Lengkap",
+      "Must match."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:14",
+    "sheet": "SOP System",
+    "row": 15,
+    "values": [
+      14,
+      "Surat Referensi Perusahaan → Form Join Visit",
+      "Nama Nasabah ↔ Nama Nasabah (Form Join Visit No. 1)",
+      "Must be same."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP System:15",
+    "sheet": "SOP System",
+    "row": 16,
+    "values": [
+      15,
+      "eKTP → Surat Referensi Perusahaan",
+      "Nama ↔ Nama Nasabah (Disebut dalam Surat)",
+      "Must match identity."
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Riplay:1",
+    "sheet": "SOP Riplay",
+    "row": 2,
+    "values": [
+      1,
+      "Kelengkapan pengisian Form RIPLAY",
+      "Pastikan seluruh kolom wajib (nama nasabah, nama petugas bank, kota/tempat, tanggal dokumen, tanda tangan, paraf setiap halaman, dan cap/stempel) telah terisi lengkap dan terbaca jelas.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Riplay:2",
+    "sheet": "SOP Riplay",
+    "row": 3,
+    "values": [
+      2,
+      "Konsistensi identitas nasabah",
+      "Bandingkan nama nasabah dan tanda tangan pada Form RIPLAY dengan eKTP; pastikan ejaan dan tanda tangan konsisten.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Riplay:3",
+    "sheet": "SOP Riplay",
+    "row": 4,
+    "values": [
+      3,
+      "Keaslian tanda tangan petugas bank",
+      "Verifikasi tanda tangan petugas bank sesuai dengan spesimen di database cabang; pastikan bukan hasil tempelan digital atau salinan.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Riplay:4",
+    "sheet": "SOP Riplay",
+    "row": 5,
+    "values": [
+      4,
+      "Kejelasan paraf/tanda tangan di setiap halaman",
+      "Pastikan setiap halaman Form RIPLAY memiliki paraf/tanda tangan sesuai ketentuan (biasanya di kanan bawah halaman",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Riplay:5",
+    "sheet": "SOP Riplay",
+    "row": 6,
+    "values": [
+      5,
+      "Keberadaan dan keaslian cap/stempel bank",
+      "Pastikan cap/stempel asli tercantum dan tidak berupa hasil scan atau fotokopi; bandingkan dengan ketentuan stempel sesuaikan dengan nama cabang.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Riplay:6",
+    "sheet": "SOP Riplay",
+    "row": 7,
+    "values": [
+      6,
+      "Cross-check dengan sumber sistem (CBS/Smart Teller)",
+      "Cocokkan data utama (nama nasabah, nomor rekening, tanggal transaksi) di Form RIPLAY dengan data sistem core banking atau aplikasi pendukung lainnya.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Riplay:7",
+    "sheet": "SOP Riplay",
+    "row": 8,
+    "values": [
+      7,
+      "Bukti arsip digital dan metadata",
+      "Pastikan setiap Form RIPLAY tersimpan dalam arsip digital lengkap dengan metadata (tanggal unggah, pengguna yang mengunggah, hash file); pastikan tidak ada manipulasi file.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Stemple:1",
+    "sheet": "SOP Stemple",
+    "row": 2,
+    "values": [
+      1,
+      "Ketersediaan dan kesesuaian jenis stempel di cabang",
+      "Pastikan setiap cabang memiliki jenis stempel sesuai daftar pada Memo M.078/2024/ODSP (22 jenis stempel operasional: Teller, CS, Copy Sesuai Asli, Verifikasi Tandatangan, Konfirmasi, dll). Tidak boleh ada stempel tambahan di luar daftar.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Stemple:2",
+    "sheet": "SOP Stemple",
+    "row": 3,
+    "values": [
+      2,
+      "Standarisasi desain dan ukuran stempel",
+      "Bandingkan ukuran dan bentuk fisik stempel dengan ketentuan tabel standar (mis. Teller 1.1 cm Ø, Kantor 0.5×4 cm, Verifikasi Tandatangan 1.8 cm Ø, dll). Bila berbeda atau buram, tandai sebagai non-compliant.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Stemple:3",
+    "sheet": "SOP Stemple",
+    "row": 4,
+    "values": [
+      3,
+      "Keaslian dan kondisi fisik stempel",
+      "Periksa keaslian cetakan (tidak duplikat, tidak buatan lokal tanpa izin). Pastikan tulisan terbaca jelas dan bersih sesuai ketentuan “clean desk policy”.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Stemple:4",
+    "sheet": "SOP Stemple",
+    "row": 5,
+    "values": [
+      4,
+      "Penggunaan stempel sesuai fungsi dan jabatan",
+      "Pastikan penggunaan stempel sesuai penanggung jawab yang ditetapkan (mis. Teller → Transaksi Tunai; CS → Form Pembukaan Rekening; Supervisor → Verifikasi).",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Stemple:5",
+    "sheet": "SOP Stemple",
+    "row": 6,
+    "values": [
+      5,
+      "Penempatan stempel pada dokumen",
+      "Pastikan posisi stempel sesuai fungsi dokumen: informasi penting. ",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Stemple:6",
+    "sheet": "SOP Stemple",
+    "row": 7,
+    "values": [
+      6,
+      "Prosedur penyimpanan stempel",
+      "Pastikan seluruh stempel disimpan di laci terkunci dan hanya diakses oleh PIC resmi (Teller/CS/Supervisor/HO). Lakukan pemeriksaan fisik dan konfirmasi dengan daftar kepemilikan.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Stemple:7",
+    "sheet": "SOP Stemple",
+    "row": 8,
+    "values": [
+      7,
+      "Prosedur peminjaman dan penggunaan di luar kantor",
+      "Bila digunakan di luar kantor (event atau kegiatan eksternal), pastikan ada berita acara penggunaan dan persetujuan dari Head of Operation dan Branch Manager sesuai Memo 078 poin 2.f.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Stemple:8",
+    "sheet": "SOP Stemple",
+    "row": 9,
+    "values": [
+      8,
+      "Ketentuan pengadaan dan penggantian stempel",
+      "Verifikasi bahwa pengadaan stempel dilakukan sesuai prosedur (via GA Pusat/Wilayah atau Cabang Induk) dan disetujui oleh Head of Operation & Branch Manager.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Stemple:9",
+    "sheet": "SOP Stemple",
+    "row": 10,
+    "values": [
+      9,
+      "Pemusnahan stempel tidak standar",
+      "Pastikan cabang melakukan pemusnahan terhadap stempel lama atau non-standar dengan berita acara pemusnahan ditandatangani atasan langsung dan tidak langsung.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Stemple:10",
+    "sheet": "SOP Stemple",
+    "row": 11,
+    "values": [
+      10,
+      "Pengawasan dan surprise check BIC",
+      "Lakukan pemeriksaan mendadak untuk memastikan penerapan standar stempel, penyimpanan, dan penggunaannya berjalan sesuai ketentuan M.078/2024/ODSP; dokumentasikan hasilnya.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:1",
+    "sheet": "SOP Tabungan",
+    "row": 2,
+    "values": [
+      1,
+      "Pemeriksaan identitas nasabah",
+      "Pastikan eKTP atau Identitas Digital terbaca jelas (NIK, Nama, TTL, Alamat) dan sesuai dengan data pada formulir pembukaan rekening.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:2",
+    "sheet": "SOP Tabungan",
+    "row": 3,
+    "values": [
+      2,
+      "Validasi keaslian identitas nasabah",
+      "Lakukan verifikasi ke Web Service Dukcapil dan sistem CIF; pastikan data cocok dan belum pernah terdaftar ganda.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:3",
+    "sheet": "SOP Tabungan",
+    "row": 4,
+    "values": [
+      3,
+      "Kelengkapan pengisian formulir",
+      "Periksa semua kolom wajib terisi (nama, alamat, identitas, tanda tangan, tujuan pembukaan, sumber dana, pekerjaan, dll).",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:4",
+    "sheet": "SOP Tabungan",
+    "row": 5,
+    "values": [
+      4,
+      "Kesesuaian tanda tangan nasabah",
+      "Cocokkan tanda tangan nasabah di formulir dengan spesimen tanda tangan pada eKTP; jika berbeda, nasabah wajib mengisi Surat Pernyataan Beda Tanda Tangan.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:5",
+    "sheet": "SOP Tabungan",
+    "row": 6,
+    "values": [
+      5,
+      "Pembubuhan stempel verifikasi",
+      "Pastikan stempel Verifikasi Tanda Tangan dibubuhkan oleh petugas CS/Teller dan paraf tersedia di dekat area tanda tangan.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:6",
+    "sheet": "SOP Tabungan",
+    "row": 7,
+    "values": [
+      6,
+      "Pemeriksaan kelengkapan lampiran dokumen",
+      "Verifikasi keberadaan fotokopi eKTP, NPWP, dan dokumen pendukung lainnya (surat domisili, surat kuasa, surat referensi perusahaan jika relevan).",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:7",
+    "sheet": "SOP Tabungan",
+    "row": 8,
+    "values": [
+      7,
+      "Verifikasi hasil kunjungan (Join Visit)",
+      "Pastikan formulir Join Visit diisi lengkap (foto KTP, alamat tinggal aktual, tanda tangan visitor dan supervisor).",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:8",
+    "sheet": "SOP Tabungan",
+    "row": 9,
+    "values": [
+      8,
+      "Screening Watchlist & EDD",
+      "Periksa hasil screening DTTOT, DPPSPM, dan Watchlist pada form EDD; bila ada hasil match, pastikan catatan tindak lanjut tersimpan.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:9",
+    "sheet": "SOP Tabungan",
+    "row": 10,
+    "values": [
+      9,
+      "Kesesuaian hasil EDD dan profil risiko",
+      "Pastikan hasil EDD dan kategori risiko tercantum di form pembukaan rekening sesuai dengan hasil di sistem AML-CTF.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:10",
+    "sheet": "SOP Tabungan",
+    "row": 11,
+    "values": [
+      10,
+      "Otorisasi Supervisor / Head of Operation",
+      "Pastikan tanda tangan dan nama pejabat otorisasi tercantum lengkap; tanggal pemeriksaan harus sama dengan tanggal input CS.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:11",
+    "sheet": "SOP Tabungan",
+    "row": 12,
+    "values": [
+      11,
+      "Pembubuhan stempel otorisasi dan konfirmasi",
+      "Pastikan stempel Customer Service, Konfirmasi, dan Verifikasi Tandatangan muncul di halaman terakhir formulir.",
+      "Yes"
+    ],
+    "included": true
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:12",
+    "sheet": "SOP Tabungan",
+    "row": 13,
+    "values": [
+      12,
+      "Pencetakan & aktivasi rekening",
+      "Pastikan buku tabungan dan kartu ATM dicetak sesuai nama nasabah dan diserahkan langsung di cabang. Validasi core system bahwa rekening aktif.",
+      "No"
+    ],
+    "included": false
+  },
+  {
+    "source_ref": "AO:SOP Tabungan:13",
+    "sheet": "SOP Tabungan",
+    "row": 14,
+    "values": [
+      13,
+      "Penyimpanan dokumen dan arsip",
+      "Pastikan seluruh dokumen (fisik/digital) tersimpan lengkap, diberi cap BIC bila telah diperiksa. Arsip disimpan ≥5 tahun.",
+      "No"
+    ],
+    "included": false
+  }
+]

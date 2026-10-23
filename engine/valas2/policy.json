@@ -1,0 +1,14 @@
+{
+  "number_locale": "id_ID",
+  "day_first": true,
+  "two_digit_year_pivot": 49,
+  "timezone": "Asia/Jakarta",
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "currency_aliases": {"US DOLLAR": "USD", "US DOLLARS": "USD", "DOLAR AMERIKA SERIKAT": "USD", "DOLLAR AMERIKA SERIKAT": "USD", "EURO": "EUR", "RUPIAH": "IDR"},
+  "stamp_duty_denomination": "10000",
+  "stamp_duty_text_aliases": ["SEPULUH RIBU RUPIAH"],
+  "stamp_rule_confirmed": false,
+  "stamp_required": null,
+  "required_stamp_text_fragments": []
+}

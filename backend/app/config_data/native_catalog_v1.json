@@ -1,0 +1,267 @@
+{
+  "release": "native-catalog-v1",
+  "labels": {
+    "application": "Application of Transaction",
+    "lld": "LLD",
+    "invoice": "Underlying Invoice",
+    "valas_declaration_1": "Valas 1 · Above threshold",
+    "valas_declaration_2": "Valas 2 · Within threshold",
+    "ektp": "eKTP",
+    "riplay": "RIPLAY Document",
+    "join_visit": "Form Join Visit",
+    "edd": "Form EDD",
+    "account_opening_form": "Form Pembukaan Rekening",
+    "signature_difference": "Surat Pernyataan Beda Tanda Tangan",
+    "company_reference": "Surat Referensi Perusahaan"
+  },
+  "classification_descriptions": {
+    "riplay": "Ringkasan Informasi Produk dan Layanan (RIPLAY) Versi Personal / Personal Product Summary and Services Information. Usually four pages of bilingual benefits, risks, FX simulation and disclaimers; final-page city/date, Petugas Bank and Nasabah signature blocks, Tanggal Cetak Dokumen, bottom-right initials on each page. This is a product disclosure, not a transaction application or invoice.",
+    "application": "Bank application of transaction form. Payment type, transaction type, beneficiary, remitter, SWIFT, account, currency, exchange rate, charges and signatures.",
+    "lld": "Laporan Lalu Lintas Devisa (LLD) form. Penerima dana and pembayar/pengirim sections, residence status, sandi negara, categories, identification codes, financial relationship and sandi transaksi.",
+    "invoice": "Underlying commercial invoice. To/customer, From/company, invoice number and dates, item table with quantity, unit price, subtotal, final total and payment bank instructions.",
+    "valas_declaration_1": "Surat Pernyataan Pembelian Valas 1, Diatas Jumlah Threshold. Above-threshold declaration with identity and NPWP, tujuan/tanggal/jumlah penggunaan, sumber/tanggal/jumlah penerimaan, signature and meterai.",
+    "valas_declaration_2": "Surat Pernyataan Pembelian Valas 2, Paling Banyak Sebesar Jumlah Threshold. Threshold-limited declaration of currency bought, company/individual name and address, city/date, signatory and meterai.",
+    "ektp": "Indonesian electronic KTP identity card. NIK of 16 digits, name, birthplace/date, gender, blood type, RT/RW, village/district, religion, citizenship, portrait and cardholder signature.",
+    "join_visit": "Account Opening: Form Join Visit. Fields: Nama Nasabah, CIF, Tanggal Visit/Kunjungan, Nama Marketing Pembawa Form, Foto KTP Nasabah, Alamat KTP",
+    "edd": "Account Opening: Form EDD. Fields: Pilihan jenis transaksi, Pilihan perorangan , Nama, Nomor CIF, Jenis Produk / Layanan Bank, Screening – DTTOT / DPPSPM",
+    "account_opening_form": "Account Opening: Form Pembukaan Rekening. Fields: Jenis Formulir, Kantor Cabang, Tanggal, Status Nasabah, Saya memliki rekening di Bank Sinarmas, No Rekening Bank Sinarmas",
+    "signature_difference": "Account Opening: Surat Pernyataan Beda Tanda Tangan. Fields: Nama, Nomor Identitas, Alamat Sesuai Identitas, Nomor Rekening, Tanda Tangan  1, Tanda Tangan 2",
+    "company_reference": "Account Opening: Surat Referensi Perusahaan. Fields: Nama Perusahaan, Tanggal Surat, Nomor Surat, Tujuan Surat, Perihal, Nama Nasabah (disebutkan dalam surat)"
+  },
+  "suffixes": {
+    "application": [
+      "transaction",
+      "aplikasi transaksi",
+      "application",
+      "application of transaction"
+    ],
+    "lld": [
+      "lld"
+    ],
+    "invoice": [
+      "invoice",
+      "underlying invoice"
+    ],
+    "ektp": [
+      "ektp",
+      "e-ktp",
+      "ktp"
+    ],
+    "riplay": [
+      "riplay",
+      "riplay document",
+      "riplay docume",
+      "form riplay",
+      "riplay payroll",
+      "riplay gold",
+      "riplay diamond",
+      "riplay simas gold",
+      "riplay pemrek diamond",
+      "riplay pemrek gold",
+      "riplay pemrek tabunganku",
+      "riplay tabunganku"
+    ],
+    "valas_declaration_1": [
+      "valas1",
+      "valas 1",
+      "surat pernyataan pembelian valas 1 (diatas jumlah threshold)"
+    ],
+    "valas_declaration_2": [
+      "valas2",
+      "valas 2",
+      "surat pernyataan pembelian valas 2 (paling banyak sebesar jumlah threshold)"
+    ],
+    "join_visit": [
+      "join_visit",
+      "Form Join Visit",
+      "joint visit",
+      "join visit",
+      "visiting"
+    ],
+    "edd": [
+      "edd",
+      "Form EDD",
+      "eed",
+      "enhanced due diligence"
+    ],
+    "account_opening_form": [
+      "account_opening_form",
+      "Form Pembukaan Rekening",
+      "pembukaan rekening",
+      "account opening",
+      "opening form",
+      "formulir pembukaan rekening",
+      "pembukaan rek",
+      "pemrek tabunganku",
+      "tabunganku"
+    ],
+    "signature_difference": [
+      "signature_difference",
+      "Surat Pernyataan Beda Tanda Tangan",
+      "beda tanda tangan",
+      "beda tandatangan"
+    ],
+    "company_reference": [
+      "company_reference",
+      "Surat Referensi Perusahaan",
+      "referensi perusahaan",
+      "surat referensi",
+      "company reference"
+    ]
+  },
+  "grouping_prefixes": [
+    "forex",
+    "account opening",
+    "account open",
+    "pembukaan rekening",
+    "pembukaan tabungan",
+    "formulir pembukaan rekening",
+    "pemrek tab",
+    "pemrek",
+    "buka rekening",
+    "buka rek",
+    "tab",
+    "rek"
+  ],
+  "suffix_aliases": {
+    "rek": "pembukaan rekening",
+    "pemrek": "pembukaan rekening",
+    "pemrek tab": "pembukaan rekening",
+    "buka rek": "pembukaan rekening",
+    "tab": "pembukaan tabungan",
+    "ktp": "ektp",
+    "e-ktp": "ektp",
+    "applikasi": "aplikasi transaksi",
+    "aplikasi": "aplikasi transaksi",
+    "slip aplikasi": "aplikasi transaksi",
+    "inv": "invoice",
+    "faktur": "invoice",
+    "lld form": "lld",
+    "laporan lalu lintas devisa": "lld"
+  },
+  "message_templates": {
+    "ao.opening_form_missing": "Opening form missing or ambiguous.",
+    "ao.wic_survey_applicability": "WIC survey applicability requires an audited document-based decision; no survey field schema supplied.",
+    "ao.conditional_unresolved": "Conditional applicability is unresolved.",
+    "ao.combined_birth_review": "Combined birth text needs exact source comparison; formatting may differ.",
+    "ao.source_missing_ambiguous": "Source document missing or ambiguous.",
+    "ao.manual_evidence_review": "Uploaded evidence must be reviewed; no authenticity, external specimen or physical-inventory verification is inferred.",
+    "ao.supporting_source_review": "Supporting source uncertainty requires review.",
+    "ao.source_uncertainty_review": "Source uncertainty requires review.",
+    "ao.applicability_context": "Applicability needs documented case context.",
+    "sop.applicability_context": "Applicability needs documented case context.",
+    "sop.missing_ambiguous_ref": "Missing or ambiguous document reference.",
+    "sop.unreadable_values": "Unreadable or incompatible extracted values.",
+    "sop.low_confidence_source": "Low-confidence/unreadable source needs correction or reviewed evidence.",
+    "grouping.manual_confirmed": "Customer assignment confirmed by user.",
+    "grouping.one_compatible": "One compatible customer in this batch.",
+    "grouping.normalized_match": "Normalized customer name matched.",
+    "grouping.similar_spellings": "Similar spellings need confirmation; keep separate or choose one customer.",
+    "grouping.multiple_compatible": "Multiple compatible customers; choose the correct customer.",
+    "grouping.missing_name": "Customer name is missing; assign this document.",
+    "grouping.identity_conflict": "Extracted customer names disagree. Review document grouping; assignments were retained.",
+    "grouping.expected_compatible": "Compatible customer identities within one case.",
+    "processing.incomplete": "Document processing incomplete.",
+    "processing.native_quality": "Native document quality check",
+    "processing.required_missing": "Required document missing.",
+    "route.unassigned_reason": "No approved filename label. Content classification still pending.",
+    "route.filename_reason": "Recognized document label; content verification still pending."
+  },
+  "families": {
+    "forex": {
+      "label": "Forex",
+      "profiles": [
+        "application",
+        "lld",
+        "invoice",
+        "valas_declaration_1",
+        "valas_declaration_2",
+        "ektp",
+        "riplay"
+      ]
+    },
+    "account_opening": {
+      "label": "Account Opening",
+      "profiles": [
+        "account_opening_form",
+        "join_visit",
+        "edd",
+        "signature_difference",
+        "company_reference",
+        "ektp",
+        "riplay"
+      ]
+    }
+  },
+  "forex_policy": {
+    "version": 2,
+    "purpose_codes": {},
+    "purpose_equivalences": {
+      "goods_import": [
+        "import goods",
+        "import of goods",
+        "goods import",
+        "transaksi barang impor",
+        "pembayaran impor barang",
+        "pembelian barang impor"
+      ]
+    },
+    "address_aliases": {
+      "jl": "jalan",
+      "jln": "jalan",
+      "no": "nomor",
+      "kel": "kelurahan",
+      "kec": "kecamatan",
+      "kab": "kabupaten",
+      "prov": "provinsi"
+    }
+  },
+  "forex_checkpoint_labels": [
+    "eKTP / application sender name",
+    "eKTP / Valas identity and address",
+    "eKTP / RIPLAY customer name",
+    "RIPLAY / application date",
+    "RIPLAY / application signature consistency",
+    "Application / Valas sender name",
+    "Application / LLD beneficiary identity and address",
+    "Application / LLD principal amount",
+    "Valas / application purpose",
+    "Valas / LLD amount",
+    "LLD / invoice payment basis",
+    "LLD / Valas purpose",
+    "LLD / application date",
+    "Invoice identity and transaction linkage",
+    "eKTP / LLD payer name"
+  ],
+  "legacy_forex_rule_patches": [
+    {
+      "when": {
+        "id": "SYS_06_PARTY_POLICY",
+        "operator": "policy_review"
+      },
+      "set": {
+        "operator": "match_exact",
+        "comparison_policy": "corresponding_party_roles",
+        "severity": "FAIL",
+        "notes": "Compare corresponding party roles. Valas customer is the sender; beneficiary is independently checked by checkpoints 7 and 14.",
+        "label": "Application sender must match the customer on the applicable Valas declaration; beneficiary consistency is checked separately."
+      }
+    },
+    {
+      "when": {
+        "id": "SYS_14_LINK_POLICY",
+        "operator": "policy_review"
+      },
+      "set": {
+        "operator": "invoice_linkage",
+        "other_path": "lld.details",
+        "right_document": "lld",
+        "right_field": "details",
+        "comparison_policy": "invoice_identity_and_party_linkage",
+        "severity": "FAIL",
+        "notes": "Require invoice number, matching buyer/sender and payee/beneficiary. An explicitly selected supporting invoice must match number, currency and total. The selected invoice payment amount and currency must also match LLD, consistently with checkpoint 11. Invoice numbers are never compared with money.",
+        "label": "Invoice identity and corresponding buyer/beneficiary roles must link to the transaction."
+      }
+    }
+  ]
+}

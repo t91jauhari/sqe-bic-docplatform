@@ -1,0 +1,23 @@
+{
+  "release": "provider-defaults-v1",
+  "spider-ai": {
+    "base_url": "https://spider.thantowijauhari.com/v1",
+    "model_id": "pct-prod-spider/pecut/gemini-3.8-flash-high",
+    "temperature": 0.41,
+    "top_p": 0.22,
+    "max_tokens": 16384,
+    "request_body_limit": 1048576,
+    "image_max_pixels": 2400,
+    "image_jpeg_quality": 90,
+    "classify_page_limit": 2,
+    "timeout_seconds": 600,
+    "connect_timeout_seconds": 15,
+    "field_image_max_bytes": 180000
+  },
+  "llama": {
+    "base_url": "",
+    "project_id": "",
+    "organization_id": "",
+    "timeout_seconds": 60
+  }
+}

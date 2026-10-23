@@ -1,0 +1,17 @@
+{
+  "number_locale": "id_ID",
+  "day_first": true,
+  "two_digit_year_pivot": 49,
+  "timezone": "Asia/Jakarta",
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "include_indonesian_public_holidays": true,
+  "include_joint_leave": true,
+  "additional_closed_dates": [],
+  "identity_rule_confirmed": false,
+  "identity_required": null,
+  "identity_pattern": null,
+  "currency_aliases": {"US DOLLAR": "USD", "US DOLLARS": "USD", "DOLAR AMERIKA SERIKAT": "USD", "EURO": "EUR", "RUPIAH": "IDR"},
+  "stamp_duty_denomination": "10000",
+  "stamp_duty_text_aliases": ["SEPULUH RIBU RUPIAH"]
+}

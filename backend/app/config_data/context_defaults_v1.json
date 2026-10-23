@@ -1,0 +1,140 @@
+{
+  "release": "context-defaults-v1",
+  "definitions": {
+    "account_signature_difference": {
+      "label": "Account signature difference",
+      "kind": "enum",
+      "options": [
+        "YES",
+        "NO",
+        "UNKNOWN"
+      ]
+    },
+    "transaction_direction": {
+      "label": "Transaction direction",
+      "kind": "enum",
+      "options": [
+        "IDR_TO_FOREIGN",
+        "FOREIGN_TO_FOREIGN",
+        "OTHER",
+        "UNKNOWN"
+      ]
+    },
+    "threshold_state": {
+      "label": "Threshold state",
+      "kind": "enum",
+      "options": [
+        "ABOVE",
+        "WITHIN",
+        "UNKNOWN"
+      ]
+    },
+    "customer_type": {
+      "label": "Customer type",
+      "kind": "enum",
+      "options": [
+        "INDIVIDUAL",
+        "COMPANY",
+        "UNKNOWN"
+      ]
+    },
+    "identity_type": {
+      "label": "Identity type",
+      "kind": "enum",
+      "options": [
+        "NIK",
+        "PASSPORT",
+        "OTHER",
+        "UNKNOWN"
+      ]
+    },
+    "transaction_carrier": {
+      "label": "Transaction carrier",
+      "kind": "enum",
+      "options": [
+        "CUSTOMER",
+        "AUTHORIZED_REPRESENTATIVE",
+        "BANK_EMPLOYEE",
+        "UNKNOWN"
+      ]
+    },
+    "payment_basis": {
+      "label": "Payment basis",
+      "kind": "enum",
+      "options": [
+        "FULL_INVOICE",
+        "PROGRESS_CLAIM",
+        "PARTIAL_PAYMENT",
+        "UNKNOWN"
+      ]
+    },
+    "transaction_inputter": {
+      "label": "Transaction inputter",
+      "kind": "text"
+    },
+    "transaction_approver": {
+      "label": "Transaction approver",
+      "kind": "text"
+    },
+    "new_account_number": {
+      "label": "New account number (document-supported)",
+      "kind": "digits",
+      "max_length": 40
+    },
+    "partial_payment_amount": {
+      "label": "Partial payment amount",
+      "kind": "text",
+      "families": [
+        "forex"
+      ]
+    },
+    "partial_payment_currency": {
+      "label": "Partial payment currency",
+      "kind": "text",
+      "families": [
+        "forex"
+      ]
+    },
+    "application_document_id": {
+      "label": "Application slip",
+      "kind": "document_reference",
+      "profiles": [
+        "application"
+      ],
+      "families": [
+        "forex"
+      ]
+    },
+    "declaration_document_id": {
+      "label": "Applicable Valas declaration",
+      "kind": "document_reference",
+      "profiles": [
+        "valas_declaration_1",
+        "valas_declaration_2"
+      ],
+      "families": [
+        "forex"
+      ]
+    },
+    "invoice_document_id": {
+      "label": "Invoice for payment basis",
+      "kind": "document_reference",
+      "profiles": [
+        "invoice"
+      ],
+      "families": [
+        "forex"
+      ]
+    },
+    "underlying_document_id": {
+      "label": "Separate supporting invoice (optional)",
+      "kind": "document_reference",
+      "profiles": [
+        "invoice"
+      ],
+      "families": [
+        "forex"
+      ]
+    }
+  }
+}

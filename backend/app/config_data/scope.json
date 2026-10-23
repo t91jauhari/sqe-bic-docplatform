@@ -1,0 +1,292 @@
+[
+  {
+    "source_ref": "SOP1:2 | SOP2:2",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Aplikasi/slip transaksi jual/beli valas terisi lengkap",
+    "guidance": "Semua kolom wajib (nomor rekening, nama nasabah, jenis transaksi, nominal, kurs, tanggal, tanda tangan petugas) sudah terisi dan jelas",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Document completeness only."
+  },
+  {
+    "source_ref": "SOP1:4 | SOP2:4",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Tanda tangan nasabah pada aplikasi/slip transaksi",
+    "guidance": "Cocokkan dengan spesimen tanda tangan pada sistem atau kartu identitas; bila ada perbedaan lakukan verifikasi lebih lanjut",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Uploaded-document signature observations only; external specimens and identity authentication excluded."
+  },
+  {
+    "source_ref": "SOP1:5 | SOP2:5",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes (exclude CCTV)",
+    "scope": "Included document portion",
+    "instruction": "Keaslian pihak pembawa transaksi",
+    "guidance": "Pastikan transaksi dibawa oleh nasabah sendiri (cek data identitas), atau penerima kuasa (cek surat kuasa), atau karyawan bank sesuai SE keamanan; pengecekan CCTV hanya bila diperlukan",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Declared carrier and supplied authority-document presence only; actual presenter/CCTV/employee authorization verification excluded."
+  },
+  {
+    "source_ref": "SOP1:6 | SOP2:6",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Verifikasi dan konfirmasi kepada nasabah",
+    "guidance": "Hasil konfirmasi SPIV/HO tertulis pada form dan/atau voice recorder tersimpan dengan baik sebagai bukti; pastikan tanda waktu dan petugas jelas",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Visible written confirmation on supplied form only; external SPIV/HO and voice recording verification excluded."
+  },
+  {
+    "source_ref": "SOP1:7 | SOP2:7",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Surat Pernyataan Pembelian Valas untuk IDR→Valas",
+    "guidance": "Pastikan nasabah membuat & menyerahkan surat sesuai ketentuan untuk setiap transaksi pembelian valas dari rupiah ke valas",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Conditional on explicit transaction direction; no inferred funding currency."
+  },
+  {
+    "source_ref": "SOP1:9 | SOP2:9",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Dokumen pendukung transaksi di atas Threshold",
+    "guidance": "Lampirkan underlying (invoice/kontrak) + KTP & NPWP; pastikan tanggal jatuh tempo invoice minimal sama atau sesudah tanggal transaksi; bila lebih awal lampirkan surat pernyataan tambahan",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Conditional on documented case applicability; monthly Smart FX computation excluded; invoice-date conflict needs policy."
+  },
+  {
+    "source_ref": "SOP3:1",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "eKTP → Slip Aplikasi 1 / 2",
+    "guidance": "Nama ↔ Nama Penyetor / Pengirim ",
+    "system_checkpoint": "Customer name on eKTP and slip must match exactly (first + last name).",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:2",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "eKTP → Surat Pembelian Valas 1",
+    "guidance": "Nama, Alamat, NIK ↔ Nama, Alamat, NIK",
+    "system_checkpoint": "Verify customer name, address and NIK consistency between KTP and forex letter.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:3",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "eKTP → Form Riplay",
+    "guidance": "Nama ↔ Nasabah (Nama)",
+    "system_checkpoint": "Confirm recorded name matches eKTP holder.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:4",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Form Riplay → Slip Aplikasi 1 / 2",
+    "guidance": "Tanggal Dokumen Dibuat ↔ Tanggal Slip",
+    "system_checkpoint": "Document creation date should match transaction slip date.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:5",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Form Riplay → Slip Aplikasi 1 / 2",
+    "guidance": "Tanda Tangan Nasabah ↔ Tanda Tangan Nasabah",
+    "system_checkpoint": "Compare visual signature consistency.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:6",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Slip Aplikasi 1 / 2 → Surat Pembelian Valas 1 / 2",
+    "guidance": "Nama Penyetor / Pengirim ↔ Nama Individu / Perusahaan",
+    "system_checkpoint": "Name on application slip must match forex purchase form both penerima and pengirim",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:7",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Slip Aplikasi 1 / 2 → Form LLD",
+    "guidance": "Nama Penerima Dana / Alamat ↔ Nama Penerima Dana / Alamat (LLD)",
+    "system_checkpoint": "Verify recipient identity and address consistency.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:8",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Slip Aplikasi 1 / 2 → Form LLD",
+    "guidance": "Nilai Transaksi ↔ Jumlah / Total Amount",
+    "system_checkpoint": "Transaction value should match exactly.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:9",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Surat Pembelian Valas 1 → Slip Aplikasi 1 / 2",
+    "guidance": "Tujuan Penggunaan ↔ Tujuan Transaksi",
+    "system_checkpoint": "Purpose of transaction must be consistent.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:10",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Surat Pembelian Valas 1 / 2 → Form LLD",
+    "guidance": "Jumlah / Nilai Transaksi ↔ Nilai Transaksi (LLD)",
+    "system_checkpoint": "Cross-check transaction value between forex letters and LLD.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:11",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Form LLD → Invoice / Dokumen Underlying",
+    "guidance": "Nilai Transaksi ↔ Total / Final Amount",
+    "system_checkpoint": "Ensure LLD transaction value matches invoice basis.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:12",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Form LLD → Surat Pembelian Valas 1 / 2",
+    "guidance": "Tujuan / Purpose ↔ Tujuan Penggunaan",
+    "system_checkpoint": "Purpose description alignment required.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:13",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Form LLD → Slip Aplikasi 1 / 2",
+    "guidance": "Tanggal Transaksi ↔ Tanggal Slip",
+    "system_checkpoint": "LLD date should equal slip transaction date.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:14",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "Dokumen Underlying → Invoice / Form LLD",
+    "guidance": "Invoice Number / Total ↔ Nilai Transaksi",
+    "system_checkpoint": "Match underlying invoice and LLD values.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP3:15",
+    "scope_basis": "SYSTEM_SOP3",
+    "original_flag": "SYSTEM",
+    "scope": "Included",
+    "instruction": "eKTP → Form LLD",
+    "guidance": "Nama Pembayar / Pengirim ↔ Nama di KTP",
+    "system_checkpoint": "Verify identity of payer/sender against official ID.",
+    "included_and_excluded_components": "Document-only comparison; no external reference."
+  },
+  {
+    "source_ref": "SOP5-RIplay:1",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Kelengkapan pengisian Form RIPLAY",
+    "guidance": "Pastikan seluruh kolom wajib (nama nasabah, nama petugas bank, kota/tempat, tanggal dokumen, tanda tangan, paraf setiap halaman, dan cap/stempel) telah terisi lengkap dan terbaca jelas.",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Readable fields, signatures, page marks and visible stamps only."
+  },
+  {
+    "source_ref": "SOP5-RIplay:2",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Konsistensi identitas nasabah",
+    "guidance": "Bandingkan nama nasabah dan tanda tangan pada Form RIPLAY dengan eKTP; pastikan ejaan dan tanda tangan konsisten.",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Name and uploaded-document signature observations only; no authentication."
+  },
+  {
+    "source_ref": "SOP5-RIplay:4",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Kejelasan paraf/tanda tangan di setiap halaman",
+    "guidance": "Pastikan setiap halaman Form RIPLAY memiliki paraf/tanda tangan sesuai ketentuan (biasanya di kanan bawah halaman",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Per-page visible marks."
+  },
+  {
+    "source_ref": "SOP5-RIplay:5",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Keberadaan dan keaslian cap/stempel bank",
+    "guidance": "Pastikan cap/stempel asli tercantum dan tidak berupa hasil scan atau fotokopi; bandingkan dengan ketentuan stempel sesuaikan dengan nama cabang.",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Presence/readability/placement only; physical originality/authenticity excluded."
+  },
+  {
+    "source_ref": "SOP4-Stempel:1",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Ketersediaan dan kesesuaian jenis stempel di cabang",
+    "guidance": "Pastikan setiap cabang memiliki jenis stempel sesuai daftar pada Memo M.078/2024/ODSP (22 jenis stempel operasional: Teller, CS, Copy Sesuai Asli, Verifikasi Tandatangan, Konfirmasi, dll). Tidak boleh ada stempel tambahan di luar daftar.",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Observed document stamp against configured allowed types only; physical branch inventory excluded."
+  },
+  {
+    "source_ref": "SOP4-Stempel:3",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Keaslian dan kondisi fisik stempel",
+    "guidance": "Periksa keaslian cetakan (tidak duplikat, tidak buatan lokal tanpa izin). Pastikan tulisan terbaca jelas dan bersih sesuai ketentuan “clean desk policy”.",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Document stamp legibility only; physical originality and manufacture excluded."
+  },
+  {
+    "source_ref": "SOP4-Stempel:4",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Penggunaan stempel sesuai fungsi dan jabatan",
+    "guidance": "Pastikan penggunaan stempel sesuai penanggung jawab yang ditetapkan (mis. Teller → Transaksi Tunai; CS → Form Pembukaan Rekening; Supervisor → Verifikasi).",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Visible stamp role/function against configured policy; actual employee authority excluded."
+  },
+  {
+    "source_ref": "SOP4-Stempel:5",
+    "scope_basis": "YES_SELECTED",
+    "original_flag": "Yes",
+    "scope": "Included document portion",
+    "instruction": "Penempatan stempel pada dokumen",
+    "guidance": "Pastikan posisi stempel sesuai fungsi dokumen: informasi penting. ",
+    "system_checkpoint": null,
+    "included_and_excluded_components": "Document placement only."
+  }
+]

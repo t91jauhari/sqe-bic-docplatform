@@ -1,0 +1,209 @@
+{
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "day_first": true,
+  "required_fields": [
+    "form_type",
+    "branch",
+    "transaction_date",
+    "customer_status",
+    "existing_account",
+    "existing_account_number",
+    "account_type",
+    "currency",
+    "acting_for",
+    "customer_name",
+    "birth_place_date",
+    "gender",
+    "marital_status",
+    "citizenship",
+    "identity_type",
+    "identity_number",
+    "identity_valid_until",
+    "supporting_identity_type",
+    "supporting_identity_number",
+    "supporting_identity_valid_until",
+    "tin_ssn",
+    "mother_name",
+    "npwp",
+    "current_address_choice",
+    "current_address",
+    "rt",
+    "rw",
+    "village",
+    "district",
+    "city",
+    "postal_code",
+    "province",
+    "mailing_address_choice",
+    "residence_status",
+    "education",
+    "home_phone",
+    "mobile_phone",
+    "email",
+    "occupation",
+    "employment_status",
+    "business_sector",
+    "company_name",
+    "position",
+    "employed_since",
+    "office_address",
+    "office_city",
+    "office_postal_code",
+    "office_province",
+    "office_phone",
+    "office_extension",
+    "monthly_income",
+    "opening_purpose",
+    "source_of_funds",
+    "additional_income_source",
+    "additional_monthly_income",
+    "transaction_frequency",
+    "transaction_average",
+    "facilities",
+    "atm_card_number",
+    "pin_maker_id",
+    "token_id",
+    "sms_notification",
+    "foreign_tax_obligation",
+    "consent",
+    "consent_place",
+    "consent_date",
+    "customer_signature",
+    "meterai",
+    "cif",
+    "classification_code",
+    "bank_relationship",
+    "dhn_check",
+    "risk_category",
+    "sector",
+    "industry",
+    "target",
+    "referral_source",
+    "marketing_code",
+    "referral_other",
+    "identity_copy_check",
+    "npwp_copy_check",
+    "other_required_documents",
+    "cs_date",
+    "supervisor_date",
+    "supervisor_approval",
+    "cs_signature",
+    "supervisor_signature",
+    "verification_stamp",
+    "confirmation_stamp",
+    "cs_stamp"
+  ],
+  "conditional_fields": [
+    "additional_income_source",
+    "additional_monthly_income",
+    "atm_card_number",
+    "cif",
+    "city",
+    "classification_code",
+    "confirmation_stamp",
+    "current_address",
+    "district",
+    "email",
+    "existing_account_number",
+    "foreign_tax_obligation",
+    "identity_copy_check",
+    "identity_number",
+    "marketing_code",
+    "meterai",
+    "npwp",
+    "npwp_copy_check",
+    "other_required_documents",
+    "pin_maker_id",
+    "postal_code",
+    "province",
+    "referral_other",
+    "rt",
+    "rw",
+    "sms_notification",
+    "supporting_identity_number",
+    "supporting_identity_type",
+    "supporting_identity_valid_until",
+    "target",
+    "tin_ssn",
+    "token_id",
+    "village"
+  ],
+  "conditional_rules": {
+    "existing_account_number": {
+      "field": "existing_account",
+      "equals": [
+        "Ya"
+      ]
+    },
+    "supporting_identity_type": {
+      "field": "citizenship",
+      "equals": [
+        "WNA"
+      ]
+    },
+    "supporting_identity_number": {
+      "field": "citizenship",
+      "equals": [
+        "WNA"
+      ]
+    },
+    "supporting_identity_valid_until": {
+      "field": "citizenship",
+      "equals": [
+        "WNA"
+      ]
+    },
+    "current_address": {
+      "field": "current_address_choice",
+      "equals": [
+        "Berbeda"
+      ]
+    },
+    "rt": {
+      "field": "current_address_choice",
+      "equals": [
+        "Berbeda"
+      ]
+    },
+    "rw": {
+      "field": "current_address_choice",
+      "equals": [
+        "Berbeda"
+      ]
+    },
+    "village": {
+      "field": "current_address_choice",
+      "equals": [
+        "Berbeda"
+      ]
+    },
+    "district": {
+      "field": "current_address_choice",
+      "equals": [
+        "Berbeda"
+      ]
+    },
+    "city": {
+      "field": "current_address_choice",
+      "equals": [
+        "Berbeda"
+      ]
+    },
+    "postal_code": {
+      "field": "current_address_choice",
+      "equals": [
+        "Berbeda"
+      ]
+    },
+    "province": {
+      "field": "current_address_choice",
+      "equals": [
+        "Berbeda"
+      ]
+    }
+  },
+  "stamp_policy_confirmed": false,
+  "business_calendar_confirmed": false,
+  "business_holidays": []
+}

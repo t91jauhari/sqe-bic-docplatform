@@ -1,0 +1,42 @@
+{
+  "number_locale": "id_ID",
+  "day_first": true,
+  "two_digit_year_pivot": 49,
+  "timezone": "Asia/Jakarta",
+  "include_indonesian_public_holidays": true,
+  "include_joint_leave": true,
+  "additional_closed_dates": [],
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "accepted_checkbox_mark_types": ["tick", "cross", "fill"],
+  "enum_aliases": {},
+  "country_code_format": "alpha2",
+  "account_type_master": null,
+  "purpose_master": null,
+  "transaction_code_master": null,
+  "template_category_master_confirmed": false,
+  "category_codes": {
+    "A0": "Perorangan", "B0": "Pemerintah", "C1": "Bank", "C2": "Bank",
+    "C9": "Bank", "C0": "Bank", "D0": "Lembaga Keuangan Non Bank",
+    "E0": "Perusahaan", "F1": "Lembaga/Organisasi Internasional",
+    "F2": "Lembaga/Organisasi Internasional", "Z9": "Lainnya"
+  },
+  "bank_subtype_codes": {
+    "C1": "Bank Pelapor", "C2": "KC/KP di LN", "C9": "Bank Lainnya", "C0": "Otoritas Moneter"
+  },
+  "international_subtype_codes": {"F1": "Bank", "F2": "Non Bank"},
+  "identification_codes": {
+    "A": "NPWP", "B": "KTP", "C": "SIM", "D": "Paspor",
+    "E": "KIM/KITAS/KITAP", "F": "No Identifikasi yang ditetapkan Bank"
+  },
+  "identification_types": ["NPWP", "KTP", "SIM", "Paspor", "KIM", "KITAS", "KITAP", "KIM/KITAS/KITAP", "No Identifikasi yang ditetapkan Bank"],
+  "beneficiary_bank_allow_blank": true,
+  "beneficiary_bank_invalid_action": "REVIEW",
+  "skip_sections_when_beneficiary_equals_payer": true,
+  "depository_country_required_when_payer_section_active": true,
+  "identity_number_global_uniqueness": false,
+  "npwp_allow_format_punctuation": true,
+  "details_required": false,
+  "stamp_rule_confirmed": false,
+  "required_stamp_text_fragments": []
+}

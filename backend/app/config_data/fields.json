@@ -1,0 +1,1808 @@
+[
+  {
+    "document": "application",
+    "field": "branch",
+    "path": "application.branch",
+    "label": "Cabang",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "transaction_date",
+    "path": "application.transaction_date",
+    "label": "Tanggal",
+    "type": "date"
+  },
+  {
+    "document": "application",
+    "field": "payment_type",
+    "path": "application.payment_type",
+    "label": "Jenis Pembayaran",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "transaction_type",
+    "path": "application.transaction_type",
+    "label": "Jenis Transaksi",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary",
+    "path": "application.beneficiary",
+    "label": "Nama, Alamat & Telepon Penerima",
+    "type": "object"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary.full_text",
+    "path": "application.beneficiary.full_text",
+    "label": "Nama, Alamat & Telepon Penerima / full_text",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary.name",
+    "path": "application.beneficiary.name",
+    "label": "Nama, Alamat & Telepon Penerima / name",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary.address",
+    "path": "application.beneficiary.address",
+    "label": "Nama, Alamat & Telepon Penerima / address",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary.phone",
+    "path": "application.beneficiary.phone",
+    "label": "Nama, Alamat & Telepon Penerima / phone",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary_bank",
+    "path": "application.beneficiary_bank",
+    "label": "Nama & Cabang Bank Penerima",
+    "type": "object"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary_bank.name",
+    "path": "application.beneficiary_bank.name",
+    "label": "Nama & Cabang Bank Penerima / name",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary_bank.branch",
+    "path": "application.beneficiary_bank.branch",
+    "label": "Nama & Cabang Bank Penerima / branch",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "swift_code",
+    "path": "application.swift_code",
+    "label": "Swift Code Bank Penerima (Optional)",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "beneficiary_account_number",
+    "path": "application.beneficiary_account_number",
+    "label": "A/C no",
+    "type": "identifier"
+  },
+  {
+    "document": "application",
+    "field": "remitter",
+    "path": "application.remitter",
+    "label": "Nama, Alamat & Telepon Penyetor",
+    "type": "object"
+  },
+  {
+    "document": "application",
+    "field": "remitter.full_text",
+    "path": "application.remitter.full_text",
+    "label": "Nama, Alamat & Telepon Penyetor / full_text",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "remitter.name",
+    "path": "application.remitter.name",
+    "label": "Nama, Alamat & Telepon Penyetor / name",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "remitter.address",
+    "path": "application.remitter.address",
+    "label": "Nama, Alamat & Telepon Penyetor / address",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "remitter.phone",
+    "path": "application.remitter.phone",
+    "label": "Nama, Alamat & Telepon Penyetor / phone",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "remitter_account_number",
+    "path": "application.remitter_account_number",
+    "label": "A/C no",
+    "type": "identifier"
+  },
+  {
+    "document": "application",
+    "field": "source_of_funds",
+    "path": "application.source_of_funds",
+    "label": "Sumber Dana",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "transaction_purpose",
+    "path": "application.transaction_purpose",
+    "label": "Tujuan Transaksi",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "transaction_account_number",
+    "path": "application.transaction_account_number",
+    "label": "Nomor Cek / BG / No. Rekening (Account No)",
+    "type": "identifier"
+  },
+  {
+    "document": "application",
+    "field": "transaction_bank_name",
+    "path": "application.transaction_bank_name",
+    "label": "Nama Bank",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "currency",
+    "path": "application.currency",
+    "label": "Valuta / Currency",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "exchange_rate",
+    "path": "application.exchange_rate",
+    "label": "Kurs",
+    "type": "decimal"
+  },
+  {
+    "document": "application",
+    "field": "amount",
+    "path": "application.amount",
+    "label": "Jumlah / Amount",
+    "type": "decimal"
+  },
+  {
+    "document": "application",
+    "field": "charges",
+    "path": "application.charges",
+    "label": "Biaya/Jumlah biaya",
+    "type": "object"
+  },
+  {
+    "document": "application",
+    "field": "charges.payment_method",
+    "path": "application.charges.payment_method",
+    "label": "Biaya/Jumlah biaya / payment_method",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "charges.amount",
+    "path": "application.charges.amount",
+    "label": "Biaya/Jumlah biaya / amount",
+    "type": "decimal"
+  },
+  {
+    "document": "application",
+    "field": "charges.currency",
+    "path": "application.charges.currency",
+    "label": "Biaya/Jumlah biaya / currency",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "total_amount",
+    "path": "application.total_amount",
+    "label": "Total (Total Amount)",
+    "type": "decimal"
+  },
+  {
+    "document": "application",
+    "field": "amount_in_words",
+    "path": "application.amount_in_words",
+    "label": "Terbilang (amount in words)",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "notes",
+    "path": "application.notes",
+    "label": "Keterangan / Notes",
+    "type": "text"
+  },
+  {
+    "document": "application",
+    "field": "customer_signature",
+    "path": "application.customer_signature",
+    "label": "Tanda Tangan Nasabah / Customer Signature",
+    "type": "signature_region"
+  },
+  {
+    "document": "application",
+    "field": "customer_signature.present",
+    "path": "application.customer_signature.present",
+    "label": "Tanda Tangan Nasabah / Customer Signature / present",
+    "type": "boolean"
+  },
+  {
+    "document": "application",
+    "field": "customer_signature.handwritten",
+    "path": "application.customer_signature.handwritten",
+    "label": "Tanda Tangan Nasabah / Customer Signature / handwritten",
+    "type": "boolean"
+  },
+  {
+    "document": "application",
+    "field": "bank_approval",
+    "path": "application.bank_approval",
+    "label": "Pengesahan Bank / Bank’s Approval (stamp)",
+    "type": "signature_region"
+  },
+  {
+    "document": "application",
+    "field": "bank_approval.present",
+    "path": "application.bank_approval.present",
+    "label": "Pengesahan Bank / Bank’s Approval (stamp) / present",
+    "type": "boolean"
+  },
+  {
+    "document": "application",
+    "field": "bank_approval.stamp_present",
+    "path": "application.bank_approval.stamp_present",
+    "label": "Pengesahan Bank / Bank’s Approval (stamp) / stamp_present",
+    "type": "boolean"
+  },
+  {
+    "document": "application",
+    "field": "bank_approval.stamp_text",
+    "path": "application.bank_approval.stamp_text",
+    "label": "Pengesahan Bank / Bank’s Approval (stamp) / stamp_text",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "transaction_date",
+    "path": "lld.transaction_date",
+    "label": "Tanggal Transaksi / Date of Transaction",
+    "type": "date"
+  },
+  {
+    "document": "lld",
+    "field": "transaction_id",
+    "path": "lld.transaction_id",
+    "label": "Nomor ID Transaksi / ID Number of Transaction",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "account_type",
+    "path": "lld.account_type",
+    "label": "Jenis Rekening / Type of Account",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_name",
+    "path": "lld.beneficiary_name",
+    "label": "Nama Penerima Dana",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_address",
+    "path": "lld.beneficiary_address",
+    "label": "Alamat Penerima Dana",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_postal_code",
+    "path": "lld.beneficiary_postal_code",
+    "label": "Kode Pos Penerima Dana",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_phone",
+    "path": "lld.beneficiary_phone",
+    "label": "No. Telp Penerima Dana",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_status",
+    "path": "lld.beneficiary_status",
+    "label": "Status Penerima Dana",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_country_code",
+    "path": "lld.beneficiary_country_code",
+    "label": "Sandi Negara",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_category",
+    "path": "lld.beneficiary_category",
+    "label": "Kategori Penerima Dana",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_bank",
+    "path": "lld.beneficiary_bank",
+    "label": "Bank",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_international_organization",
+    "path": "lld.beneficiary_international_organization",
+    "label": "Lembaga/Organisasi Internasional",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_identity_relation",
+    "path": "lld.beneficiary_identity_relation",
+    "label": "Identitas Penerima",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_identification_type",
+    "path": "lld.beneficiary_identification_type",
+    "label": "Jenis Identifikasi Penerima",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "beneficiary_identification_number",
+    "path": "lld.beneficiary_identification_number",
+    "label": "Nomor Identifikasi Penerima",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_name",
+    "path": "lld.payer_name",
+    "label": "Nama Pembayar, Pengirim",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_address",
+    "path": "lld.payer_address",
+    "label": "Alamat Pembayar, Pengirim",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_postal_code",
+    "path": "lld.payer_postal_code",
+    "label": "Kode Pos Pembayar, Pengirim",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_phone",
+    "path": "lld.payer_phone",
+    "label": "No. Telp Pembayar, Pengirim",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_status",
+    "path": "lld.payer_status",
+    "label": "Status Pembayar, Pengirim",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_country_code",
+    "path": "lld.payer_country_code",
+    "label": "Sandi Negara",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_category",
+    "path": "lld.payer_category",
+    "label": "Kategori Pembayar, Penerima",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_bank",
+    "path": "lld.payer_bank",
+    "label": "Bank",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_international_organization",
+    "path": "lld.payer_international_organization",
+    "label": "Lembaga/Organisasi Internasional",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "financial_relationship",
+    "path": "lld.financial_relationship",
+    "label": "Hubungan keuangan antar pelaku transaksi",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "depository_correspondent_bank_country_code",
+    "path": "lld.depository_correspondent_bank_country_code",
+    "label": "Depository correspondent Bank",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_identification_type",
+    "path": "lld.payer_identification_type",
+    "label": "Jenis Identifikasi Pembayar, Pengirim",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "payer_identification_number",
+    "path": "lld.payer_identification_number",
+    "label": "Nomor Identifikasi Pembayar, Pengirim",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "transaction_value",
+    "path": "lld.transaction_value",
+    "label": "Nilai Transaksi",
+    "type": "object"
+  },
+  {
+    "document": "lld",
+    "field": "transaction_value.currency",
+    "path": "lld.transaction_value.currency",
+    "label": "Nilai Transaksi / currency",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "transaction_value.amount",
+    "path": "lld.transaction_value.amount",
+    "label": "Nilai Transaksi / amount",
+    "type": "decimal"
+  },
+  {
+    "document": "lld",
+    "field": "purpose",
+    "path": "lld.purpose",
+    "label": "Tujuan / Purpose",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "details",
+    "path": "lld.details",
+    "label": "Rincian",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "transaction_code",
+    "path": "lld.transaction_code",
+    "label": "Sandi transaksi",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "declaration_date",
+    "path": "lld.declaration_date",
+    "label": "Tanggal",
+    "type": "date"
+  },
+  {
+    "document": "lld",
+    "field": "customer_signature",
+    "path": "lld.customer_signature",
+    "label": "Tanda Tangan nasabah",
+    "type": "signature_region"
+  },
+  {
+    "document": "lld",
+    "field": "customer_signature.present",
+    "path": "lld.customer_signature.present",
+    "label": "Tanda Tangan nasabah / present",
+    "type": "boolean"
+  },
+  {
+    "document": "lld",
+    "field": "customer_signature.handwritten",
+    "path": "lld.customer_signature.handwritten",
+    "label": "Tanda Tangan nasabah / handwritten",
+    "type": "boolean"
+  },
+  {
+    "document": "lld",
+    "field": "bank_officer_signature",
+    "path": "lld.bank_officer_signature",
+    "label": "Pengesahan Bank - tanda tangan petugas",
+    "type": "signature_region"
+  },
+  {
+    "document": "lld",
+    "field": "bank_officer_signature.present",
+    "path": "lld.bank_officer_signature.present",
+    "label": "Pengesahan Bank - tanda tangan petugas / present",
+    "type": "boolean"
+  },
+  {
+    "document": "lld",
+    "field": "bank_officer_signature.handwritten",
+    "path": "lld.bank_officer_signature.handwritten",
+    "label": "Pengesahan Bank - tanda tangan petugas / handwritten",
+    "type": "boolean"
+  },
+  {
+    "document": "lld",
+    "field": "bank_stamp",
+    "path": "lld.bank_stamp",
+    "label": "Stamp verification",
+    "type": "stamp_region"
+  },
+  {
+    "document": "lld",
+    "field": "bank_stamp.present",
+    "path": "lld.bank_stamp.present",
+    "label": "Stamp verification / present",
+    "type": "boolean"
+  },
+  {
+    "document": "lld",
+    "field": "bank_stamp.text",
+    "path": "lld.bank_stamp.text",
+    "label": "Stamp verification / text",
+    "type": "text"
+  },
+  {
+    "document": "lld",
+    "field": "bank_stamp.complete",
+    "path": "lld.bank_stamp.complete",
+    "label": "Stamp verification / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "invoice",
+    "field": "to_name",
+    "path": "invoice.to_name",
+    "label": "To (Customer Name)",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "to_address",
+    "path": "invoice.to_address",
+    "label": "To Address",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "to_phone",
+    "path": "invoice.to_phone",
+    "label": "To Phone",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "from_name",
+    "path": "invoice.from_name",
+    "label": "From (Company Name)",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "from_address",
+    "path": "invoice.from_address",
+    "label": "From Address",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "from_phone",
+    "path": "invoice.from_phone",
+    "label": "From Phone",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "bank_name",
+    "path": "invoice.bank_name",
+    "label": "Bank Name (Payment Note)",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "swift_code",
+    "path": "invoice.swift_code",
+    "label": "SWIFT Code",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "bank_account_number",
+    "path": "invoice.bank_account_number",
+    "label": "Bank Account Number",
+    "type": "identifier"
+  },
+  {
+    "document": "invoice",
+    "field": "invoice_date",
+    "path": "invoice.invoice_date",
+    "label": "Invoice Date",
+    "type": "date"
+  },
+  {
+    "document": "invoice",
+    "field": "due_date",
+    "path": "invoice.due_date",
+    "label": "Due Date",
+    "type": "date"
+  },
+  {
+    "document": "invoice",
+    "field": "invoice_number",
+    "path": "invoice.invoice_number",
+    "label": "Invoice Number",
+    "type": "identifier"
+  },
+  {
+    "document": "invoice",
+    "field": "item_name",
+    "path": "invoice.item_name",
+    "label": "Item Name",
+    "type": "array"
+  },
+  {
+    "document": "invoice",
+    "field": "quantity",
+    "path": "invoice.quantity",
+    "label": "Quantity",
+    "type": "array"
+  },
+  {
+    "document": "invoice",
+    "field": "unit_price",
+    "path": "invoice.unit_price",
+    "label": "Unit Price",
+    "type": "array"
+  },
+  {
+    "document": "invoice",
+    "field": "subtotal",
+    "path": "invoice.subtotal",
+    "label": "Subtotal",
+    "type": "array"
+  },
+  {
+    "document": "invoice",
+    "field": "subtotal_all_items",
+    "path": "invoice.subtotal_all_items",
+    "label": "Subtotal (All Items)",
+    "type": "object"
+  },
+  {
+    "document": "invoice",
+    "field": "subtotal_all_items.currency",
+    "path": "invoice.subtotal_all_items.currency",
+    "label": "Subtotal (All Items) / currency",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "subtotal_all_items.amount",
+    "path": "invoice.subtotal_all_items.amount",
+    "label": "Subtotal (All Items) / amount",
+    "type": "decimal"
+  },
+  {
+    "document": "invoice",
+    "field": "final_total_amount",
+    "path": "invoice.final_total_amount",
+    "label": "Final Total Amount",
+    "type": "object"
+  },
+  {
+    "document": "invoice",
+    "field": "final_total_amount.currency",
+    "path": "invoice.final_total_amount.currency",
+    "label": "Final Total Amount / currency",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "final_total_amount.amount",
+    "path": "invoice.final_total_amount.amount",
+    "label": "Final Total Amount / amount",
+    "type": "decimal"
+  },
+  {
+    "document": "invoice",
+    "field": "final_total_amount.calculation_basis",
+    "path": "invoice.final_total_amount.calculation_basis",
+    "label": "Final Total Amount / calculation_basis",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "final_total_amount.adjustments",
+    "path": "invoice.final_total_amount.adjustments",
+    "label": "Final Total Amount / adjustments",
+    "type": "array"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note",
+    "path": "invoice.claim_note",
+    "label": "Claim No.2 (60% of Supply Equipment) Claim Note / Material Arrived at Site",
+    "type": "object"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "customer_name",
+    "path": "valas_declaration_2.customer_name",
+    "label": "Nama (Perusahaan / Individu)",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "customer_address",
+    "path": "valas_declaration_2.customer_address",
+    "label": "Alamat (Perusahaan / Individu)",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "currency",
+    "path": "valas_declaration_2.currency",
+    "label": "Valuta / Currency",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "creation_place",
+    "path": "valas_declaration_2.creation_place",
+    "label": "Kota / Tempat Surat Dibuat",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "creation_date",
+    "path": "valas_declaration_2.creation_date",
+    "label": "Tanggal Surat Dibuat",
+    "type": "date"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory",
+    "path": "valas_declaration_2.signatory",
+    "label": "Nama dan Jabatan Penandatangan",
+    "type": "object"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory.name",
+    "path": "valas_declaration_2.signatory.name",
+    "label": "Nama dan Jabatan Penandatangan / name",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory.position",
+    "path": "valas_declaration_2.signatory.position",
+    "label": "Nama dan Jabatan Penandatangan / position",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory.is_company_representative",
+    "path": "valas_declaration_2.signatory.is_company_representative",
+    "label": "Nama dan Jabatan Penandatangan / is_company_representative",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory.capacity_evidence",
+    "path": "valas_declaration_2.signatory.capacity_evidence",
+    "label": "Nama dan Jabatan Penandatangan / capacity_evidence",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory_company",
+    "path": "valas_declaration_2.signatory_company",
+    "label": "Nama Perusahaan Penandatangan",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty",
+    "path": "valas_declaration_2.stamp_duty",
+    "label": "Meterai (Stamp Duty)",
+    "type": "stamp_region"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty.present",
+    "path": "valas_declaration_2.stamp_duty.present",
+    "label": "Meterai (Stamp Duty) / present",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty.denomination_raw",
+    "path": "valas_declaration_2.stamp_duty.denomination_raw",
+    "label": "Meterai (Stamp Duty) / denomination_raw",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty.complete",
+    "path": "valas_declaration_2.stamp_duty.complete",
+    "label": "Meterai (Stamp Duty) / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty.suspected_tampering",
+    "path": "valas_declaration_2.stamp_duty.suspected_tampering",
+    "label": "Meterai (Stamp Duty) / suspected_tampering",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty.evidence",
+    "path": "valas_declaration_2.stamp_duty.evidence",
+    "label": "Meterai (Stamp Duty) / evidence",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty.denomination",
+    "path": "valas_declaration_2.stamp_duty.denomination",
+    "label": "Meterai (Stamp Duty) / denomination",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty.authenticity_status",
+    "path": "valas_declaration_2.stamp_duty.authenticity_status",
+    "label": "Meterai (Stamp Duty) / authenticity_status",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_duty.verification",
+    "path": "valas_declaration_2.stamp_duty.verification",
+    "label": "Meterai (Stamp Duty) / verification",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory_signature",
+    "path": "valas_declaration_2.signatory_signature",
+    "label": "Tanda Tangan Penandatangan",
+    "type": "signature_region"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory_signature.present",
+    "path": "valas_declaration_2.signatory_signature.present",
+    "label": "Tanda Tangan Penandatangan / present",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory_signature.handwritten",
+    "path": "valas_declaration_2.signatory_signature.handwritten",
+    "label": "Tanda Tangan Penandatangan / handwritten",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory_signature.complete",
+    "path": "valas_declaration_2.signatory_signature.complete",
+    "label": "Tanda Tangan Penandatangan / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "signatory_signature.evidence",
+    "path": "valas_declaration_2.signatory_signature.evidence",
+    "label": "Tanda Tangan Penandatangan / evidence",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_verification",
+    "path": "valas_declaration_2.stamp_verification",
+    "label": "Stamp verification",
+    "type": "stamp_region"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_verification.present",
+    "path": "valas_declaration_2.stamp_verification.present",
+    "label": "Stamp verification / present",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_verification.text",
+    "path": "valas_declaration_2.stamp_verification.text",
+    "label": "Stamp verification / text",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_verification.complete",
+    "path": "valas_declaration_2.stamp_verification.complete",
+    "label": "Stamp verification / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_2",
+    "field": "stamp_verification.evidence",
+    "path": "valas_declaration_2.stamp_verification.evidence",
+    "label": "Stamp verification / evidence",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "customer_name",
+    "path": "valas_declaration_1.customer_name",
+    "label": "Nama Individu / Perusahaan",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "customer_address",
+    "path": "valas_declaration_1.customer_address",
+    "label": "Alamat Individu / Perusahaan",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "identity_number",
+    "path": "valas_declaration_1.identity_number",
+    "label": "Nomor Identitas",
+    "type": "identifier"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "npwp",
+    "path": "valas_declaration_1.npwp",
+    "label": "Nomor Pokok Wajib Pajak (NPWP)",
+    "type": "identifier"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "usage_purpose",
+    "path": "valas_declaration_1.usage_purpose",
+    "label": "Tujuan Penggunaan",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "usage_date",
+    "path": "valas_declaration_1.usage_date",
+    "label": "Tanggal Penggunaan",
+    "type": "date"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "usage_amount",
+    "path": "valas_declaration_1.usage_amount",
+    "label": "Jumlah Penggunaan",
+    "type": "object"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "usage_amount.amount",
+    "path": "valas_declaration_1.usage_amount.amount",
+    "label": "Jumlah Penggunaan / amount",
+    "type": "decimal"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "usage_amount.currency",
+    "path": "valas_declaration_1.usage_amount.currency",
+    "label": "Jumlah Penggunaan / currency",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "receipt_source",
+    "path": "valas_declaration_1.receipt_source",
+    "label": "Sumber Penerimaan",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "receipt_date",
+    "path": "valas_declaration_1.receipt_date",
+    "label": "Tanggal Penerimaan",
+    "type": "date"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "receipt_amount",
+    "path": "valas_declaration_1.receipt_amount",
+    "label": "Jumlah Penerimaan",
+    "type": "object"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "receipt_amount.amount",
+    "path": "valas_declaration_1.receipt_amount.amount",
+    "label": "Jumlah Penerimaan / amount",
+    "type": "decimal"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "receipt_amount.currency",
+    "path": "valas_declaration_1.receipt_amount.currency",
+    "label": "Jumlah Penerimaan / currency",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "creation_place",
+    "path": "valas_declaration_1.creation_place",
+    "label": "Kota / Tempat Surat Dibuat",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "creation_date",
+    "path": "valas_declaration_1.creation_date",
+    "label": "Tanggal Surat Dibuat",
+    "type": "date"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory_signature",
+    "path": "valas_declaration_1.signatory_signature",
+    "label": "Tanda Tangan Penandatangan",
+    "type": "signature_region"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory_signature.present",
+    "path": "valas_declaration_1.signatory_signature.present",
+    "label": "Tanda Tangan Penandatangan / present",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory_signature.handwritten",
+    "path": "valas_declaration_1.signatory_signature.handwritten",
+    "label": "Tanda Tangan Penandatangan / handwritten",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory_signature.complete",
+    "path": "valas_declaration_1.signatory_signature.complete",
+    "label": "Tanda Tangan Penandatangan / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory_signature.evidence",
+    "path": "valas_declaration_1.signatory_signature.evidence",
+    "label": "Tanda Tangan Penandatangan / evidence",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty",
+    "path": "valas_declaration_1.stamp_duty",
+    "label": "Meterai / Stamp Duty",
+    "type": "stamp_region"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty.present",
+    "path": "valas_declaration_1.stamp_duty.present",
+    "label": "Meterai / Stamp Duty / present",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty.denomination_raw",
+    "path": "valas_declaration_1.stamp_duty.denomination_raw",
+    "label": "Meterai / Stamp Duty / denomination_raw",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty.complete",
+    "path": "valas_declaration_1.stamp_duty.complete",
+    "label": "Meterai / Stamp Duty / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty.suspected_tampering",
+    "path": "valas_declaration_1.stamp_duty.suspected_tampering",
+    "label": "Meterai / Stamp Duty / suspected_tampering",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty.evidence",
+    "path": "valas_declaration_1.stamp_duty.evidence",
+    "label": "Meterai / Stamp Duty / evidence",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty.denomination",
+    "path": "valas_declaration_1.stamp_duty.denomination",
+    "label": "Meterai / Stamp Duty / denomination",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty.authenticity_status",
+    "path": "valas_declaration_1.stamp_duty.authenticity_status",
+    "label": "Meterai / Stamp Duty / authenticity_status",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "stamp_duty.verification",
+    "path": "valas_declaration_1.stamp_duty.verification",
+    "label": "Meterai / Stamp Duty / verification",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory",
+    "path": "valas_declaration_1.signatory",
+    "label": "Nama dan Jabatan Penandatangan",
+    "type": "object"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory.name",
+    "path": "valas_declaration_1.signatory.name",
+    "label": "Nama dan Jabatan Penandatangan / name",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory.position",
+    "path": "valas_declaration_1.signatory.position",
+    "label": "Nama dan Jabatan Penandatangan / position",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory.is_company_representative",
+    "path": "valas_declaration_1.signatory.is_company_representative",
+    "label": "Nama dan Jabatan Penandatangan / is_company_representative",
+    "type": "boolean"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory.capacity_evidence",
+    "path": "valas_declaration_1.signatory.capacity_evidence",
+    "label": "Nama dan Jabatan Penandatangan / capacity_evidence",
+    "type": "text"
+  },
+  {
+    "document": "valas_declaration_1",
+    "field": "signatory_company",
+    "path": "valas_declaration_1.signatory_company",
+    "label": "Nama Perusahaan Penandatangan",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "nik",
+    "path": "ektp.nik",
+    "label": "NIK",
+    "type": "identifier"
+  },
+  {
+    "document": "ektp",
+    "field": "name",
+    "path": "ektp.name",
+    "label": "Nama",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "birth_place",
+    "path": "ektp.birth_place",
+    "label": "Tempat Lahir",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "birth_date",
+    "path": "ektp.birth_date",
+    "label": "Tanggal Lahir",
+    "type": "date"
+  },
+  {
+    "document": "ektp",
+    "field": "gender",
+    "path": "ektp.gender",
+    "label": "Jenis Kelamin",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "blood_type",
+    "path": "ektp.blood_type",
+    "label": "Golongan Darah",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "address",
+    "path": "ektp.address",
+    "label": "Alamat",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "rt",
+    "path": "ektp.rt",
+    "label": "RT",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "rw",
+    "path": "ektp.rw",
+    "label": "RW",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "village",
+    "path": "ektp.village",
+    "label": "Kelurahan/Desa",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "district",
+    "path": "ektp.district",
+    "label": "Kecamatan",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "religion",
+    "path": "ektp.religion",
+    "label": "Agama",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "marital_status",
+    "path": "ektp.marital_status",
+    "label": "Status Perkawinan",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "occupation",
+    "path": "ektp.occupation",
+    "label": "Pekerjaan",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "citizenship",
+    "path": "ektp.citizenship",
+    "label": "Kewarganegaraan",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "valid_until",
+    "path": "ektp.valid_until",
+    "label": "Berlaku Hingga",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "issuance",
+    "path": "ektp.issuance",
+    "label": "Tempat & Tanggal Penerbitan KTP",
+    "type": "object"
+  },
+  {
+    "document": "ektp",
+    "field": "issuance.place",
+    "path": "ektp.issuance.place",
+    "label": "Tempat & Tanggal Penerbitan KTP / place",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "issuance.date",
+    "path": "ektp.issuance.date",
+    "label": "Tempat & Tanggal Penerbitan KTP / date",
+    "type": "date"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_signature",
+    "path": "ektp.owner_signature",
+    "label": "Tanda tangan pemilik",
+    "type": "signature_region"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_signature.present",
+    "path": "ektp.owner_signature.present",
+    "label": "Tanda tangan pemilik / present",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_signature.non_text",
+    "path": "ektp.owner_signature.non_text",
+    "label": "Tanda tangan pemilik / non_text",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_signature.complete",
+    "path": "ektp.owner_signature.complete",
+    "label": "Tanda tangan pemilik / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_signature.corrupted",
+    "path": "ektp.owner_signature.corrupted",
+    "label": "Tanda tangan pemilik / corrupted",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_signature.evidence",
+    "path": "ektp.owner_signature.evidence",
+    "label": "Tanda tangan pemilik / evidence",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_signature.comparison_status",
+    "path": "ektp.owner_signature.comparison_status",
+    "label": "Tanda tangan pemilik / comparison_status",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_signature.comparison",
+    "path": "ektp.owner_signature.comparison",
+    "label": "Tanda tangan pemilik / comparison",
+    "type": "object"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_photo",
+    "path": "ektp.owner_photo",
+    "label": "Foto Pemilik",
+    "type": "object"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_photo.present",
+    "path": "ektp.owner_photo.present",
+    "label": "Foto Pemilik / present",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_photo.face_visible",
+    "path": "ektp.owner_photo.face_visible",
+    "label": "Foto Pemilik / face_visible",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_photo.face_cropped",
+    "path": "ektp.owner_photo.face_cropped",
+    "label": "Foto Pemilik / face_cropped",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "owner_photo.evidence",
+    "path": "ektp.owner_photo.evidence",
+    "label": "Foto Pemilik / evidence",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "stamp_verification",
+    "path": "ektp.stamp_verification",
+    "label": "Stamp verification",
+    "type": "stamp_region"
+  },
+  {
+    "document": "ektp",
+    "field": "stamp_verification.present",
+    "path": "ektp.stamp_verification.present",
+    "label": "Stamp verification / present",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "stamp_verification.text",
+    "path": "ektp.stamp_verification.text",
+    "label": "Stamp verification / text",
+    "type": "text"
+  },
+  {
+    "document": "ektp",
+    "field": "stamp_verification.complete",
+    "path": "ektp.stamp_verification.complete",
+    "label": "Stamp verification / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "ektp",
+    "field": "stamp_verification.evidence",
+    "path": "ektp.stamp_verification.evidence",
+    "label": "Stamp verification / evidence",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "document_place",
+    "path": "riplay.document_place",
+    "label": "Kota / Tempat Dokumen Dibuat",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "document_date",
+    "path": "riplay.document_date",
+    "label": "Tanggal Dokumen Dibuat",
+    "type": "date"
+  },
+  {
+    "document": "riplay",
+    "field": "bank_officer_name",
+    "path": "riplay.bank_officer_name",
+    "label": "Petugas Bank (Nama)",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "bank_officer_signature",
+    "path": "riplay.bank_officer_signature",
+    "label": "Tanda Tangan Petugas Bank",
+    "type": "signature_region"
+  },
+  {
+    "document": "riplay",
+    "field": "bank_officer_signature.present",
+    "path": "riplay.bank_officer_signature.present",
+    "label": "Tanda Tangan Petugas Bank / present",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "bank_officer_signature.non_text",
+    "path": "riplay.bank_officer_signature.non_text",
+    "label": "Tanda Tangan Petugas Bank / non_text",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "bank_officer_signature.complete",
+    "path": "riplay.bank_officer_signature.complete",
+    "label": "Tanda Tangan Petugas Bank / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "bank_officer_signature.corrupted",
+    "path": "riplay.bank_officer_signature.corrupted",
+    "label": "Tanda Tangan Petugas Bank / corrupted",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "bank_officer_signature.page_number",
+    "path": "riplay.bank_officer_signature.page_number",
+    "label": "Tanda Tangan Petugas Bank / page_number",
+    "type": "integer"
+  },
+  {
+    "document": "riplay",
+    "field": "bank_officer_signature.evidence",
+    "path": "riplay.bank_officer_signature.evidence",
+    "label": "Tanda Tangan Petugas Bank / evidence",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_name",
+    "path": "riplay.customer_name",
+    "label": "Nasabah (Nama)",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_signature",
+    "path": "riplay.customer_signature",
+    "label": "Tanda Tangan Nasabah",
+    "type": "signature_region"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_signature.present",
+    "path": "riplay.customer_signature.present",
+    "label": "Tanda Tangan Nasabah / present",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_signature.non_text",
+    "path": "riplay.customer_signature.non_text",
+    "label": "Tanda Tangan Nasabah / non_text",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_signature.complete",
+    "path": "riplay.customer_signature.complete",
+    "label": "Tanda Tangan Nasabah / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_signature.corrupted",
+    "path": "riplay.customer_signature.corrupted",
+    "label": "Tanda Tangan Nasabah / corrupted",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_signature.page_number",
+    "path": "riplay.customer_signature.page_number",
+    "label": "Tanda Tangan Nasabah / page_number",
+    "type": "integer"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_signature.evidence",
+    "path": "riplay.customer_signature.evidence",
+    "label": "Tanda Tangan Nasabah / evidence",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "printed_date",
+    "path": "riplay.printed_date",
+    "label": "Tanggal Cetak Dokumen",
+    "type": "date"
+  },
+  {
+    "document": "riplay",
+    "field": "page_initials",
+    "path": "riplay.page_initials",
+    "label": "Paraf/sign on every page",
+    "type": "page_observations"
+  },
+  {
+    "document": "riplay",
+    "field": "page_initials.page_count",
+    "path": "riplay.page_initials.page_count",
+    "label": "Paraf/sign on every page / page_count",
+    "type": "integer"
+  },
+  {
+    "document": "riplay",
+    "field": "page_initials.pages",
+    "path": "riplay.page_initials.pages",
+    "label": "Paraf/sign on every page / pages",
+    "type": "array"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_stamp",
+    "path": "riplay.customer_stamp",
+    "label": "Stamp verification (tanda tangan nasabah)",
+    "type": "stamp_region"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_stamp.present",
+    "path": "riplay.customer_stamp.present",
+    "label": "Stamp verification (tanda tangan nasabah) / present",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_stamp.text",
+    "path": "riplay.customer_stamp.text",
+    "label": "Stamp verification (tanda tangan nasabah) / text",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_stamp.complete",
+    "path": "riplay.customer_stamp.complete",
+    "label": "Stamp verification (tanda tangan nasabah) / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_stamp.at_signer_region",
+    "path": "riplay.customer_stamp.at_signer_region",
+    "label": "Stamp verification (tanda tangan nasabah) / at_signer_region",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_stamp.page_number",
+    "path": "riplay.customer_stamp.page_number",
+    "label": "Stamp verification (tanda tangan nasabah) / page_number",
+    "type": "integer"
+  },
+  {
+    "document": "riplay",
+    "field": "customer_stamp.evidence",
+    "path": "riplay.customer_stamp.evidence",
+    "label": "Stamp verification (tanda tangan nasabah) / evidence",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "cs_stamp",
+    "path": "riplay.cs_stamp",
+    "label": "Stempel CS",
+    "type": "stamp_region"
+  },
+  {
+    "document": "riplay",
+    "field": "cs_stamp.present",
+    "path": "riplay.cs_stamp.present",
+    "label": "Stempel CS / present",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "cs_stamp.text",
+    "path": "riplay.cs_stamp.text",
+    "label": "Stempel CS / text",
+    "type": "text"
+  },
+  {
+    "document": "riplay",
+    "field": "cs_stamp.complete",
+    "path": "riplay.cs_stamp.complete",
+    "label": "Stempel CS / complete",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "cs_stamp.at_signer_region",
+    "path": "riplay.cs_stamp.at_signer_region",
+    "label": "Stempel CS / at_signer_region",
+    "type": "boolean"
+  },
+  {
+    "document": "riplay",
+    "field": "cs_stamp.page_number",
+    "path": "riplay.cs_stamp.page_number",
+    "label": "Stempel CS / page_number",
+    "type": "integer"
+  },
+  {
+    "document": "riplay",
+    "field": "cs_stamp.evidence",
+    "path": "riplay.cs_stamp.evidence",
+    "label": "Stempel CS / evidence",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note.present",
+    "path": "invoice.claim_note.present",
+    "label": "Claim Note / present",
+    "type": "boolean"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note.note",
+    "path": "invoice.claim_note.note",
+    "label": "Claim Note / note",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note.claim_number",
+    "path": "invoice.claim_note.claim_number",
+    "label": "Claim Note / claim_number",
+    "type": "identifier"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note.percentage",
+    "path": "invoice.claim_note.percentage",
+    "label": "Claim Note / percentage",
+    "type": "decimal"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note.currency",
+    "path": "invoice.claim_note.currency",
+    "label": "Claim Note / currency",
+    "type": "text"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note.amount",
+    "path": "invoice.claim_note.amount",
+    "label": "Claim Note / amount",
+    "type": "decimal"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note.expected_amount",
+    "path": "invoice.claim_note.expected_amount",
+    "label": "Claim Note / expected_amount",
+    "type": "decimal"
+  },
+  {
+    "document": "invoice",
+    "field": "claim_note.eligible_base",
+    "path": "invoice.claim_note.eligible_base",
+    "label": "Claim Note / eligible_base",
+    "type": "decimal"
+  }
+]

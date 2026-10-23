@@ -1,0 +1,5 @@
+{
+  "conditional_edd": {"path": "account_opening_form.risk_category", "true_values": ["risiko tinggi"], "false_values": ["risiko rendah", "risiko sedang"]},
+  "conditional_bo": {"path": "account_opening_form.acting_for", "true_values": ["beneficial owner"], "false_values": ["diri sendiri"]},
+  "conditional_visit": {"path": "account_opening_form.referral_source", "true_values": ["marketing"], "false_values": ["walk in customer", "lainnya"]}
+}

@@ -1,0 +1,126 @@
+"""Translate explicit model locations to immutable source-page evidence."""
+from copy import deepcopy
+import math
+
+SPATIAL_INSTRUCTION = """6. SPATIAL GROUNDING & BOUNDING BOXES:
+   - For every extracted field (where applicable), provide a `box_2d` property containing normalized coordinates formatted as `[ymin, xmin, ymax, xmax]` scaled from 0 to 1000.
+   - The bounding box must tightly wrap the visual ink/text boundaries on the document without including surrounding form label headers or table grid lines.
+   - If a field is `null` or missing from the page, omit or set its `box_2d` to `[]`.
+
+Spatial output contract:
+Keep the declared business field values and JSON types unchanged. Return locations in a reserved top-level `_field_locations` array, with one object per visible field region: {"field":"exact.dotted.field.path", "page_number":1, "box_2d":[ymin,xmin,ymax,xmax]}. Array item paths use zero-based indices, e.g. items.0.description. Include a 1-based ORIGINAL physical page number for each region. Coordinates always refer to the full original page, including when enlarged detail crops are supplied. Never copy locations from prior-page reference context or guess boxes for missing values. Visual observations such as signatures and stamps need their own field region. Do not return box coordinates as business values. Multiple regions may share a field path when its visible value spans regions or pages."""
+
+
+def append_instruction(text):
+    text = (text or "").rstrip()
+    return text if SPATIAL_INSTRUCTION in text else text + "\n\n" + SPATIAL_INSTRUCTION
+
+
+def spatial_schema(schema):
+    schema = deepcopy(schema)
+    schema.setdefault("properties", {})["_field_locations"] = {
+        "type": "array", "description": "Explicit source locations for extracted fields; not business data.",
+        "items": {"type": "object", "properties": {
+            "field": {"type": "string"}, "page_number": {"type": "integer"},
+            "box_2d": {"type": "array", "items": {"type": "number"}},
+        }, "required": ["field", "page_number", "box_2d"], "additionalProperties": False},
+    }
+    return schema
+
+
+def box_location(entry, default_page=None):
+    coords = entry.get("box_2d")
+    if not isinstance(coords, list) or len(coords) != 4:
+        raise ValueError("box_2d must contain four coordinates")
+    if any(isinstance(v, bool) or not isinstance(v, (int, float)) or not math.isfinite(v) for v in coords):
+        raise ValueError("box_2d coordinates must be finite numbers")
+    y0, x0, y1, x1 = coords
+    if not (0 <= x0 < x1 <= 1000 and 0 <= y0 < y1 <= 1000):
+        raise ValueError("box_2d is empty, reversed or outside 0–1000")
+    page = entry.get("page_number", default_page)
+    if isinstance(page, bool) or not isinstance(page, int) or page < 1:
+        raise ValueError("A 1-based original physical page number is required")
+    if default_page is not None and page != default_page:
+        raise ValueError("Box page does not match the physical extraction page")
+    return {"page_number": page, "bbox": [x0/1000, y0/1000, x1/1000, y1/1000],
+            "units": "normalized", "origin": "top_left", "box_2d": list(coords),
+            "source": "model_box_2d", "link_review_required": False}
+
+
+def split_locations(raw, page_number=None):
+    """Accept the sidecar plus inline visual boxes and value/box wrappers."""
+    locations, errors = {}, {}
+    def add(path, entry):
+        if entry.get("box_2d") in (None, []):
+            return
+        try:
+            box = box_location(entry, page_number)
+            locations.setdefault(path, [])
+            if box not in locations[path]: locations[path].append(box)
+        except (ValueError, TypeError) as exc:
+            errors.setdefault(path, []).append(str(exc))
+    def walk(value, path=""):
+        if isinstance(value, dict):
+            if "box_2d" in value and path: add(path, value)
+            wrapper = "value" in value and "box_2d" in value and set(value) <= {"value", "box_2d", "page_number"}
+            if wrapper: return walk(value["value"], path)
+            return {k: walk(v, f"{path}.{k}".strip(".")) for k,v in value.items()
+                    if k not in {"box_2d", "_field_locations", "field_locations"}}
+        if isinstance(value, list): return [walk(v, f"{path}.{i}".strip(".")) for i,v in enumerate(value)]
+        return deepcopy(value)
+    clean = walk(raw)
+    sidecar = raw.get("_field_locations", raw.get("field_locations", [])) if isinstance(raw, dict) else []
+    if isinstance(sidecar, dict):
+        sidecar = [dict(value, field=field) for field,value in sidecar.items() if isinstance(value, dict)]
+    for entry in sidecar if isinstance(sidecar, list) else []:
+        if isinstance(entry, dict) and isinstance(entry.get("field"), str): add(entry["field"], entry)
+    return clean, locations, errors
+
+
+def _at(value, path):
+    for part in path.split("."):
+        if isinstance(value, dict): value = value.get(part)
+        elif isinstance(value, list) and part.isdigit() and int(part) < len(value): value = value[int(part)]
+        else: return None
+    return value
+
+
+def normalize_response(response):
+    """Idempotent transport conversion. Cached responses retain their metadata."""
+    raw = response.get("extract_result") or {}
+    pages = raw.get("page_results") if isinstance(raw, dict) else None
+    clean, locations, errors = split_locations(raw)
+    if pages:
+        # Page results retain annotations until after conservative value merging.
+        locations, errors, offsets = {}, {}, {}
+        for page in pages:
+            value, found, invalid = split_locations(page["result"], page["page_number"])
+            def remap(path):
+                parts, original = path.split("."), []
+                for i, part in enumerate(parts):
+                    prefix = ".".join(original)
+                    original.append(part)
+                    if part.isdigit() and prefix in offsets: parts[i] = str(int(part) + offsets[prefix])
+                return ".".join(parts)
+            for field, boxes in found.items():
+                target = remap(field)
+                # Never attach a crop from a rejected/conflicting page value.
+                if _at(clean, target) == _at(value, field): locations.setdefault(target, []).extend(boxes)
+            for field, messages in invalid.items(): errors.setdefault(remap(field), []).extend(messages)
+            def count_arrays(item, path=""):
+                if isinstance(item, dict):
+                    for key, child in item.items(): count_arrays(child, f"{path}.{key}".strip("."))
+                elif isinstance(item, list): offsets[path] = offsets.get(path, 0) + len(item)
+            count_arrays(value)
+        clean["page_results"] = deepcopy(pages)  # Keep immutable per-page provider observations for replay.
+    metadata = deepcopy(response.get("extract_metadata") or {})
+    existing = metadata.get("spatial_evidence", {})
+    for field, boxes in locations.items():
+        value = _at(clean, field)
+        if value is None or value == "" or isinstance(value, dict) and value.get("present") is False:
+            continue
+        existing[field] = boxes
+    metadata["spatial_evidence"] = existing
+    metadata["spatial_errors"] = {**metadata.get("spatial_errors", {}), **errors}
+    metadata["spatial_grounding_version"] = 1
+    return {**response, "extract_result": clean, "extract_metadata": metadata}

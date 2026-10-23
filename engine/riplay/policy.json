@@ -1,0 +1,30 @@
+{
+  "number_locale": "id_ID",
+  "day_first": true,
+  "two_digit_year_pivot": 49,
+  "timezone": "Asia/Jakarta",
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "expected_pages": 4,
+  "allow_final_main_signature_as_initial": false,
+  "require_signature_comparison": true,
+  "require_identity_match": true,
+  "customer_stamp": {
+    "rule_confirmed": false,
+    "required": null,
+    "text_fragments": [],
+    "requirement_number": "18"
+  },
+  "cs_stamp": {
+    "rule_confirmed": false,
+    "required": null,
+    "text_fragments": [],
+    "requirement_number": "5"
+  },
+  "stamp_rule_reference": "Configure an authorized requirement reference in the document profile.",
+  "required_initial_pages": [
+    1,
+    2,
+    3
+  ]
+}

@@ -1,0 +1,31 @@
+const nextConfig = {
+  output: "standalone",
+  experimental: {
+    // Rewrites buffer request bodies; default 10MB truncated large uploads
+    // (POST /api/uploads) causing ECONNRESET / "Upload interrupted."
+    proxyClientMaxBodySize: "2gb",
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination:
+          (process.env.API_INTERNAL_URL || "http://127.0.0.1:8000") +
+          "/api/:path*",
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "same-origin" },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        ],
+      },
+    ];
+  },
+};
+export default nextConfig;

@@ -1,0 +1,198 @@
+[
+  {
+    "profile": "application",
+    "field": "amount"
+  },
+  {
+    "profile": "application",
+    "field": "amount_in_words"
+  },
+  {
+    "profile": "application",
+    "field": "beneficiary"
+  },
+  {
+    "profile": "application",
+    "field": "beneficiary_account_number"
+  },
+  {
+    "profile": "application",
+    "field": "beneficiary_bank"
+  },
+  {
+    "profile": "application",
+    "field": "charges"
+  },
+  {
+    "profile": "application",
+    "field": "currency"
+  },
+  {
+    "profile": "application",
+    "field": "notes"
+  },
+  {
+    "profile": "application",
+    "field": "remitter"
+  },
+  {
+    "profile": "application",
+    "field": "remitter_account_number"
+  },
+  {
+    "profile": "application",
+    "field": "swift_code"
+  },
+  {
+    "profile": "application",
+    "field": "transaction_type"
+  },
+  {
+    "profile": "ektp",
+    "field": "birth_date"
+  },
+  {
+    "profile": "invoice",
+    "field": "bank_address"
+  },
+  {
+    "profile": "invoice",
+    "field": "beneficiary_name"
+  },
+  {
+    "profile": "invoice",
+    "field": "discount"
+  },
+  {
+    "profile": "invoice",
+    "field": "final_total_amount"
+  },
+  {
+    "profile": "invoice",
+    "field": "from_address"
+  },
+  {
+    "profile": "invoice",
+    "field": "item_name"
+  },
+  {
+    "profile": "invoice",
+    "field": "ship_to_address"
+  },
+  {
+    "profile": "invoice",
+    "field": "ship_to_name"
+  },
+  {
+    "profile": "invoice",
+    "field": "ship_to_phone"
+  },
+  {
+    "profile": "invoice",
+    "field": "shipping_handling"
+  },
+  {
+    "profile": "invoice",
+    "field": "subtotal_all_items"
+  },
+  {
+    "profile": "invoice",
+    "field": "subtotal_less_discount"
+  },
+  {
+    "profile": "invoice",
+    "field": "swift_code"
+  },
+  {
+    "profile": "invoice",
+    "field": "to_address"
+  },
+  {
+    "profile": "invoice",
+    "field": "unit_price"
+  },
+  {
+    "profile": "lld",
+    "field": "bank_officer_signature"
+  },
+  {
+    "profile": "lld",
+    "field": "beneficiary_address"
+  },
+  {
+    "profile": "lld",
+    "field": "depository_correspondent_bank_country_code"
+  },
+  {
+    "profile": "lld",
+    "field": "financial_relationship"
+  },
+  {
+    "profile": "lld",
+    "field": "payer_address"
+  },
+  {
+    "profile": "lld",
+    "field": "payer_identification_number"
+  },
+  {
+    "profile": "lld",
+    "field": "payer_identification_type"
+  },
+  {
+    "profile": "lld",
+    "field": "purpose"
+  },
+  {
+    "profile": "lld",
+    "field": "transaction_code"
+  },
+  {
+    "profile": "riplay",
+    "field": "bank_officer_name"
+  },
+  {
+    "profile": "riplay",
+    "field": "cs_stamp"
+  },
+  {
+    "profile": "riplay",
+    "field": "customer_name"
+  },
+  {
+    "profile": "riplay",
+    "field": "customer_stamp"
+  },
+  {
+    "profile": "riplay",
+    "field": "document_date"
+  },
+  {
+    "profile": "riplay",
+    "field": "page_initials"
+  },
+  {
+    "profile": "valas_declaration_1",
+    "field": "customer_address"
+  },
+  {
+    "profile": "valas_declaration_1",
+    "field": "signatory"
+  },
+  {
+    "profile": "valas_declaration_1",
+    "field": "stamp_verification"
+  },
+  {
+    "profile": "valas_declaration_2",
+    "field": "creation_date"
+  },
+  {
+    "profile": "valas_declaration_2",
+    "field": "currency"
+  },
+  {
+    "profile": "valas_declaration_2",
+    "field": "signatory"
+  }
+]

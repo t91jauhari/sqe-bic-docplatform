@@ -1,0 +1,13 @@
+{
+  "comparison": "compatible_initials",
+  "bindings": [
+    {"profile": "ektp", "field_path": "name", "schema_path": "name.raw"},
+    {"profile": "account_opening_form", "field_path": "customer_name", "schema_path": "customer_name.raw"},
+    {"profile": "join_visit", "field_path": "customer_name", "schema_path": "customer_name.raw"},
+    {"profile": "edd", "field_path": "customer_name", "schema_path": "customer_name.raw"},
+    {"profile": "signature_difference", "field_path": "customer_name", "schema_path": "customer_name.raw"},
+    {"profile": "company_reference", "field_path": "customer_name", "schema_path": "customer_name.raw"},
+    {"profile": "riplay", "field_path": "customer_name", "schema_path": "customer_name.raw"},
+    {"profile": "application", "field_path": "remitter.name"}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "description": "User-approved spelling aliases for this test. This is not an authoritative bank or BIC directory. Populate verified names/branches from your bank master data.",
+  "bank_names": [
+    {"name": "EAST WEST BANK", "aliases": ["EAST WEST PANK"], "bic_prefixes": []}
+  ],
+  "branch_names": [],
+  "bank_branch_names": []
+}

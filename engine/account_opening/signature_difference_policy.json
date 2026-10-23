@@ -1,0 +1,26 @@
+{
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "day_first": true,
+  "required_fields": [
+    "customer_name",
+    "identity_number",
+    "identity_address",
+    "account_number",
+    "signature_one",
+    "signature_two",
+    "creation_place",
+    "creation_date",
+    "declarant_name",
+    "declarant_signature",
+    "meterai",
+    "verification_stamp"
+  ],
+  "conditional_fields": [
+    "meterai"
+  ],
+  "conditional_rules": {},
+  "stamp_policy_confirmed": false,
+  "business_calendar_confirmed": false,
+  "business_holidays": []
+}

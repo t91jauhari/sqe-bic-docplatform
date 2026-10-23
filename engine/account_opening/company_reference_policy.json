@@ -1,0 +1,24 @@
+{
+  "minimum_confidence": 0.9,
+  "require_confidence": true,
+  "day_first": true,
+  "required_fields": [
+    "company_name",
+    "letter_date",
+    "letter_number",
+    "letter_purpose",
+    "subject",
+    "customer_name",
+    "customer_position",
+    "partnership_date",
+    "signatory_name",
+    "signatory_position",
+    "signatory_signature",
+    "branch_address"
+  ],
+  "conditional_fields": [],
+  "conditional_rules": {},
+  "stamp_policy_confirmed": false,
+  "business_calendar_confirmed": false,
+  "business_holidays": []
+}
