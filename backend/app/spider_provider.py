@@ -174,7 +174,7 @@ def render_pages(
 
 def build_request_payload(messages, options):
     """Assemble the chat-completion request body exactly as it will be sent."""
-    return {
+    payload = {
         "model": options.get("model_id", MODEL),
         "messages": messages,
         "stream": False,
@@ -183,6 +183,10 @@ def build_request_payload(messages, options):
         "top_p": options.get("top_p", SPIDER_DEFAULTS["top_p"]),
         "response_format": {"type": "json_object"},
     }
+    effort = options.get("reasoning_effort", "none")
+    if effort:
+        payload["reasoning_effort"] = effort
+    return payload
 
 
 def measure_request_bytes(payload):
