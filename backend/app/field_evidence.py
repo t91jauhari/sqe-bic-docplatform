@@ -273,9 +273,20 @@ def evidence_images(validation):
 
 def attach_field_evidence(report, evidence):
     report["field_evidence"] = evidence
+    visual = report.get("visual_evidence") or []
     for root, result in report.get("fields", {}).items():
         entries = [e for e in evidence if e["field"].split(".")[0] == root]
         if entries:
             result["cropped_evidence"] = entries
             result["image_available"] = all(e["image_available"] for e in entries)
+        else:
+            v_entries = [
+                e
+                for e in visual
+                if isinstance(e, dict) and e.get("field", "").split(".")[0] == root
+            ]
+            if v_entries:
+                result["image_available"] = all(
+                    bool(e.get("available")) for e in v_entries
+                )
     return report

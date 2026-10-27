@@ -6,10 +6,10 @@ export function extractionCheck(
   provider?: string,
 ): string {
   return provider === "spider-ai" ||
-    doc.provider_state.processing_provider === "spider-ai" ||
-    doc.validation.processing_mode === "spider_extraction_formatted"
+    doc.provider_state?.processing_provider === "spider-ai" ||
+    doc.validation?.processing_mode === "spider_extraction_formatted"
     ? "OK"
-    : doc.validation.fields?.[field]?.status || "PENDING";
+    : doc.validation?.fields?.[field]?.status || "PENDING";
 }
 
 export function excelClipboard(rows: string[][]) {

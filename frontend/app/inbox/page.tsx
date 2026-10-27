@@ -21,7 +21,13 @@ export default function Inbox() {
     { notify } = usePlatform(),
     [filter, setFilter] = useState("unread"),
     [busy, setBusy] = useState(false);
-  const rows = data?.filter((x) => filter !== "unread" || !x.read) || [];
+  const rows =
+    data?.filter((x) => {
+      if (filter === "unread") return !x.read;
+      if (filter === "urgent") return x.severity === "ERROR" || x.overdue;
+      if (filter === "review") return x.severity === "REVIEW";
+      return true;
+    }) || [];
   const groups = [
     ...new Map(
       rows.map((item) => [
@@ -58,16 +64,32 @@ export default function Inbox() {
       <div className="inbox-heading">
         <div className="pill-tabs">
           <button
-            className={filter === "all" ? "active" : ""}
-            onClick={() => setFilter("all")}
-          >
-            All actions <span>{data?.length || 0}</span>
-          </button>
-          <button
             className={filter === "unread" ? "active" : ""}
             onClick={() => setFilter("unread")}
           >
             Unread <span>{data?.filter((x) => !x.read).length || 0}</span>
+          </button>
+          <button
+            className={filter === "urgent" ? "active" : ""}
+            onClick={() => setFilter("urgent")}
+          >
+            Urgent / Errors{" "}
+            <span>
+              {data?.filter((x) => x.severity === "ERROR" || x.overdue).length || 0}
+            </span>
+          </button>
+          <button
+            className={filter === "review" ? "active" : ""}
+            onClick={() => setFilter("review")}
+          >
+            Needs review{" "}
+            <span>{data?.filter((x) => x.severity === "REVIEW").length || 0}</span>
+          </button>
+          <button
+            className={filter === "all" ? "active" : ""}
+            onClick={() => setFilter("all")}
+          >
+            All actions <span>{data?.length || 0}</span>
           </button>
         </div>
         <button

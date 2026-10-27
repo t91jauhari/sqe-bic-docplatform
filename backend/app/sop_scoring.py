@@ -11,7 +11,7 @@ VISUAL_OPERATORS = {
 }
 
 
-def normalize_findings(findings, rules):
+def normalize_findings(findings, rules, cfg=None):
     from .sop import fields
 
     visual_paths = {
@@ -21,6 +21,10 @@ def normalize_findings(findings, rules):
         in {"signature_region", "stamp_region", "photo_region", "page_marks"}
     }
     by_id = {r["id"]: r for r in rules}
+    visual_review_enabled = True
+    if cfg is not None:
+        visual_review_enabled = cfg.get("visual_evidence_review", True) and not cfg.get("sop_review_bypass", False)
+
     for finding in findings:
         rule = by_id.get(finding["rule_id"], {})
         visual = (
@@ -59,6 +63,18 @@ def normalize_findings(findings, rules):
                 )
             )
         finding["evaluation_type"] = "VISUAL" if visual else "DATA"
+
+        if visual:
+            if visual_review_enabled:
+                if finding["result"] != "NOT_APPLICABLE":
+                    finding["result"] = "REVIEW"
+                    finding["reason_code"] = "VISUAL_REVIEW_REQUIRED"
+            else:
+                if finding["result"] == "REVIEW":
+                    bypass_res = cfg.get("sop_review_bypass_result", "PASS") if cfg else "PASS"
+                    finding["result"] = bypass_res
+                    finding["reason_code"] = "CHECK_PASSED" if bypass_res == "PASS" else "BYPASS_REVIEW"
+
         if finding["result"] == "REVIEW" and not visual:
             finding["result"] = "FAIL"
             finding["reason_code"] = "INSUFFICIENT_OR_UNVERIFIED_DATA"

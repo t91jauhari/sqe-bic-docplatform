@@ -31,6 +31,7 @@ export default function Overview() {
     "/documents/failure-summary?since=" + since,
   );
   const [dismissed, setDismissed] = useState<string | null>(null);
+  const [recentFilter, setRecentFilter] = useState<"all" | "attention" | "processing" | "ready">("all");
   useEffect(() => {
     try {
       setDismissed(localStorage.getItem(DISMISSED_KEY));
@@ -150,15 +151,73 @@ export default function Overview() {
                 <div className="section-head">
                   <div>
                     <h2>Recent customer cases</h2>
-                    <p>Progress and findings, in one place.</p>
+                    <p>Priority exceptions and recent case progress, in one place.</p>
                   </div>
                   <Link href="/cases" className="text-link">
                     View all
                     <ArrowUpRight size={16} />
                   </Link>
                 </div>
+                {data.recent.length > 0 && (
+                  <div className="field-evidence-toolbar" style={{ borderTop: "1px solid var(--line)" }}>
+                    <div className="field-filter-pills">
+                      {[
+                        ["all", "All recent", data.recent.length],
+                        [
+                          "attention",
+                          "Requires action",
+                          data.recent.filter(
+                            (c) =>
+                              ["NEEDS_REVIEW", "WAITING_DOCUMENTS", "ERROR", "PROCESSING_ERROR"].includes(c.status) ||
+                              ["REVIEW", "NEEDS_REVIEW", "FAIL"].includes(c.validation_status),
+                          ).length,
+                        ],
+                        [
+                          "processing",
+                          "In progress",
+                          data.recent.filter((c) =>
+                            ["QUEUED", "PROCESSING"].includes(c.status),
+                          ).length,
+                        ],
+                        [
+                          "ready",
+                          "Ready / finalized",
+                          data.recent.filter((c) =>
+                            ["READY", "FINALIZED"].includes(c.status),
+                          ).length,
+                        ],
+                      ].map(([key, label, count]) => (
+                        <button
+                          key={String(key)}
+                          type="button"
+                          className={recentFilter === key ? "active" : ""}
+                          onClick={() =>
+                            setRecentFilter(
+                              key as "all" | "attention" | "processing" | "ready",
+                            )
+                          }
+                        >
+                          {label} <span>{count}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 {data.recent.length ? (
-                  <CaseTable cases={data.recent} />
+                  <CaseTable
+                    cases={data.recent.filter((c) => {
+                      if (recentFilter === "attention")
+                        return (
+                          ["NEEDS_REVIEW", "WAITING_DOCUMENTS", "ERROR", "PROCESSING_ERROR"].includes(c.status) ||
+                          ["REVIEW", "NEEDS_REVIEW", "FAIL"].includes(c.validation_status)
+                        );
+                      if (recentFilter === "processing")
+                        return ["QUEUED", "PROCESSING"].includes(c.status);
+                      if (recentFilter === "ready")
+                        return ["READY", "FINALIZED"].includes(c.status);
+                      return true;
+                    })}
+                  />
                 ) : (
                   <Empty
                     title="Your workspace is ready"

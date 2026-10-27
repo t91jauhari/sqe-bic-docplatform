@@ -9,7 +9,8 @@ from app.configuration.profiles import profile_schema, validate_shape
 import copy
 import re
 from sqlalchemy import select
-from app.db import Case, Document, SessionLocal
+from app.db import Case, Document, SessionLocal, Config
+from app.configuration.revisions import latest_config
 from app.auditing import audit
 from app.case_lifecycle import enqueue, refresh_case
 from app.access import authorized, scoped
@@ -109,6 +110,14 @@ def failure_summary(*, since: float, user):
 def retry_document(*, doc_id: str, user):
     with SessionLocal.begin() as db:
         d = authorized(db, Document, doc_id, user)
+        if d.case_id:
+            case = db.scalar(select(Case).where(Case.id == d.case_id))
+            if case:
+                latest = latest_config(db, case.org)
+                if latest and case.config_id != latest.id:
+                    curr_cfg = db.scalar(select(Config).where(Config.id == case.config_id))
+                    if not curr_cfg or (curr_cfg.payload and curr_cfg.payload.get('provider') == 'llama'):
+                        case.config_id = latest.id
         if d.status not in {"ERROR", "NEEDS_CLASSIFICATION"}:
             raise ApplicationError("conflict", "Document is not waiting for retry.")
         if d.provider_state.get("pending_create"):
@@ -138,7 +147,14 @@ def retry_document(*, doc_id: str, user):
             d.provider_state = {**d.provider_state, "pending_create": None}
         if d.status == "NEEDS_CLASSIFICATION":
             raise ApplicationError("conflict", "Confirm document type before retrying.")
-        job = enqueue(db, d)
+        d.raw = None
+        d.metadata_json = {}
+        d.normalized = {}
+        d.validation = {}
+        d.error = ""
+        d.provider_state = {}
+        d.status = "QUEUED"
+        job = enqueue(db, d, action="reextract")
         audit(
             db,
             user.org,

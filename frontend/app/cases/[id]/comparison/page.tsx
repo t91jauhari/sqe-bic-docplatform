@@ -128,6 +128,7 @@ export default function ComparisonPage({
   const [busy, setBusy] = useState(false);
   const [filter, setFilter] = useState("");
   const [status, setStatus] = useState("");
+  const [docGroupFilter, setDocGroupFilter] = useState("");
   const load = useCallback(async () => {
     try {
       const [reference, comparison, detail] = await Promise.all([
@@ -251,6 +252,7 @@ export default function ComparisonPage({
     (row) =>
       (!exceptionsOnly || !["MATCH", "NOT_APPLICABLE"].includes(row.status)) &&
       (!status || row.status === status) &&
+      (!docGroupFilter || row.document_label === docGroupFilter) &&
       (!filter ||
         `${row.document_label} ${row.label} ${row.field}`
           .toLowerCase()
@@ -486,11 +488,36 @@ export default function ComparisonPage({
                     <h2>Matching by document</h2>
                   </div>
                 </div>
+                {docGroupFilter && (
+                  <div className="button-row" style={{ marginBottom: 12 }}>
+                    <span className="count-pill">
+                      Filtered by document: {docGroupFilter}
+                    </span>
+                    <button
+                      type="button"
+                      className="text-link"
+                      onClick={() => setDocGroupFilter("")}
+                    >
+                      Show all documents
+                    </button>
+                  </div>
+                )}
                 <div className="comparison-source-grid">
                   {result.document_groups?.map((group) => (
                     <article
-                      className="comparison-editor-context"
+                      className={
+                        "comparison-editor-context clickable-doc-card " +
+                        (docGroupFilter === group.document_label ? "active" : "")
+                      }
                       key={group.id}
+                      onClick={() =>
+                        setDocGroupFilter((prev) =>
+                          prev === group.document_label
+                            ? ""
+                            : group.document_label,
+                        )
+                      }
+                      title="Click to filter comparison rows to this document"
                     >
                       <strong>{group.document_label}</strong>
                       <p>{group.filename || "No selected document"}</p>
@@ -573,9 +600,9 @@ export default function ComparisonPage({
                     <thead>
                       <tr>
                         <th>Document / field</th>
-                        <th>Original dataset</th>
                         <th>Dataset reference</th>
                         <th>Effective normalized value</th>
+                        <th>Source crop & original</th>
                         <th>Comparison</th>
                       </tr>
                     </thead>
@@ -594,17 +621,6 @@ export default function ComparisonPage({
                               <p>{row.requirement}</p>
                               <p>{row.comparison_note}</p>
                             </details>
-                          </td>
-                          <td className="field-value">
-                            {display(row.original_value)}
-                            {row.document_id && row.field && (
-                              <ComparisonEvidence
-                                document={sourceDocuments.find(
-                                  (d) => d.id === row.document_id,
-                                )}
-                                field={row.field}
-                              />
-                            )}
                           </td>
                           <td className="field-value">
                             {Object.prototype.hasOwnProperty.call(
@@ -674,7 +690,7 @@ export default function ComparisonPage({
                             )}
                           </td>
                           <td className="field-value">
-                            {display(row.effective_value)}
+                            <strong>{display(row.effective_value)}</strong>
                             {canReview &&
                               row.field &&
                               row.document_id &&
@@ -704,6 +720,19 @@ export default function ComparisonPage({
                                   Correct effective value
                                 </button>
                               )}
+                          </td>
+                          <td className="field-crop-cell">
+                            {row.document_id && row.field && (
+                              <ComparisonEvidence
+                                document={sourceDocuments.find(
+                                  (d) => d.id === row.document_id,
+                                )}
+                                field={row.field}
+                              />
+                            )}
+                            <small className="muted" style={{ display: "block", marginTop: 4 }}>
+                              Original dataset: {display(row.original_value)}
+                            </small>
                           </td>
                           <td>
                             <Badge value={row.status} />

@@ -99,7 +99,9 @@ export default function Cases() {
           {[
             ["", "All cases"],
             ["NEEDS_REVIEW", "Needs review"],
+            ["WAITING_DOCUMENTS", "Waiting documents"],
             ["PROCESSING", "Processing"],
+            ["PROCESSING_ERROR", "Errors"],
             ["READY", "Ready"],
           ].map(([value, label]) => (
             <button

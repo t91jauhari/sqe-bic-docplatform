@@ -17,26 +17,28 @@ import {
 import { usePlatform, useData } from "./platform-provider";
 import { Busy } from "./ui";
 import { ToastNotifications } from "./toast-notifications";
-import type { Dashboard } from "@/lib/types";
+import type { Dashboard, Branch, RolePermissionsMap } from "@/lib/types";
 import { WorkspaceControls } from "./workspace-controls";
 import { pageIdentity, PagePath } from "./page-identity";
 
 const nav: {
+  id: string;
   href: string;
   label: string;
   icon: typeof LayoutDashboard;
   gloss?: string;
 }[] = [
-  { href: "/", label: "Overview", icon: LayoutDashboard },
-  { href: "/inbox", label: "Inbox", icon: Inbox },
-  { href: "/cases", label: "Customer cases", icon: Layers },
+  { id: "overview", href: "/", label: "Overview", icon: LayoutDashboard },
+  { id: "inbox", href: "/inbox", label: "Inbox", icon: Inbox },
+  { id: "cases", href: "/cases", label: "Customer cases", icon: Layers },
   {
+    id: "reports",
     href: "/reports",
     label: "Kertas kerja",
     icon: FileCheck2,
     gloss: "Work paper report",
   },
-  { href: "/settings", label: "Configuration", icon: Settings },
+  { id: "settings", href: "/settings", label: "Configuration", icon: Settings },
 ];
 export function Shell({
   children,
@@ -54,6 +56,34 @@ export function Shell({
     router = useRouter();
   const identity = pageIdentity(pathname),
     PageIcon = identity.icon;
+
+  const { data: rolePermissions } = useData<RolePermissionsMap>("/access/role-permissions", 0);
+  const { data: branches } = useData<Branch[]>("/branches", 0);
+
+  const defaultRoleMenus: Record<string, string[]> = {
+    bank_admin: ["overview", "inbox", "cases", "reports", "upload", "settings"],
+    branch_admin: ["overview", "inbox", "cases", "reports", "upload", "settings"],
+    officer: ["overview", "inbox", "cases", "upload"],
+    reviewer: ["overview", "inbox", "cases", "reports"],
+    auditor: ["overview", "cases", "reports"],
+  };
+
+  const userRole = user?.role || "officer";
+  const roleAllowedMenus = rolePermissions?.[userRole]?.menus || defaultRoleMenus[userRole] || ["overview", "cases"];
+
+  const userBranchObjects = (branches && user?.branches)
+    ? branches.filter(b => user.branches.includes(b.id))
+    : [];
+
+  const branchAllowedMenus = (userRole === "bank_admin" || userBranchObjects.length === 0)
+    ? ["overview", "inbox", "cases", "reports", "upload", "settings"]
+    : Array.from(new Set(userBranchObjects.flatMap(b => b.menus || ["overview", "inbox", "cases", "reports", "upload", "settings"])));
+
+  const effectiveMenus = userRole === "bank_admin"
+    ? (rolePermissions?.bank_admin?.menus || defaultRoleMenus.bank_admin)
+    : roleAllowedMenus.filter(m => branchAllowedMenus.includes(m));
+
+  const visibleNav = nav.filter(item => effectiveMenus.includes(item.id));
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
   }, [loading, user, router]);
@@ -84,7 +114,7 @@ export function Shell({
         </Link>
         <div className="sidebar-label">WORKSPACE</div>
         <nav aria-label="Main navigation">
-          {nav.map((n) => (
+          {visibleNav.map((n) => (
             <Link
               key={n.href}
               href={n.href}
@@ -110,7 +140,7 @@ export function Shell({
             </Link>
           ))}
         </nav>
-        {user.role !== "auditor" && (
+        {effectiveMenus.includes("upload") && (
           <Link href="/upload" className="sidebar-upload">
             <Upload size={18} />
             Upload documents

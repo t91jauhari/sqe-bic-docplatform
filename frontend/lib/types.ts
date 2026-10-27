@@ -7,7 +7,28 @@ export type User = {
   branches: string[];
   active: boolean;
 };
-export type Branch = { id: string; code: string; name: string };
+export type Branch = { id: string; code: string; name: string; tier?: string; menus?: string[] };
+
+export type RolePermissionConfig = {
+  label: string;
+  menus: string[];
+  can_edit_settings: boolean;
+  can_override_cases: boolean;
+  can_manage_users: boolean;
+};
+export type RolePermissionsMap = Record<string, RolePermissionConfig>;
+
+export type ConnectorItem = {
+  id: string;
+  name: string;
+  provider_type: "gemini" | "spider-ai" | "fixture" | string;
+  model_id: string;
+  is_active: boolean;
+  configured: boolean;
+  base_url?: string;
+  options: Record<string, any>;
+  created_at: number;
+};
 export type ProfileName = string;
 export type SchemaNode = {
   description?: string;
@@ -102,7 +123,7 @@ export type Configuration = {
   sop_rules?: SOPRule[];
   report_context?: Record<string, string>;
   report_mapping?: Record<string, string>;
-  provider: "llama" | "spider-ai" | "fixture";
+  provider: "llama" | "spider-ai" | "gemini" | "fixture";
   parse_tier: string;
   extract_tier: string;
   parse_version: string;
@@ -131,9 +152,10 @@ export type Configuration = {
   grouping_prefixes?: string[];
   suffix_aliases?: Record<string, string>;
   sop_message_templates?: Record<string, string>;
-  // Phase 2 — Configurable SOP Review Bypass (§3.2)
+  // Phase 2 — Configurable SOP Review Bypass & Visual Review (§3.2)
   sop_review_bypass?: boolean;
   sop_review_bypass_result?: "PASS" | "REVIEW" | "NOT_APPLICABLE";
+  visual_evidence_review?: boolean;
   // Phase 3 — Multi-Page Sequential Extraction (§3.5)
   sequential_page_extraction?: boolean;
   cross_page_reference?: boolean;
@@ -226,6 +248,9 @@ export type Document = {
   case_id: string;
 };
 export type Finding = {
+  category?: string;
+  source_ref?: string;
+  scope_basis?: string;
   evaluation_type?: "VISUAL" | "DATA";
   reason_code?: string;
   automated_result?: string;

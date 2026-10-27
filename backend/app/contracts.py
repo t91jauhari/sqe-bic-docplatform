@@ -12,6 +12,14 @@ class LoginInput(BaseModel):
 class BranchInput(BaseModel):
     code: str = Field(min_length=1, max_length=40)
     name: str = Field(min_length=1, max_length=120)
+    tier: str | None = Field(default="KCU", max_length=40)
+    menus: list[str] | None = None
+
+
+class BranchUpdateInput(BaseModel):
+    name: str | None = Field(default=None, min_length=1, max_length=120)
+    tier: str | None = Field(default=None, max_length=40)
+    menus: list[str] | None = None
 
 
 class UserInput(BaseModel):

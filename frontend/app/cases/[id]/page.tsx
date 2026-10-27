@@ -1,5 +1,6 @@
 "use client";
 import {CaseConfiguration} from "@/components/case-configuration";
+import { FieldEvidenceWorkspace } from "@/components/field-evidence-workspace";
 import { FieldReprocess } from "@/components/field-reprocess";
 import { FieldRequestRecovery } from "@/components/field-request-recovery";
 import { BatchGroupingRepair } from "@/components/batch-grouping-repair";
@@ -63,6 +64,8 @@ export default function CasePage({
   const { data: cfg } = useData<ConfigResponse>("/config", 0);
   const [selected, setSelected] = useState(""),
     [tab, setTab] = useState<"fields" | "findings" | "timeline">("fields"),
+    [findingFilter, setFindingFilter] = useState<"all" | "attention" | "visual" | "pass">("all"),
+    [sidebarCollapsed, setSidebarCollapsed] = useState(false),
     [action, setAction] = useState<Action | null>(null),
     [pending, setPending] = useState(false),
     [exporting, setExporting] = useState(false);
@@ -106,7 +109,7 @@ export default function CasePage({
     data?.documents.filter(
       (d) =>
         d.status === "COMPLETED" &&
-        Object.entries(d.normalized).some(([f]) => f !== "page_results"),
+        Object.entries(d.normalized || {}).some(([f]) => f !== "page_results"),
     ) || [];
   const retryableDocs =
     data?.documents.filter((d) => !d.provider_state?.pending_create) || [];
@@ -126,7 +129,7 @@ export default function CasePage({
         const label = columns?.find(([key]) => key === field)?.[1] || field;
         const text =
           value == null &&
-          doc.validation.fields?.[field]?.issues.some((issue) =>
+          doc.validation?.fields?.[field]?.issues?.some((issue) =>
             ["UNRECOGNIZED_ENUM", "INVALID_OR_MISSING_ENUM"].includes(
               issue.code,
             ),
@@ -181,6 +184,9 @@ export default function CasePage({
       action={
         data && (
           <div className="button-row">
+            <Link className="secondary" href={`/cases/${id}/comparison`}>
+              Dataset comparison
+            </Link>
             <Link className="secondary" href={`/cases/${id}/review`}>
               <ShieldCheck size={17} />
               Visual review
@@ -326,21 +332,57 @@ export default function CasePage({
               ))}
             </nav>
             <div id="case-overview">
-              <CaseTask caseId={data.id} />
+              <details className="case-utilities" style={{ marginBottom: 14 }}>
+                <summary>
+                  <Clock3 size={16} aria-hidden />
+                  SLA & case assignment<span>Set reviewer owner and due date</span>
+                </summary>
+                <CaseTask caseId={data.id} />
+              </details>
               <CaseSOP data={data} refresh={refresh} />
-              {/*--<Link
-                className="secondary"
-                href={`/cases/${id}/comparison`}
-                title="Compare the case's effective values against the reference dataset sample"
-              >
-                Compare effective values with dataset sample
-              </Link>--*/}
             </div>
-            <div className="case-workspace" id="case-documents">
+            {sidebarCollapsed && (
+              <div className="collapsed-doc-strip panel">
+                <div className="collapsed-doc-pills">
+                  <span className="small-label">DOCUMENTS ({data.documents.length})</span>
+                  {data.documents.map((d) => (
+                    <button
+                      key={d.id}
+                      type="button"
+                      className={"doc-pill-btn " + (doc?.id === d.id ? "active" : "")}
+                      onClick={() => setSelected(d.id)}
+                    >
+                      <FileText size={14} />
+                      <span>{d.filename}</span>
+                      <Badge value={d.status} />
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  className="secondary compact-btn"
+                  onClick={() => setSidebarCollapsed(false)}
+                >
+                  Show document sidebar
+                </button>
+              </div>
+            )}
+            <div
+              className={"case-workspace " + (sidebarCollapsed ? "sidebar-collapsed" : "")}
+              id="case-documents"
+            >
               <aside className="document-list panel">
                 <div className="section-head">
                   <h2>Documents</h2>
                   <span className="count-pill">{data.documents.length}</span>
+                  <button
+                    type="button"
+                    className="text-link"
+                    onClick={() => setSidebarCollapsed(true)}
+                    title="Collapse document sidebar for full-width field & crop inspection"
+                  >
+                    Full width
+                  </button>
                   {exportableDocs.length > 0 && (
                     <button
                       className="secondary"
@@ -356,7 +398,7 @@ export default function CasePage({
                     <button
                       className="secondary"
                       disabled={pending}
-                      title="Re-queue every document in this case for extraction (skips only documents with an uncertain provider submission)"
+                      title="Re-trigger extraction with a fresh provider request for every document in this case"
                       onClick={async () => {
                         setPending(true);
                         try {
@@ -467,12 +509,12 @@ export default function CasePage({
                         Audit timeline
                       </button>
                     </div>
-                    {Array.isArray(doc.provider_state.location_guidance) &&
-                      doc.provider_state.location_guidance.length > 0 && (
+                    {Array.isArray(doc?.provider_state?.location_guidance) &&
+                      (doc.provider_state?.location_guidance?.length || 0) > 0 && (
                         <details className="info-note">
                           <summary>
                             Reviewed location guidance for this job ·{" "}
-                            {doc.provider_state.location_guidance.length} fields
+                            {doc.provider_state?.location_guidance?.length || 0} fields
                           </summary>
                           <p>
                             Matching reviewed forms supplied location hints to
@@ -480,7 +522,7 @@ export default function CasePage({
                             document and still requires independent
                             verification.
                           </p>
-                          {doc.provider_state.location_guidance.map(
+                          {doc.provider_state?.location_guidance?.map(
                             (hint, index) => (
                               <div key={index}>
                                 {String(hint.field)} · page{" "}
@@ -490,11 +532,11 @@ export default function CasePage({
                           )}
                         </details>
                       )}
-                    {doc.error && (
+                    {doc?.error && (
                       <div className="document-error">
                         <ErrorNotice message={doc.error} />
                         {data.can_write &&
-                          !!doc.provider_state.pending_create && (
+                          !!doc.provider_state?.pending_create && (
                             <p className="subtext">
                               <strong>Provider request needs recovery</strong> —
                               the request may have reached the provider before
@@ -504,8 +546,8 @@ export default function CasePage({
                                 className="text-link"
                                 title={
                                   "Request " +
-                                  String(doc.provider_state.pending_create) +
-                                  (doc.provider_state.provider_stage
+                                  String(doc.provider_state?.pending_create) +
+                                  (doc.provider_state?.provider_stage
                                     ? " · stage " +
                                       doc.provider_state.provider_stage
                                     : "")
@@ -521,7 +563,7 @@ export default function CasePage({
                             ["ERROR", "NEEDS_CLASSIFICATION"].includes(
                               doc.status,
                             ) &&
-                            !Object.keys(doc.raw).length && (
+                            !Object.keys(doc.raw || {}).length && (
                               <button
                                 className="primary"
                                 onClick={() =>
@@ -535,7 +577,7 @@ export default function CasePage({
                           {data.can_write &&
                             doc.status === "COMPLETED" &&
                             String(
-                              doc.provider_state.provider_stage || "",
+                              doc.provider_state?.provider_stage || "",
                             ).startsWith("SPIDER_FIELDS_") && (
                               <FieldRequestRecovery
                                 documentId={doc.id}
@@ -545,7 +587,7 @@ export default function CasePage({
                           <div className="button-row">
                             {data.can_write &&
                               doc.status === "ERROR" &&
-                              !doc.provider_state.pending_create && (
+                              !doc.provider_state?.pending_create && (
                                 <button
                                   className="secondary"
                                   disabled={pending}
@@ -566,20 +608,20 @@ export default function CasePage({
                             {data.can_write &&
                               doc.status === "ERROR" &&
                               !String(
-                                doc.provider_state.pending_create ||
-                                  doc.provider_state.provider_stage ||
+                                doc.provider_state?.pending_create ||
+                                  doc.provider_state?.provider_stage ||
                                   "",
                               )
                                 .toLowerCase()
                                 .startsWith("spider_fields_") &&
                               (String(
-                                doc.provider_state.pending_create || "",
+                                doc.provider_state?.pending_create || "",
                               ).startsWith("spider_") ||
                                 (String(
-                                  doc.provider_state.provider_stage || "",
+                                  doc.provider_state?.provider_stage || "",
                                 ).startsWith("SPIDER_") &&
-                                  !!doc.provider_state[
-                                    `spider_${String(doc.provider_state.provider_stage).slice(7).toLowerCase()}_response_key`
+                                  !!doc.provider_state?.[
+                                    `spider_${String(doc.provider_state?.provider_stage).slice(7).toLowerCase()}_response_key`
                                   ])) && (
                                 <SpiderResubmit
                                   documentId={doc.id}
@@ -589,9 +631,9 @@ export default function CasePage({
                             {user?.role === "bank_admin" &&
                               doc.status === "ERROR" &&
                               !String(
-                                doc.provider_state.pending_create || "",
+                                doc.provider_state?.pending_create || "",
                               ).startsWith("spider_") &&
-                              !!doc.provider_state.pending_create && (
+                              !!doc.provider_state?.pending_create && (
                                 <button
                                   className="secondary"
                                   onClick={() =>
@@ -605,7 +647,7 @@ export default function CasePage({
                         </div>
                       </div>
                     )}
-                    {tab === "fields" && (
+                    {tab === "fields" && doc && (
                       <>
                         {data.can_write && doc.status === "COMPLETED" && (
                           <FieldReprocess
@@ -616,7 +658,7 @@ export default function CasePage({
                               cfg?.payload.profiles[
                                 doc.doc_type as keyof typeof cfg.payload.profiles
                               ]?.columns ||
-                              Object.keys(doc.raw).map(
+                              Object.keys(doc.raw || {}).map(
                                 (key) => [key, key] as [string, string],
                               )
                             }
@@ -656,69 +698,21 @@ export default function CasePage({
                             were skipped; case SOP results are shown separately.
                           </p>
                         )}
-                        {doc.validation.visual_evidence?.length ? (
-                          <div className="evidence-gallery">
-                            <h3>Visual field evidence</h3>
-                            {doc.validation.visual_evidence.map((e, i) => (
-                              <div
-                                key={i}
-                                style={{
-                                  padding: 12,
-                                  borderBottom: "1px solid #ddd",
-                                }}
-                              >
-                                {data.can_review && (
-                                  <VisualRegionEditor
-                                    documentId={doc.id}
-                                    field={e.field}
-                                    onSaved={() => void refresh()}
-                                  />
-                                )}
-                                <strong>{e.field}</strong> · Image{" "}
-                                {e.available ? "available" : "unavailable"} ·
-                                Observed{" "}
-                                {e.observed_present === null
-                                  ? "uncertain"
-                                  : String(e.observed_present)}{" "}
-                                ·{" "}
-                                {e.review_status === "REVIEW"
-                                  ? ""
-                                  : e.review_status}
-                                {e.available && e.storage_key ? (
-                                  <a
-                                    href={`/api/documents/${doc.id}/file`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                  >
-                                    <img
-                                      alt={`${e.field}, page ${e.page_number}`}
-                                      style={{
-                                        display: "block",
-                                        maxWidth: "100%",
-                                        maxHeight: 360,
-                                      }}
-                                      src={`/api/documents/${doc.id}/evidence/${e.revision}/${e.storage_key
-                                        .split("/")
-                                        .pop()
-                                        ?.slice(e.revision.length + 1, -4)}`}
-                                    />
-                                    Open original page {e.page_number}
-                                  </a>
-                                ) : (
-                                  <p>
-                                    {e.error ||
-                                      "Bounding box evidence requires review."}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : null}
-                        {data.can_write && doc.status === "COMPLETED" && (
-                          <button
-                            className="secondary"
-                            disabled={pending}
-                            onClick={() =>
+                        {Object.keys(doc.normalized || {}).length ||
+                        doc.validation?.visual_evidence?.length ||
+                        doc.validation?.field_evidence?.length ? (
+                          <FieldEvidenceWorkspace
+                            doc={doc}
+                            columns={
+                              cfg?.payload.profiles[
+                                doc.doc_type as keyof typeof cfg.payload.profiles
+                              ]?.columns
+                            }
+                            provider={cfg?.payload.provider}
+                            canWrite={data.can_write}
+                            canReview={data.can_review}
+                            pending={pending}
+                            onRefreshCrops={() =>
                               void run(
                                 () =>
                                   api(`/documents/${doc.id}/field-evidence`, {
@@ -727,205 +721,15 @@ export default function CasePage({
                                 "Field evidence refreshed from saved results.",
                               )
                             }
-                          >
-                            Generate / refresh field crops
-                          </button>
-                        )}
-                        {!!doc.validation.field_evidence?.length && (
-                          <details className="evidence-gallery">
-                            <summary>
-                              Extracted field crops (
-                              {doc.validation.field_evidence.length})
-                            </summary>
-                            {doc.validation.field_evidence.map((e) => (
-                              <div
-                                key={e.field}
-                                style={{
-                                  padding: 12,
-                                  borderBottom: "1px solid #ddd",
-                                }}
-                              >
-                                <strong>{e.field}</strong> · Image{" "}
-                                {e.image_available
-                                  ? "available"
-                                  : "unavailable"}{" "}
-                                ·{" "}
-                                {e.review_status === "REVIEW"
-                                  ? ""
-                                  : e.review_status}
-                                <p>{display(e.value)}</p>
-                                {data.can_review && (
-                                  <VisualRegionEditor
-                                    documentId={doc.id}
-                                    field={e.field}
-                                    onSaved={() => void refresh()}
-                                  />
-                                )}
-                                {e.crops.map((c) => (
-                                  <a
-                                    key={c.storage_key}
-                                    href={`/api/documents/${doc.id}/file`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                  >
-                                    <img
-                                      loading="lazy"
-                                      alt={`${e.field}, source page ${c.page_number}`}
-                                      style={{
-                                        display: "block",
-                                        maxWidth: "100%",
-                                        maxHeight: 360,
-                                      }}
-                                      src={`/api/documents/${doc.id}/evidence/${c.revision}/${c.storage_key
-                                        .split("/")
-                                        .pop()
-                                        ?.slice(c.revision.length + 1, -4)}`}
-                                    />
-                                    Source page {c.page_number}
-                                  </a>
-                                ))}
-                                {e.error && <p>{e.error}</p>}
-                              </div>
-                            ))}
-                          </details>
-                        )}
-                        {Object.keys(doc.normalized).length ? (
-                          <div className="table-scroll fields-table">
-                            <table>
-                              <thead>
-                                <tr>
-                                  <th>Field / evidence</th>
-                                  <th>Effective value</th>
-                                  <th>Check</th>
-                                  <th />
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {Object.entries(doc.normalized)
-                                  .filter(([field]) => field !== "page_results")
-                                  .map(([field, value]) => {
-                                    const result =
-                                        doc.validation.fields?.[field],
-                                      label =
-                                        cfg?.payload.profiles[
-                                          doc.doc_type as keyof typeof cfg.payload.profiles
-                                        ]?.columns.find(
-                                          (c) => c[0] === field,
-                                        )?.[1] || field;
-                                    return (
-                                      <tr key={field}>
-                                        <td>
-                                          <strong>{label}</strong>
-                                          {data.can_review &&
-                                            (doc.raw[field] === null ||
-                                              doc.raw[field] === "") && (
-                                              <VisualRegionEditor
-                                                documentId={doc.id}
-                                                field={field}
-                                                onSaved={() => void refresh()}
-                                              />
-                                            )}
-                                          <details>
-                                            <summary>Raw & evidence</summary>
-                                            <pre>
-                                              {JSON.stringify(
-                                                {
-                                                  raw: doc.raw[field],
-                                                  override:
-                                                    doc.overrides[field],
-                                                  evidence: result?.metadata,
-                                                },
-                                                null,
-                                                2,
-                                              )}
-                                            </pre>
-                                          </details>
-                                        </td>
-                                        <td className="field-value">
-                                          {value == null &&
-                                          result?.issues.some((i) =>
-                                            [
-                                              "UNRECOGNIZED_ENUM",
-                                              "INVALID_OR_MISSING_ENUM",
-                                            ].includes(i.code),
-                                          )
-                                            ? "Unrecognized value · needs review"
-                                            : display(value)}
-                                        </td>
-                                        <td>
-                                          {extractionCheck(
-                                            doc,
-                                            field,
-                                            cfg?.payload.provider,
-                                          ) === "OK" ? (
-                                            <span
-                                              className="badge good"
-                                              title="Spider-AI extraction result. Native document validation was skipped."
-                                            >
-                                              OK
-                                            </span>
-                                          ) : (
-                                            <Badge
-                                              value={
-                                                result?.status || "PENDING"
-                                              }
-                                            />
-                                          )}
-                                          {doc.validation.corrections?.some(
-                                            (c) =>
-                                              typeof c === "object" &&
-                                              c !== null &&
-                                              (
-                                                c as {
-                                                  field?: string;
-                                                  method?: string;
-                                                }
-                                              ).field === field &&
-                                              (c as { method?: string })
-                                                .method ===
-                                                "approved_enum_alias",
-                                          ) && (
-                                            <div className="field-issue">
-                                              Normalized using approved alias
-                                            </div>
-                                          )}
-                                          {result?.issues
-                                            .slice(0, 2)
-                                            .map((i) => (
-                                              <div
-                                                key={i.code}
-                                                className="field-issue"
-                                              >
-                                                {i.code
-                                                  .replaceAll("_", " ")
-                                                  .toLowerCase()}
-                                              </div>
-                                            ))}
-                                        </td>
-                                        <td>
-                                          {data.can_review &&
-                                            doc.status === "COMPLETED" && (
-                                              <button
-                                                className="icon-button"
-                                                aria-label={"Correct " + label}
-                                                onClick={() =>
-                                                  setAction({
-                                                    kind: "correction",
-                                                    doc,
-                                                    field,
-                                                  })
-                                                }
-                                              >
-                                                <Pencil size={15} />
-                                              </button>
-                                            )}
-                                        </td>
-                                      </tr>
-                                    );
-                                  })}
-                              </tbody>
-                            </table>
-                          </div>
+                            onCorrectField={(field) =>
+                              setAction({
+                                kind: "correction",
+                                doc,
+                                field,
+                              })
+                            }
+                            onRegionSaved={() => void refresh()}
+                          />
                         ) : (
                           <Empty
                             title={
@@ -944,14 +748,14 @@ export default function CasePage({
                             }
                           />
                         )}
-                        {Array.isArray(doc.raw.page_results) && (
+                        {Array.isArray(doc.raw?.page_results) && (
                           <details className="provider-details">
                             <summary>
                               Page extraction details (
-                              {doc.raw.page_results.length} pages)
+                              {doc.raw?.page_results?.length || 0} pages)
                             </summary>
                             <pre>
-                              {JSON.stringify(doc.raw.page_results, null, 2)}
+                              {JSON.stringify(doc.raw?.page_results, null, 2)}
                             </pre>
                           </details>
                         )}
@@ -976,40 +780,257 @@ export default function CasePage({
                     {tab === "findings" && (
                       <div className="findings-list">
                         {report?.snapshot.findings.length ? (
-                          report.snapshot.findings.map((f, index) => (
-                            <div className="finding-card" key={index}>
-                              <div>
-                                <Badge value={f.result} />
-                                <strong>{f.field}</strong>
-                                <span className="rule-id">{f.rule_id}</span>
-                              </div>
-                              <p>{f.message}</p>
-                              <div className="finding-values">
-                                <span>Actual: {display(f.actual)}</span>
-                                <span>Expected: {display(f.expected)}</span>
-                              </div>
-                              <details>
-                                <summary>Source evidence</summary>
-                                <pre>{JSON.stringify(f.evidence, null, 2)}</pre>
-                                {typeof f.evidence?.document_id ===
-                                  "string" && (
-                                  <a
-                                    className="text-link"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    href={
-                                      "/api/documents/" +
-                                      f.evidence.document_id +
-                                      "/file"
+                          <>
+                            <div className="field-evidence-toolbar" style={{ margin: "-20px -24px 16px", padding: "12px 24px" }}>
+                              <div className="field-filter-pills">
+                                {[
+                                  ["all", "All findings", report.snapshot.findings.length],
+                                  [
+                                    "attention",
+                                    "Needs attention",
+                                    report.snapshot.findings.filter((f) =>
+                                      ["FAIL", "REVIEW", "ERROR"].includes(f.result),
+                                    ).length,
+                                  ],
+                                  [
+                                    "visual",
+                                    "Visual checks",
+                                    report.snapshot.findings.filter(
+                                      (f) => f.evaluation_type === "VISUAL",
+                                    ).length,
+                                  ],
+                                  [
+                                    "pass",
+                                    "Passed",
+                                    report.snapshot.findings.filter(
+                                      (f) => f.result === "PASS",
+                                    ).length,
+                                  ],
+                                ].map(([key, label, count]) => (
+                                  <button
+                                    key={String(key)}
+                                    type="button"
+                                    className={findingFilter === key ? "active" : ""}
+                                    onClick={() =>
+                                      setFindingFilter(
+                                        key as "all" | "attention" | "visual" | "pass",
+                                      )
                                     }
                                   >
-                                    Open source document
-                                    <ArrowUpRight size={14} />
-                                  </a>
-                                )}
-                              </details>
+                                    {label} <span>{count}</span>
+                                  </button>
+                                ))}
+                              </div>
+                              <Link className="secondary compact-btn" href={`/cases/${id}/review`}>
+                                <ShieldCheck size={14} />
+                                Open visual review
+                              </Link>
                             </div>
-                          ))
+                            {report.snapshot.findings
+                              .filter((f) => {
+                                if (findingFilter === "attention")
+                                  return ["FAIL", "REVIEW", "ERROR"].includes(f.result);
+                                if (findingFilter === "visual")
+                                  return f.evaluation_type === "VISUAL";
+                                if (findingFilter === "pass")
+                                  return f.result === "PASS";
+                                return true;
+                              })
+                              .map((f, index) => {
+                                const leftPath = String(f.evidence?.path || f.field || "");
+                                const rightPath = String(f.evidence?.other_path || "");
+
+                                const leftDocIds = Array.isArray(f.evidence?.document_ids)
+                                  ? (f.evidence.document_ids as string[])
+                                  : typeof f.evidence?.document_id === "string"
+                                    ? [f.evidence.document_id]
+                                    : [];
+                                const leftDoc =
+                                  data.documents.find((d) => leftDocIds.includes(d.id)) ||
+                                  data.documents.find((d) => leftPath.startsWith(d.doc_type + "."));
+
+                                const rightDocIds = Array.isArray(f.evidence?.reference_document_ids)
+                                  ? (f.evidence.reference_document_ids as string[])
+                                  : [];
+                                const rightDoc =
+                                  data.documents.find((d) => rightDocIds.includes(d.id)) ||
+                                  (rightPath ? data.documents.find((d) => rightPath.startsWith(d.doc_type + ".")) : null);
+
+                                const leftParts = leftPath.split(".");
+                                const leftType = leftParts[0];
+                                const leftField = leftParts.slice(1).join(".") || leftPath;
+
+                                const rightParts = rightPath.split(".");
+                                const rightType = rightParts[0];
+                                const rightField = rightParts.slice(1).join(".") || rightPath;
+
+                                const getFieldLabel = (docType: string, fieldKey: string) => {
+                                  const profileCols = cfg?.payload.profiles[docType as keyof typeof cfg.payload.profiles]?.columns;
+                                  const col = profileCols?.find(([k]) => k === fieldKey || k === fieldKey.split(".").pop());
+                                  return col ? col[1] : fieldKey;
+                                };
+
+                                const leftLabel = leftDoc ? getFieldLabel(leftDoc.doc_type, leftField) : leftField;
+                                const rightLabel = rightDoc ? getFieldLabel(rightDoc.doc_type, rightField) : rightField;
+
+                                const isComparison = Boolean(
+                                  rightPath &&
+                                  (rightPath !== leftPath || (rightDoc && leftDoc && rightDoc.id !== leftDoc.id))
+                                );
+
+                                return (
+                                  <div className="finding-card" key={`${f.rule_id}-${index}`}>
+                                    <div>
+                                      <Badge value={f.result} />
+                                      {f.evaluation_type && (
+                                        <span className="mini-tag visual">
+                                          {f.evaluation_type}
+                                        </span>
+                                      )}
+                                      <strong>{f.field}</strong>
+                                      {f.source_ref && (
+                                        <span className="count-pill" style={{ fontSize: "0.75rem", padding: "1px 6px" }}>
+                                          {f.source_ref}
+                                        </span>
+                                      )}
+                                      <span className="rule-id">{f.rule_id}</span>
+                                    </div>
+
+                                    {/* Dedicated document and field comparison pathway */}
+                                    <div className="sop-pathway-banner">
+                                      {isComparison ? (
+                                        <div className="sop-comparison-flow">
+                                          <div className="sop-pathway-node source">
+                                            <span className="sop-node-tag">SOURCE DOCUMENT</span>
+                                            <div className="sop-node-title">
+                                              <FileText size={14} className="node-icon" />
+                                              <strong title={leftDoc?.filename || leftType}>
+                                                {leftDoc ? leftDoc.filename : leftType}
+                                              </strong>
+                                            </div>
+                                            <div className="sop-node-field">
+                                              <span className="field-name-badge">{leftLabel}</span>
+                                              <code className="field-path-code">{leftField}</code>
+                                            </div>
+                                          </div>
+
+                                          <div className="sop-comparison-badge">
+                                            <div className="sop-vs-pill">⇄ VS</div>
+                                            <span className="sop-comparison-method">
+                                              {f.evidence?.policy ? String(f.evidence.policy).replace(/_/g, " ") : "compared with"}
+                                            </span>
+                                          </div>
+
+                                          <div className="sop-pathway-node reference">
+                                            <span className="sop-node-tag">REFERENCE DOCUMENT</span>
+                                            <div className="sop-node-title">
+                                              <FileText size={14} className="node-icon" />
+                                              <strong title={rightDoc?.filename || rightType}>
+                                                {rightDoc ? rightDoc.filename : rightType}
+                                              </strong>
+                                            </div>
+                                            <div className="sop-node-field">
+                                              <span className="field-name-badge">{rightLabel}</span>
+                                              <code className="field-path-code">{rightField}</code>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <div className="sop-single-doc-flow">
+                                          <div className="sop-pathway-node single">
+                                            <span className="sop-node-tag">EVALUATED DOCUMENT & FIELD</span>
+                                            <div className="sop-node-title">
+                                              <FileText size={14} className="node-icon" />
+                                              <strong title={leftDoc?.filename || leftType}>
+                                                {leftDoc ? leftDoc.filename : (leftType || "Case Document")}
+                                              </strong>
+                                            </div>
+                                            <div className="sop-node-field">
+                                              <span className="field-name-badge">{leftLabel}</span>
+                                              <code className="field-path-code">{leftField || leftPath}</code>
+                                            </div>
+                                          </div>
+                                          <div className="sop-rule-objective">
+                                            <span className="sop-node-tag">EVALUATION RULE</span>
+                                            <div className="rule-policy-desc">
+                                              {f.evidence?.policy ? String(f.evidence.policy).replace(/_/g, " ") : f.evaluation_type === "VISUAL" ? "Visual verification check" : "Field validation requirement"}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+
+                                    <p>{f.message}</p>
+                                    <div className="finding-side-by-side">
+                                      <div>
+                                        <span className="small-label">
+                                          ACTUAL OBSERVATION · {leftDoc?.filename ? `${leftDoc.filename} (${leftField})` : leftPath}
+                                        </span>
+                                        <div>{display(f.actual)}</div>
+                                      </div>
+                                      <div>
+                                        <span className="small-label">
+                                          {isComparison
+                                            ? `EXPECTED / REFERENCE · ${rightDoc?.filename ? `${rightDoc.filename} (${rightField})` : rightPath}`
+                                            : "EXPECTED / RULE REQUIREMENT"}
+                                        </span>
+                                        <div>{display(f.expected)}</div>
+                                      </div>
+                                    </div>
+
+                                    {Array.isArray(f.evidence?.comparisons) && f.evidence.comparisons.length > 0 && (
+                                      <div className="finding-comparison-pills">
+                                        {f.evidence.comparisons.map((c: any, i: number) => (
+                                          <span key={i} className={`comparison-result-pill ${c.match ? "match" : "mismatch"}`}>
+                                            <strong>Method:</strong> {c.method || "match"} · <strong>Match:</strong> {c.match ? "✓ YES" : "✗ NO"}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+
+                                    <div className="finding-actions-row">
+                                      {f.evaluation_type === "VISUAL" && (
+                                        <Link
+                                          className="text-link"
+                                          href={`/cases/${id}/review`}
+                                        >
+                                          Resolve in visual review
+                                          <ArrowUpRight size={13} />
+                                        </Link>
+                                      )}
+                                      {leftDoc && (
+                                        <button
+                                          type="button"
+                                          className="text-link"
+                                          onClick={() => {
+                                            setSelected(leftDoc.id);
+                                            setTab("fields");
+                                          }}
+                                        >
+                                          Inspect {leftDoc.filename} ({leftField})
+                                        </button>
+                                      )}
+                                      {rightDoc && rightDoc.id !== leftDoc?.id && (
+                                        <button
+                                          type="button"
+                                          className="text-link"
+                                          onClick={() => {
+                                            setSelected(rightDoc.id);
+                                            setTab("fields");
+                                          }}
+                                        >
+                                          Inspect {rightDoc.filename} ({rightField})
+                                        </button>
+                                      )}
+                                      <details>
+                                        <summary>Source evidence</summary>
+                                        <pre>{JSON.stringify(f.evidence, null, 2)}</pre>
+                                      </details>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </>
                         ) : (
                           <Empty
                             title={
@@ -1142,8 +1163,8 @@ function ActionModal({
     [target, setTarget] = useState("");
   const [value, setValue] = useState(
       JSON.stringify(
-        action.doc.overrides[action.field || ""] ??
-          action.doc.raw[action.field || ""] ??
+        action.doc.overrides?.[action.field || ""] ??
+          action.doc.raw?.[action.field || ""] ??
           null,
         null,
         2,
@@ -1190,7 +1211,7 @@ function ActionModal({
               await api(base + "/reconcile", {
                 method: "POST",
                 body: JSON.stringify({
-                  stage: action.doc.provider_state.pending_create,
+                  stage: action.doc.provider_state?.pending_create,
                   provider_id: providerId,
                   reason,
                 }),
@@ -1262,7 +1283,7 @@ function ActionModal({
               Reconcile only a saved job for a supported provider. Historical Llama submissions cannot resume; upgrade the case to Spider-AI before retrying.
             </p>
             <label>
-              {String(action.doc.provider_state.pending_create)}
+              {String(action.doc.provider_state?.pending_create)}
               <input
                 required
                 value={providerId}

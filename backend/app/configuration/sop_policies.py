@@ -80,6 +80,16 @@ def read_value(documents, path):
         if d.get("doc_type") == profile and d.get("status") == "COMPLETED"
     ]
     if len(matches) != 1:
+        from app.valas_resolution import is_valas_prefix, get_case_valas_document, resolve_valas_path
+        if is_valas_prefix(profile):
+            valas_doc, valas_type = get_case_valas_document(documents)
+            if valas_doc:
+                remapped_path, applicable, _ = resolve_valas_path(path, valas_type)
+                if not applicable:
+                    return None, "DECLARATION_VARIANT_NOT_APPLICABLE"
+                matches = [valas_doc]
+                profile, *parts = remapped_path.split(".")
+    if len(matches) != 1:
         return None, "AMBIGUOUS_DOCUMENT" if matches else "MISSING_DOCUMENT"
     value = matches[0].get("normalized", {})
     for part in parts:
@@ -162,10 +172,10 @@ def evaluate_policy(policy, documents):
     if left in (None, "") or right in (None, ""):
         return "FAIL", "MISSING_VALUE"
     if isinstance(policy, DatePolicy):
-        from validation import parse_date
+        from app.date_utils import parse_flexible_date
 
         try:
-            a, b = parse_date(left), parse_date(right)
+            a, b = parse_flexible_date(left), parse_flexible_date(right)
             matched = a == b if policy.relation == "equal" else a >= b
         except (ValueError, TypeError, OverflowError):
             return "FAIL", "INVALID_DATE"

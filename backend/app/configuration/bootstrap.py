@@ -123,6 +123,7 @@ def upgrade_profiles(db, org):
                 "sop_message_templates",
                 "sop_review_bypass",
                 "sop_review_bypass_result",
+                "visual_evidence_review",
                 "sequential_page_extraction",
                 "cross_page_reference",
             )
@@ -177,6 +178,7 @@ def upgrade_profiles(db, org):
     payload.setdefault("sop_message_templates", dict(SOP_MESSAGE_TEMPLATES))
     payload.setdefault("sop_review_bypass", False)
     payload.setdefault("sop_review_bypass_result", "PASS")
+    payload.setdefault("visual_evidence_review", True)
     payload.setdefault("sequential_page_extraction", True)
     payload.setdefault("cross_page_reference", True)
     persist_revision(

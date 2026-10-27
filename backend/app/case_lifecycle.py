@@ -16,6 +16,9 @@ def enqueue(db, doc, action="process"):
         )
     )
     if running:
+        if action == "reextract":
+            running.action = "reextract"
+            doc.status = "QUEUED"
         return running
     doc.status = "QUEUED"
     doc.error = ""

@@ -318,11 +318,20 @@ def validate_business(cfg):
         )
 
 
-def value_at(documents, path):
+def value_at(documents, path, context=None):
+    from .valas_resolution import is_valas_prefix, get_case_valas_document, resolve_valas_path
+
     parts = path.split(".")
     matches = [
         d for d in documents if d["doc_type"] == parts[0] and d["status"] == "COMPLETED"
     ]
+    if len(matches) != 1 and is_valas_prefix(parts[0]):
+        valas_doc, valas_type = get_case_valas_document(documents, context)
+        if valas_doc:
+            remapped_path, applicable, _ = resolve_valas_path(path, valas_type, context)
+            if applicable:
+                matches = [valas_doc]
+                parts = remapped_path.split(".")
     if len(matches) != 1:
         return None, matches
     value = matches[0]["normalized"]
@@ -341,6 +350,7 @@ def evaluate(documents, cfg, context):
     findings = []
     types = {d["doc_type"] for d in documents}
     templates = cfg.get("sop_message_templates", {})
+    visual_review_enabled = cfg.get("visual_evidence_review", True) and not cfg.get("sop_review_bypass", False)
 
     def tpl(key):
         """Look up a message template with graceful fallback to the hardcoded default."""
@@ -371,8 +381,31 @@ def evaluate(documents, cfg, context):
 
             findings.append(evaluate_rule(r, documents, cfg, context))
             continue
-        actual, left = value_at(documents, r["path"])
-        expected, right = value_at(documents, r.get("other_path") or r["path"])
+        left_path = r["path"]
+        right_path = r.get("other_path") or r["path"]
+        left_type = left_path.split(".")[0]
+        right_type = right_path.split(".")[0]
+
+        from .valas_resolution import (
+            is_valas_prefix,
+            get_case_valas_document,
+            resolve_valas_path,
+        )
+
+        valas_doc, active_valas = get_case_valas_document(documents, context)
+        l_ok, r_ok = True, True
+        l_msg, r_msg = None, None
+        if is_valas_prefix(left_type):
+            left_path, l_ok, l_msg = resolve_valas_path(
+                left_path, active_valas, context
+            )
+        if is_valas_prefix(right_type):
+            right_path, r_ok, r_msg = resolve_valas_path(
+                right_path, active_valas, context
+            )
+
+        actual, left = value_at(documents, left_path, context)
+        expected, right = value_at(documents, right_path, context)
         result, message = "REVIEW", r.get("label", r["id"])
         op = r["operator"]
         cond = r.get("condition_operator", "always")
@@ -389,19 +422,15 @@ def evaluate(documents, cfg, context):
             )
         elif cond == "document_present":
             applicable = r.get("condition_value") in types
-        left_type = r["path"].split(".")[0]
-        right_type = (r.get("other_path") or r["path"]).split(".")[0]
         if unknown_condition:
             message += " " + tpl("sop.applicability_context")
         elif not applicable:
             result = "NOT_APPLICABLE"
-        elif left_type == "valas_declaration_1" or right_type == "valas_declaration_1":
-            if (
-                "valas_declaration_2" in types
-                and "valas_declaration_1" not in types
-                and r["source_ref"] in {"SOP3:10", "SOP3:12"}
-            ):
-                result = "NOT_APPLICABLE"
+        elif not l_ok or not r_ok:
+            result = "NOT_APPLICABLE"
+            expl = l_msg or r_msg
+            if expl:
+                message += f" ({expl})"
         if result not in {"NOT_APPLICABLE"} and not unknown_condition:
             try:
                 valid = None
@@ -431,18 +460,20 @@ def evaluate(documents, cfg, context):
                     kind = next(
                         (f["type"] for f in fields() if f["path"] == r["path"]), None
                     )
-                    same = (
-                        (str(actual).strip() == str(expected).strip())
-                        if kind == "identifier"
-                        else normalize(actual) == normalize(expected)
-                    )
+                    if kind == "identifier":
+                        same = (str(actual).strip() == str(expected).strip())
+                    else:
+                        from .canonical_normalization import canonical_compare
+                        matched, _, _ = canonical_compare(actual, expected)
+                        same = matched
                     valid = same
                 elif op in {"date_equal", "date_on_or_after"} and actual and expected:
-                    a, b = (
-                        datetime.strptime(x, "%d-%m-%Y").date()
-                        for x in (actual, expected)
-                    )
-                    valid = a == b if op == "date_equal" else a >= b
+                    from .date_utils import compare_dates
+
+                    try:
+                        valid = compare_dates(actual, expected, op=op)
+                    except (ValueError, TypeError):
+                        valid = False
                 elif op == "match_money":
                     if r.get("comparison_policy") == "invoice_payment_basis":
                         basis = context.get("payment_basis", "UNKNOWN")
@@ -452,8 +483,8 @@ def evaluate(documents, cfg, context):
                             )
                         elif basis != "FULL_INVOICE":
                             expected = None
-                    currency, _ = value_at(documents, r["currency_path"])
-                    other_currency, _ = value_at(documents, r["other_currency_path"])
+                    currency, _ = value_at(documents, r["currency_path"], context)
+                    other_currency, _ = value_at(documents, r["other_currency_path"], context)
                     if (
                         r.get("comparison_policy") == "invoice_payment_basis"
                         and context.get("payment_basis") == "PROGRESS_CLAIM"
@@ -563,7 +594,7 @@ def evaluate(documents, cfg, context):
                         .get(field_key, {})
                         .get("issues", [])
                     )
-                    if field_key not in d.get("overrides", {}) and any(
+                    if visual_review_enabled and field_key not in d.get("overrides", {}) and any(
                         i.get("code")
                         in {
                             "LOW_EXTRACTION_CONFIDENCE",
@@ -581,9 +612,9 @@ def evaluate(documents, cfg, context):
             {
                 "rule_id": r["id"],
                 "field": r["path"],
-                "source_ref": r["source_ref"],
-                "scope_basis": r["scope_basis"],
-                "category": r["report_category"],
+                "source_ref": r.get("source_ref", ""),
+                "scope_basis": r.get("scope_basis", "SYSTEM"),
+                "category": r.get("report_category", "DATA_COMPLETION"),
                 "eligible": True,
                 "result": result,
                 "message": message,
@@ -607,7 +638,7 @@ def evaluate(documents, cfg, context):
         )
     from .sop_scoring import normalize_findings
 
-    return normalize_findings(findings, cfg.get("sop_rules", []))
+    return normalize_findings(findings, cfg.get("sop_rules", []), cfg=cfg)
 
 
 def score(findings):

@@ -89,13 +89,12 @@ def purpose(value, policy, cfg):
 
 
 def date_value(value, cfg, kind):
-    value = str(scalar(value)).strip()
     day_first = cfg.get("profiles",{}).get(kind,{}).get("policy",{}).get("day_first",True)
-    formats = ["%Y-%m-%d", "%d-%m-%Y" if day_first else "%m-%d-%Y", "%d/%m/%Y" if day_first else "%m/%d/%Y"]
-    for fmt in formats:
-        try: return datetime.strptime(re.sub(r"\s*([- /])\s*",r"\1",value),fmt).date()
-        except ValueError: pass
-    raise CheckError("INVALID_DATE", "Date is missing, ambiguous or unsupported by the document date policy.")
+    from .date_utils import parse_flexible_date
+    try:
+        return parse_flexible_date(scalar(value), day_first=day_first)
+    except Exception:
+        raise CheckError("INVALID_DATE", "Date is missing, ambiguous or unsupported by the document date policy.")
 
 
 def currency_value(value):
@@ -160,10 +159,15 @@ def select_document(documents, kind, context):
     matches = [d for d in documents if d["doc_type"] == kind and d["status"] == "COMPLETED"]
     key = {"application":"application_document_id", "invoice":"invoice_document_id"}.get(kind)
     chosen = context.get(key) if key else None
-    if kind.startswith("valas_declaration"):
+    if kind.startswith("valas_declaration") or kind == "valas":
         chosen = context.get("declaration_document_id")
     if chosen:
         matches = [d for d in matches if d["id"] == chosen]
+    if len(matches) != 1 and (kind.startswith("valas_declaration") or kind == "valas"):
+        from .valas_resolution import get_case_valas_document
+        valas_doc, valas_type = get_case_valas_document(documents, context)
+        if valas_doc:
+            matches = [valas_doc]
     if len(matches)!=1:
         raise CheckError("AMBIGUOUS_DOCUMENT" if len(matches)>1 else "MISSING_REQUIRED_DOCUMENT", f"Select one completed {kind} document; found {len(matches)}.")
     return matches[0]
@@ -190,8 +194,36 @@ def evaluate_rule(rule, documents, cfg, context):
         for part in parts: value = value.get(part) if isinstance(value,dict) else None
         return value,doc
     def compare(a,b,method):
-        evidence["comparisons"].append({"method":method,"actual":str(a),"expected":str(b),"match":a==b})
-        if a != b: raise CheckError("VALUE_MISMATCH", f"The {method} comparison differs.")
+        if a == b:
+            evidence["comparisons"].append({"method":method,"actual":str(a),"expected":str(b),"match":True})
+            return
+        from .canonical_normalization import canonical_compare
+        is_canonical_eligible = (
+            not isinstance(a, (int, float, Decimal))
+            and not isinstance(b, (int, float, Decimal))
+            and method not in {"exact monetary amount", "currency", "calendar date"}
+        )
+        if is_canonical_eligible:
+            matched, canon_method, ratio = canonical_compare(a, b)
+            if matched:
+                evidence["comparisons"].append({
+                    "method": method,
+                    "actual": str(a),
+                    "expected": str(b),
+                    "match": True,
+                    "canonical_resolution": canon_method,
+                })
+                return
+            evidence["comparisons"].append({
+                "method": method,
+                "actual": str(a),
+                "expected": str(b),
+                "match": False,
+                "similarity": round(ratio, 3),
+            })
+            raise CheckError("VALUE_MISMATCH", f"The {method} comparison differs.")
+        evidence["comparisons"].append({"method":method,"actual":str(a),"expected":str(b),"match":False})
+        raise CheckError("VALUE_MISMATCH", f"The {method} comparison differs.")
     def amount(path, currency_path, side):
         value,doc = get(path,side)
         currency,_ = get(currency_path,side)
@@ -268,10 +300,16 @@ def evaluate_rule(rule, documents, cfg, context):
         actual,left = get(r["path"])
         expected,right = get(r.get("other_path") or r["path"],"right")
         finding.update(actual=actual,expected=expected)
+        visual_review_enabled = cfg.get("visual_evidence_review", True) and not cfg.get("sop_review_bypass", False)
         op = r["operator"]
         if op == "signature_visual_consistency":
-            finding.update(result="REVIEW",reason_code="VISUAL_REVIEW_REQUIRED")
-            return finding
+            if visual_review_enabled:
+                finding.update(result="REVIEW", reason_code="VISUAL_REVIEW_REQUIRED")
+                return finding
+            else:
+                bypass_result = cfg.get("sop_review_bypass_result", "PASS")
+                finding.update(result=bypass_result, reason_code="CHECK_PASSED" if bypass_result == "PASS" else "BYPASS_REVIEW")
+                return finding
         if op == "invoice_linkage":
             invoice_parties(left)
             lld_amount,lld_currency,_ = amount("lld.transaction_value.amount","lld.transaction_value.currency","right")

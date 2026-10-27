@@ -23,14 +23,27 @@ export function CaseSOP({
   const [pending, setPending] = useState(false);
   const contextKey = JSON.stringify(data.case_context || {});
   useEffect(() => {
-    setValues(
-      Object.fromEntries(
-        Object.entries(data.case_context || {}).filter(
-          ([, v]) => typeof v === "string",
-        ) as [string, string][],
-      ),
+    const rawContext = (data.case_context || {}) as Record<string, any>;
+    const contextMap = Object.fromEntries(
+      Object.entries(rawContext).filter(
+        ([, v]) => typeof v === "string",
+      ) as [string, string][],
     );
-  }, [contextKey]);
+    if (data.context_suggestions) {
+      for (const s of data.context_suggestions) {
+        if (!contextMap[s.field] && !s.conflict && s.value && s.value !== "UNKNOWN") {
+          contextMap[s.field] = s.value;
+        }
+      }
+    }
+    setValues(contextMap);
+    if (rawContext.annotation?.reason && !reason) {
+      setReason(rawContext.annotation.reason);
+    }
+    if (rawContext.annotation?.evidence && !evidence) {
+      setEvidence(rawContext.annotation.evidence);
+    }
+  }, [contextKey, data.context_suggestions]);
   const run = async (path: string, body: unknown, method = "POST") => {
     setPending(true);
     try {
@@ -117,7 +130,84 @@ export function CaseSOP({
       )}
       <ForexPackageSummary packages={report?.snapshot.sop_packages} />
       <details>
-        <summary>Case context and transaction metadata</summary>
+        <summary style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+          <span>Case context and transaction metadata</span>
+          {Boolean((data.case_context as any)?.annotation?.actor === "system.auto_inference") && (
+            <span style={{ fontSize: "0.75rem", background: "#dcfce7", color: "#15803d", padding: "0.15rem 0.5rem", borderRadius: "12px", fontWeight: "normal" }}>
+              ✓ Auto-filled by System
+            </span>
+          )}
+        </summary>
+        {(data.case_context as any)?.annotation?.actor === "system.auto_inference" && (
+          <div
+            style={{
+              padding: "0.65rem 0.9rem",
+              background: "var(--bg-accent, #f0fdf4)",
+              border: "1px solid #bbf7d0",
+              borderRadius: "6px",
+              marginTop: "0.75rem",
+              marginBottom: "0.75rem",
+              fontSize: "0.85rem",
+              color: "#166534",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "0.5rem",
+            }}
+          >
+            <span>
+              <strong>✓ Auto-resolved by Platform Engine:</strong> Metadata fields are pre-populated from verified case documents (Straight-Through Processing).
+            </span>
+            <button
+              type="button"
+              className="secondary"
+              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+              onClick={() => {
+                const autoValues: Record<string, string> = {};
+                for (const s of data.context_suggestions || []) {
+                  if (!s.conflict && s.value && s.value !== "UNKNOWN") {
+                    autoValues[s.field] = s.value;
+                  }
+                }
+                setValues({ ...values, ...autoValues });
+                setReason("Re-aligned with automated case document inference");
+                setEvidence("Verified from Application slip, EKTP, and Valas Declaration");
+              }}
+            >
+              Reset to Auto Values
+            </button>
+          </div>
+        )}
+        {Boolean(data.context_suggestions && data.context_suggestions.length > 0) && (
+          <div style={{ margin: "0.5rem 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
+              {data.context_suggestions?.filter(s => !s.conflict).length} automated evidence suggestions
+            </span>
+            {data.can_write && (
+              <button
+                type="button"
+                className="secondary"
+                style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+                onClick={() => {
+                  const draftValues = { ...values };
+                  const evParts: string[] = [];
+                  for (const s of data.context_suggestions || []) {
+                    if (!s.conflict && s.value && s.value !== "UNKNOWN") {
+                      draftValues[s.field] = s.value;
+                      evParts.push(`${s.field}: ${s.value}`);
+                    }
+                  }
+                  setValues(draftValues);
+                  setReason("Accepted all automated document context suggestions");
+                  setEvidence(evParts.slice(0, 3).join("; "));
+                }}
+              >
+                Apply All Suggestions
+              </button>
+            )}
+          </div>
+        )}
         {data.context_suggestions?.map((s, i) => (
           <div key={i} style={{ padding: 8 }}>
             <strong>

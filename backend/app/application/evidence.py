@@ -76,21 +76,47 @@ def review_visual_box(*, doc_id: str, data: VisualBoxReview, user):
             raise ApplicationError(
                 "conflict", "Wait for document processing to complete."
             )
-        visual_names = {key for (key, _) in visual_fields(d.raw)}
+        visual_map = dict(visual_fields(d.raw))
+        visual_names = set(visual_map)
         visual_roots = {key.split(".")[0] for key in visual_names}
         ordinary_names = {
             key
             for (key, _) in populated_fields(d.raw, include_empty=True)
             if key.split(".")[0] not in visual_roots
         }
-        if data.field not in visual_names | ordinary_names:
+        target_field = data.field
+        if target_field not in visual_names | ordinary_names:
+            if target_field == "page_initials" and isinstance(
+                d.raw.get("page_initials"), dict
+            ):
+                pages = d.raw["page_initials"].get("pages") or []
+                for idx, page in enumerate(pages):
+                    if (
+                        isinstance(page, dict)
+                        and page.get("page_number") == data.page_number
+                    ):
+                        target_field = f"page_initials.pages.{idx}"
+                        break
+                else:
+                    candidate = f"page_initials.pages.{max(data.page_number - 1, 0)}"
+                    if candidate in visual_names:
+                        target_field = candidate
+            elif f"{target_field}.raw" in ordinary_names:
+                target_field = f"{target_field}.raw"
+            else:
+                sub_matches = [
+                    k for k in sorted(ordinary_names) if k.startswith(f"{target_field}.")
+                ]
+                if sub_matches:
+                    target_field = sub_matches[0]
+        if target_field not in visual_names | ordinary_names:
             raise ApplicationError("invalid_input", "Unknown extracted field.")
         cfg = get_revision(db, db.get(Case, d.case_id).config_id).payload
         metadata = {
             **d.metadata_json,
             "visual_evidence": {
                 **d.metadata_json.get("visual_evidence", {}),
-                data.field: {
+                target_field: {
                     "page_number": data.page_number,
                     "bbox": data.bbox,
                     "units": "normalized",
@@ -106,7 +132,9 @@ def review_visual_box(*, doc_id: str, data: VisualBoxReview, user):
         }
         evidence = build_evidence(d, response)
         field_evidence = build_field_evidence(d, response)
-        item = next((e for e in evidence + field_evidence if e["field"] == data.field))
+        item = next(
+            (e for e in evidence + field_evidence if e["field"] == target_field)
+        )
         if not item["available"]:
             raise ApplicationError(
                 "invalid_input", item.get("error", "Invalid visual region.")
@@ -161,6 +189,7 @@ def review_visual_box(*, doc_id: str, data: VisualBoxReview, user):
 
 def refresh_field_evidence(*, doc_id: str, user):
     from app.field_evidence import build_field_evidence, attach_field_evidence
+    from app.spatial_grounding import normalize_response
 
     with SessionLocal.begin() as db:
         d = authorized(db, Document, doc_id, user)
@@ -168,16 +197,22 @@ def refresh_field_evidence(*, doc_id: str, user):
             raise ApplicationError(
                 "conflict", "Wait for document processing to complete."
             )
-        response = {
-            "extract_result": d.raw,
-            "extract_metadata": d.metadata_json,
-            "id": d.provider_state.get("extract_job_id"),
-        }
+        response = normalize_response(
+            {
+                "extract_result": d.raw,
+                "extract_metadata": d.metadata_json,
+                "id": d.provider_state.get("extract_job_id"),
+            }
+        )
+        d.raw = response["extract_result"]
+        d.metadata_json = response.get("extract_metadata") or {}
         from app.evidence import build_evidence
 
         evidence = build_field_evidence(d, response)
         report = copy.deepcopy(d.validation)
-        if d.metadata_json.get("spatial_evidence"):
+        if d.metadata_json.get("spatial_evidence") or d.metadata_json.get(
+            "visual_evidence"
+        ):
             previous = {
                 item["field"]: item for item in report.get("visual_evidence", [])
             }
@@ -193,6 +228,32 @@ def refresh_field_evidence(*, doc_id: str, user):
                         "review_status", item["review_status"]
                     )
             report["visual_evidence"] = visual
+        if isinstance(d.raw, dict) and isinstance(d.raw.get("page_initials"), dict):
+            if (
+                isinstance(d.normalized, dict)
+                and "page_initials" in d.normalized
+                and "page_initials" not in (d.overrides or {})
+            ):
+                d.normalized = {
+                    **d.normalized,
+                    "page_initials": copy.deepcopy(d.raw["page_initials"]),
+                }
+            if isinstance(report.get("fields"), dict) and "page_initials" in report["fields"]:
+                report["fields"]["page_initials"]["raw_value"] = copy.deepcopy(
+                    d.raw["page_initials"]
+                )
+                if "page_initials" not in (d.overrides or {}):
+                    report["fields"]["page_initials"]["normalized_value"] = copy.deepcopy(
+                        d.raw["page_initials"]
+                    )
+            if (
+                isinstance(report.get("normalized"), dict)
+                and "page_initials" in report["normalized"]
+                and "page_initials" not in (d.overrides or {})
+            ):
+                report["normalized"]["page_initials"] = copy.deepcopy(
+                    d.raw["page_initials"]
+                )
         d.validation = attach_field_evidence(report, evidence)
         audit(
             db,

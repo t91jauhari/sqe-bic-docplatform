@@ -17,6 +17,7 @@ from app.db import (
     CaseRun,
     Document,
     Job,
+    Config,
     Report,
     SessionLocal,
     User,
@@ -137,6 +138,10 @@ def case_detail(*, case_id: str, user):
         ctx_payload = db.scalar(
             select(CaseContext.payload).where(CaseContext.case_id == c.id)
         )
+        if not ctx_payload or not any(k in ctx_payload for k in ("threshold_state", "customer_type", "payment_basis")):
+            from app.case_context import ensure_case_context
+            ctx_item = ensure_case_context(db, c.id)
+            ctx_payload = ctx_item.payload if ctx_item else {}
         run_rows = db.execute(
             select(
                 CaseRun.id,
@@ -262,7 +267,7 @@ def rerun_sop(*, case_id: str, user):
             run.status = "QUEUED"
             run.error = ""
             run.lease_until = 0
-        queue_case(db, case.id)
+        queue_case(db, case.id, force=True)
         audit(db, case.org, user.id, "sop.rerun_requested", case.branch_id, case.id)
         return {
             "queued": True,
@@ -440,6 +445,12 @@ def review_sop(*, case_id: str, data: FindingReview, user):
 def retry_case_documents(*, case_id: str, user):
     with SessionLocal.begin() as db:
         case = authorized(db, Case, case_id, user)
+        # If case is bound to an obsolete configuration (e.g. removed 'llama' provider), upgrade to latest published config
+        latest = latest_config(db, case.org)
+        if latest and case.config_id != latest.id:
+            curr_cfg = db.scalar(select(Config).where(Config.id == case.config_id))
+            if not curr_cfg or (curr_cfg.payload and curr_cfg.payload.get('provider') == 'llama'):
+                case.config_id = latest.id
         queued = []
         skipped = []
         for d in db.scalars(select(Document).where(Document.case_id == case.id)):
@@ -452,8 +463,22 @@ def retry_case_documents(*, case_id: str, user):
                     }
                 )
                 continue
-            job = enqueue(db, d)
+            # Reset extraction state so processor triggers a fresh real extraction request
+            d.raw = None
+            d.metadata_json = {}
+            d.normalized = {}
+            d.validation = {}
+            d.error = ""
+            d.provider_state = {}
+            d.status = "QUEUED"
+            job = enqueue(db, d, action="reextract")
             queued.append({"id": d.id, "filename": d.filename, "job_id": job.id})
+        for run in db.scalars(select(CaseRun).where(CaseRun.case_id == case.id)):
+            run.status = "SUPERSEDED"
+        if queued:
+            case.status = "PROCESSING"
+            case.validation_status = "PENDING"
+            case.updated_at = time.time()
         audit(
             db,
             case.org,
@@ -461,6 +486,8 @@ def retry_case_documents(*, case_id: str, user):
             "case.documents_retry_requested",
             case.branch_id,
             case.id,
+            queued_count=len(queued),
+            skipped_count=len(skipped),
         )
         db.flush()
         return {"queued": queued, "skipped": skipped}

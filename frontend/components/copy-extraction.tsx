@@ -17,7 +17,7 @@ export function CopyExtraction({
 }) {
   const [busy, setBusy] = useState(false);
   const { notify } = usePlatform();
-  const entries = Object.entries(doc.normalized).filter(
+  const entries = Object.entries(doc.normalized || {}).filter(
     ([field]) => field !== "page_results",
   );
   if (doc.status !== "COMPLETED" || !entries.length) return null;
@@ -31,7 +31,7 @@ export function CopyExtraction({
           const rows = entries.map(([field, value]) => [
             columns?.find(([key]) => key === field)?.[1] || field,
             value == null &&
-            doc.validation.fields?.[field]?.issues.some((issue) =>
+            doc.validation?.fields?.[field]?.issues?.some((issue) =>
               ["UNRECOGNIZED_ENUM", "INVALID_OR_MISSING_ENUM"].includes(
                 issue.code,
               ),

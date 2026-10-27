@@ -123,16 +123,56 @@ def _at(value, path):
     return value
 
 
+def _canonical_visual_target(field, visual_map):
+    for vp in visual_map:
+        if field == vp or field.startswith(f"{vp}."):
+            return vp
+    return None
+
+
+def _visual_observed_absent(obs):
+    if obs is None or obs is False:
+        return True
+    if isinstance(obs, dict):
+        present = obs.get(
+            "present", obs.get("footer_present", obs.get("signature_present"))
+        )
+        if present is False:
+            return True
+    return False
+
+
 def normalize_response(response):
     """Idempotent transport conversion. Cached responses retain their metadata."""
+    from .evidence import visual_fields
+    from .spider_extraction import deduplicate_page_initials, page_specific_initials
+
     raw = response.get("extract_result") or {}
     pages = raw.get("page_results") if isinstance(raw, dict) else None
     clean, locations, errors = split_locations(raw)
+    if (
+        isinstance(clean, dict)
+        and isinstance(clean.get("page_initials"), dict)
+        and isinstance(clean["page_initials"].get("pages"), list)
+    ):
+        clean["page_initials"]["pages"] = deduplicate_page_initials(
+            clean["page_initials"]["pages"]
+        )
+        if pages:
+            clean["page_initials"]["page_count"] = len(pages)
     if pages:
         # Page results retain annotations until after conservative value merging.
         locations, errors, offsets = {}, {}, {}
         for page in pages:
             value, found, invalid = split_locations(page["result"], page["page_number"])
+            if (
+                isinstance(value, dict)
+                and isinstance(value.get("page_initials"), dict)
+                and isinstance(value["page_initials"].get("pages"), list)
+            ):
+                value["page_initials"]["pages"] = page_specific_initials(
+                    page["page_number"], value["page_initials"]["pages"]
+                )
 
             def remap(path):
                 parts, original = path.split("."), []
@@ -162,9 +202,18 @@ def normalize_response(response):
         clean["page_results"] = deepcopy(
             pages
         )  # Keep immutable per-page provider observations for replay.
+    visual_map = dict(visual_fields(clean)) if isinstance(clean, dict) else {}
     metadata = deepcopy(response.get("extract_metadata") or {})
     existing = metadata.get("spatial_evidence", {})
     for field, boxes in locations.items():
+        vp = _canonical_visual_target(field, visual_map)
+        if vp is not None:
+            if _visual_observed_absent(visual_map[vp]):
+                continue
+            bucket = existing.setdefault(vp, [])
+            for box in boxes:
+                if box not in bucket:
+                    bucket.append(box)
         value = _at(clean, field)
         if (
             value is None
@@ -173,8 +222,29 @@ def normalize_response(response):
             and value.get("present") is False
         ):
             continue
+        if vp is not None and _visual_observed_absent(visual_map[vp]):
+            continue
         existing[field] = boxes
+    for field, boxes in list(existing.items()):
+        vp = _canonical_visual_target(field, visual_map)
+        if (
+            vp is not None
+            and field != vp
+            and not _visual_observed_absent(visual_map[vp])
+        ):
+            bucket = existing.setdefault(vp, [])
+            for box in boxes if isinstance(boxes, list) else []:
+                if box not in bucket:
+                    bucket.append(box)
+    merged_errors = {**metadata.get("spatial_errors", {}), **errors}
+    for field, messages in list(merged_errors.items()):
+        vp = _canonical_visual_target(field, visual_map)
+        if vp is not None and field != vp and messages:
+            bucket = merged_errors.setdefault(vp, [])
+            for msg in messages:
+                if msg not in bucket:
+                    bucket.append(msg)
     metadata["spatial_evidence"] = existing
-    metadata["spatial_errors"] = {**metadata.get("spatial_errors", {}), **errors}
+    metadata["spatial_errors"] = merged_errors
     metadata["spatial_grounding_version"] = 1
     return {**response, "extract_result": clean, "extract_metadata": metadata}

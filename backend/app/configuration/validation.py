@@ -75,14 +75,16 @@ def validate_config(payload):
             candidate = copy.deepcopy(base)
             candidate["profiles"][name] = variant["profile"]
             validate_config(candidate)
-    if payload.get("provider") not in {"spider-ai", "fixture"}:
+    if payload.get("provider") not in {"spider-ai", "gemini", "google-gemini", "fixture"}:
         raise ValueError(
-            "Select spider-ai or fixture provider. Llama provider has been removed."
+            "Select spider-ai, gemini or fixture provider. Llama provider has been removed."
         )
     if payload["provider"] == "fixture" and settings.environment != "development":
         raise ValueError("Fixture mode is development-only.")
     if type(payload.get("sop_review_bypass")) is not bool:
         raise ValueError("sop_review_bypass must be true or false.")
+    if "visual_evidence_review" in payload and type(payload.get("visual_evidence_review")) is not bool:
+        raise ValueError("visual_evidence_review must be true or false.")
     if payload.get("sop_review_bypass_result") not in {
         "PASS",
         "REVIEW",

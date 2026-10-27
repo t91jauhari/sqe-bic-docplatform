@@ -69,7 +69,7 @@ function initialDraft(
     reason: "",
     observations: available.map((doc) => {
       const field = finding.field.split(".").slice(1).join(".");
-      const value = doc.normalized[field];
+      const value = doc?.normalized?.[field];
       const page =
         value && typeof value === "object" && "page_number" in value
           ? Number(value.page_number)
@@ -558,7 +558,7 @@ export default function ReviewPage({
                           ) ||
                           finding.result !== "REVIEW"
                         }
-                        className="review-fieldset"
+                        className="review-fieldset review-workbench-split"
                       >
                         <section className="panel" id="review-evidence">
                           <h2 className="illustrated-heading">
@@ -613,21 +613,38 @@ export default function ReviewPage({
                                       Open original <ExternalLink size={14} />
                                     </a>
                                   </div>
-                                  <label className="review-page-control">
-                                    Page inspected
-                                    <input
-                                      required
-                                      type="number"
-                                      min={1}
-                                      step={1}
-                                      value={observation.page}
-                                      onChange={(e) =>
-                                        updateObservation({
-                                          page: Number(e.target.value),
-                                        })
-                                      }
-                                    />
-                                  </label>
+                                  <div className="review-page-bar">
+                                    <label className="review-page-control">
+                                      Page inspected
+                                      <input
+                                        required
+                                        type="number"
+                                        min={1}
+                                        step={1}
+                                        value={observation.page}
+                                        onChange={(e) =>
+                                          updateObservation({
+                                            page: Number(e.target.value),
+                                          })
+                                        }
+                                      />
+                                    </label>
+                                    <div className="quick-chip-row" aria-label="Quick page selector">
+                                      {[1, 2, 3, 4].map((pNum) => (
+                                        <button
+                                          key={pNum}
+                                          type="button"
+                                          className={
+                                            "quick-chip " +
+                                            (observation.page === pNum ? "active" : "")
+                                          }
+                                          onClick={() => updateObservation({ page: pNum })}
+                                        >
+                                          P{pNum}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
                                   {source && (
                                     <FieldCrops
                                       document={source}
@@ -660,6 +677,29 @@ export default function ReviewPage({
                                         })
                                       }
                                     />
+                                    <div className="quick-chip-row">
+                                      {[
+                                        "Customer signature box",
+                                        "Bottom-right footer paraf",
+                                        "Officer signature & stamp",
+                                        "Meterai / stamp duty box",
+                                        "Checkbox & declaration row",
+                                      ].map((preset) => (
+                                        <button
+                                          key={preset}
+                                          type="button"
+                                          className={
+                                            "quick-chip " +
+                                            (observation.region === preset ? "active" : "")
+                                          }
+                                          onClick={() =>
+                                            updateObservation({ region: preset })
+                                          }
+                                        >
+                                          {preset}
+                                        </button>
+                                      ))}
+                                    </div>
                                   </label>
                                 </article>
                               );
@@ -668,7 +708,7 @@ export default function ReviewPage({
                         </section>
                         {finding.result === "REVIEW" ? (
                           <section
-                            className="panel review-decision"
+                            className="panel review-decision review-decision-sticky"
                             id="review-decision"
                           >
                             <h2 className="illustrated-heading">
@@ -732,6 +772,35 @@ export default function ReviewPage({
                                   <b>0 points</b>
                                 </span>
                               </label>
+                            </div>
+                            <div className="quick-rationale-group">
+                              <span className="small-label">QUICK RATIONALE TEMPLATES</span>
+                              <div className="quick-chip-row">
+                                {(draft.result === "FAIL"
+                                  ? [
+                                      "Required signature or paraf is blank on the inspected page.",
+                                      "Visual mark or stamp is missing from the designated box.",
+                                      "Signature across documents shows a visible discrepancy.",
+                                    ]
+                                  : [
+                                      "Signature/mark is clearly present in the designated region.",
+                                      "Required footer paraf verified present across applicable pages.",
+                                      "Official bank verification stamp and officer signature verified.",
+                                    ]
+                                ).map((templateText) => (
+                                  <button
+                                    key={templateText}
+                                    type="button"
+                                    className={
+                                      "quick-chip " +
+                                      (draft.reason === templateText ? "active" : "")
+                                    }
+                                    onClick={() => updateDraft({ reason: templateText })}
+                                  >
+                                    {templateText}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                             <label>
                               What did you observe?

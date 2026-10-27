@@ -1,6 +1,7 @@
 """One extraction entry point; submission recovery belongs to each adapter."""
 import copy
 from collections.abc import Mapping
+from sqlalchemy import select
 
 from app.configuration.codec import fingerprint
 from .adapters import default_adapters
@@ -9,13 +10,33 @@ from .contracts import ExtractionAdapter, ExtractionRequest, ExtractionResult, P
 
 def extract_document(document, configuration, heartbeat, *, adapters: Mapping[str, ExtractionAdapter] | None = None):
     if configuration.get("provider") == "llama":
-        raise ProcessingIssue("Llama provider has been removed. Publish a Spider-AI configuration and explicitly upgrade the case before retrying. Historical results are retained.")
+        raise ProcessingIssue("Llama provider has been removed. Publish a Spider-AI or Google Gemini configuration and explicitly upgrade the case before retrying. Historical results are retained.")
     registry = default_adapters() if adapters is None else adapters
     provider_id = configuration.get("provider")
-    adapter = registry.get(provider_id) if isinstance(provider_id, str) else None
+
+    if not provider_id or provider_id not in registry:
+        # Check active connector in database for this organization
+        try:
+            from app.db import SessionLocal, Connector
+            with SessionLocal() as db:
+                org = getattr(document, "org", None)
+                if org:
+                    active_conn = db.scalar(
+                        select(Connector).where(Connector.org == org, Connector.is_active == True)
+                    )
+                    if active_conn and active_conn.provider_type in registry:
+                        provider_id = active_conn.provider_type
+        except Exception:
+            pass
+
+    if not provider_id or provider_id not in registry:
+        provider_id = "spider-ai"
+
+    adapter = registry.get(provider_id)
     if adapter is None:
-        raise ProcessingIssue("The configured extraction provider is not registered.")
+        raise ProcessingIssue(f"The configured extraction provider '{provider_id}' is not registered.")
     snapshot = copy.deepcopy(configuration)
+    snapshot["provider"] = provider_id
     request = ExtractionRequest(document, snapshot, fingerprint(snapshot), heartbeat)
     result = adapter.extract(request)
     if not isinstance(result, tuple) or len(result) != 2:

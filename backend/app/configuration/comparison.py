@@ -10,7 +10,7 @@ class ComparisonPolicy(BaseModel):
     type: Literal["compare"] = "compare"
     left: str = Field(pattern=r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$", max_length=500)
     right: str = Field(pattern=r"^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$", max_length=500)
-    normalization: Literal["literal", "casefold_whitespace"] = "literal"
+    normalization: Literal["literal", "casefold_whitespace", "canonical"] = "literal"
     pattern: str | None = Field(default=None, max_length=120)
 
     @model_validator(mode="after")
@@ -35,8 +35,17 @@ class ComparisonResult(BaseModel):
 
 
 def _read(documents, path):
+    from app.valas_resolution import is_valas_prefix, get_case_valas_document, resolve_valas_path
+
     profile, *parts = path.split(".")
     matches = [doc for doc in documents if doc.get("doc_type") == profile and doc.get("status") == "COMPLETED"]
+    if len(matches) != 1 and is_valas_prefix(profile):
+        valas_doc, valas_type = get_case_valas_document(documents)
+        if valas_doc:
+            remapped_path, applicable, _ = resolve_valas_path(path, valas_type)
+            if applicable:
+                matches = [valas_doc]
+                profile, *parts = remapped_path.split(".")
     if len(matches) != 1:
         return None, "ambiguous" if len(matches) > 1 else "missing"
     value = matches[0].get("normalized", {})
@@ -55,5 +64,13 @@ def evaluate_comparison(documents, policy: ComparisonPolicy) -> ComparisonResult
     if policy.pattern and any(re.fullmatch(policy.pattern, value) is None for value in (left, right)):
         return ComparisonResult(result="FAIL", reason="invalid_format")
     if policy.normalization == "casefold_whitespace":
-        left, right = (" ".join(value.split()).casefold() for value in (left, right))
+        from app.canonical_normalization import clean_syntactic_text
+        left, right = clean_syntactic_text(left), clean_syntactic_text(right)
+    elif policy.normalization == "canonical":
+        from app.canonical_normalization import canonical_compare
+        matched, _, _ = canonical_compare(left, right)
+        return ComparisonResult(
+            result="PASS" if matched else "FAIL",
+            reason="equal" if matched else "different",
+        )
     return ComparisonResult(result="PASS" if left == right else "FAIL", reason="equal" if left == right else "different")

@@ -42,6 +42,7 @@ function UploadForm() {
     [pending, setPending] = useState(false),
     [dragging, setDragging] = useState(false);
   const [groupingOpen, setGroupingOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grouped" | "flat">("grouped");
   const [previewPending, setPreviewPending] = useState(false);
   const previewRequest = useRef(0);
   const input = useRef<HTMLInputElement>(null),
@@ -316,12 +317,64 @@ function UploadForm() {
             {!!preview.length && (
               <>
                 <div className="preview-summary">
-                  <strong>{files.length} documents</strong>
-                  <span>
-                    {caseId ? "Existing case" : groups + " customer groups"} ·
-                    labels are editable before upload
-                  </span>
+                  <div>
+                    <strong>{files.length} documents</strong>{" "}
+                    <span>
+                      {"· "}
+                      {caseId ? "Existing case" : groups + " customer groups"} {"· "}
+                      labels are editable before upload
+                    </span>
+                  </div>
+                  {!caseId && (
+                    <div className="field-filter-pills">
+                      <button
+                        type="button"
+                        className={viewMode === "grouped" ? "active" : ""}
+                        onClick={() => setViewMode("grouped")}
+                      >
+                        Customer packages <span>{groups}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={viewMode === "flat" ? "active" : ""}
+                        onClick={() => setViewMode("flat")}
+                      >
+                        Flat file list <span>{files.length}</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
+                {viewMode === "grouped" && !caseId && (
+                  <div className="upload-package-grid">
+                    {Array.from(
+                      preview.reduce((acc, row) => {
+                        const key = row.customer.trim() || "Unassigned customer";
+                        const list = acc.get(key) || [];
+                        list.push(row);
+                        acc.set(key, list);
+                        return acc;
+                      }, new Map<string, Preview[]>()),
+                    ).map(([custName, custRows]) => (
+                      <div key={custName} className="upload-package-card">
+                        <div className="upload-package-head">
+                          <strong>{custName}</strong>
+                          <span className="count-pill">
+                            {custRows.length} file{custRows.length === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                        <ul className="upload-package-files">
+                          {custRows.map((r) => (
+                            <li key={r.filename}>
+                              <FileText size={13} />
+                              <span>{r.filename}</span>
+                              <small>{r.hint.replaceAll("_", " ")}</small>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="table-scroll">
                   <table>
                     <thead>

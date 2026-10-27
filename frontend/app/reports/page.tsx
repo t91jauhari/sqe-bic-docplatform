@@ -17,6 +17,9 @@ export default function Reports() {
   const [flow, setFlow] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [reportQuery, setReportQuery] = useState("");
+  const [stateFilter, setStateFilter] = useState("");
+  const [sopStatusFilter, setSopStatusFilter] = useState("");
   const invalidRange = Boolean(dateFrom && dateTo && dateFrom > dateTo);
   const exportParams = new URLSearchParams({ branch_id: branch });
   if (flow) exportParams.set("transaction_flow", flow);
@@ -132,6 +135,38 @@ export default function Reports() {
             </p>
           </div>
         </div>
+        {data && data.length > 0 && (
+          <div className="filterbar" style={{ borderTop: "1px solid var(--line)" }}>
+            <input
+              aria-label="Search customer reports"
+              placeholder="Search customer name or case reference..."
+              value={reportQuery}
+              onChange={(e) => setReportQuery(e.target.value)}
+              style={{ maxWidth: 320 }}
+            />
+            <select
+              aria-label="Filter report release state"
+              value={stateFilter}
+              onChange={(e) => setStateFilter(e.target.value)}
+              style={{ maxWidth: 180 }}
+            >
+              <option value="">All release states</option>
+              <option value="FINAL">Final / Released</option>
+              <option value="DRAFT">Draft</option>
+            </select>
+            <select
+              aria-label="Filter report SOP status"
+              value={sopStatusFilter}
+              onChange={(e) => setSopStatusFilter(e.target.value)}
+              style={{ maxWidth: 200 }}
+            >
+              <option value="">All SOP statuses</option>
+              <option value="PASS">Pass</option>
+              <option value="NEEDS_REVIEW">Needs Review</option>
+              <option value="FAIL">Fail</option>
+            </select>
+          </div>
+        )}
         {error && <ErrorNotice message={error} retry={() => void refresh()} />}
         {loading && !data ? (
           <Busy />
@@ -149,7 +184,21 @@ export default function Reports() {
                 </tr>
               </thead>
               <tbody>
-                {data.map((r) => (
+                {data
+                  .filter((r) => {
+                    if (
+                      reportQuery &&
+                      !`${r.customer} ${r.reference} ${r.transaction_flow}`
+                        .toLowerCase()
+                        .includes(reportQuery.toLowerCase())
+                    )
+                      return false;
+                    if (stateFilter && r.state !== stateFilter) return false;
+                    if (sopStatusFilter && r.validation_status !== sopStatusFilter)
+                      return false;
+                    return true;
+                  })
+                  .map((r) => (
                   <tr key={r.id}>
                     <td>
                       <Link className="customer-link" href={"/reports/" + r.id}>

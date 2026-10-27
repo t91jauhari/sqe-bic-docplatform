@@ -265,8 +265,21 @@ export function CaseTable({ cases }: { cases: CaseSummary[] }) {
                 {formatWhen(c.updated_at)}
               </td>
               <td>
-                <Link href={"/cases/" + c.id} aria-label={"Open " + c.customer}>
-                  <ArrowUpRight size={18} />
+                <Link
+                  className="text-link"
+                  href={"/cases/" + c.id}
+                  aria-label={"Open " + c.customer}
+                >
+                  {c.status === "WAITING_DOCUMENTS"
+                    ? "Add docs"
+                    : ["ERROR", "PROCESSING_ERROR"].includes(c.status)
+                      ? "Resolve error"
+                      : c.status === "NEEDS_REVIEW" ||
+                          c.validation_status === "NEEDS_REVIEW" ||
+                          c.validation_status === "REVIEW"
+                        ? "Review case"
+                        : "Open case"}
+                  <ArrowUpRight size={15} />
                 </Link>
               </td>
             </tr>

@@ -16,24 +16,108 @@ VISUAL_WORDS = (
     "approval",
 )
 
+NON_VISUAL_CLAUSE_KEYS = {
+    "note_raw",
+    "claim_number_raw",
+    "percentage_raw",
+    "amount_raw",
+    "currency_raw",
+    "base_kind",
+    "base_amount_raw",
+    "base_currency_raw",
+    "basis_evidence",
+}
+
+VISUAL_SUBKEY_PRIORITY = (
+    "present",
+    "footer_present",
+    "signature_present",
+    "stamp_present",
+    "evidence",
+    "text",
+    "stamp_text",
+    "denomination_raw",
+    "complete",
+    "handwritten",
+    "non_text",
+    "face_visible",
+    "face_cropped",
+    "at_signer_region",
+    "corrupted",
+    "suspected_tampering",
+)
+
 
 def visual_fields(raw):
+    if not isinstance(raw, dict):
+        return
     for field, value in raw.items():
-        observation = isinstance(value, dict) and bool(
-            {"present", "footer_present", "signature_present"} & set(value)
+        if not isinstance(value, (dict, bool)):
+            continue
+        has_visual_word = any(word in field.lower() for word in VISUAL_WORDS)
+        observation = (
+            isinstance(value, dict)
+            and bool({"present", "footer_present", "signature_present"} & set(value))
+            and (has_visual_word or not (set(value) & NON_VISUAL_CLAUSE_KEYS))
         )
         pages = (
             isinstance(value, dict)
             and "page_count" in value
             and isinstance(value.get("pages"), list)
         )
-        if observation or pages or any(word in field.lower() for word in VISUAL_WORDS):
+        if observation or pages or has_visual_word:
             if pages or field == "page_initials" and isinstance(value, dict):
                 for i, page in enumerate(value.get("pages", [])):
                     if isinstance(page, dict):
                         yield f"{field}.pages.{i}", page
             else:
                 yield field, value
+
+
+def _first_box_entry(value):
+    if isinstance(value, dict) and ("bbox" in value or "page_number" in value):
+        return value
+    if isinstance(value, list):
+        for item in value:
+            if isinstance(item, dict) and ("bbox" in item or "page_number" in item):
+                return item
+    return None
+
+
+def _lookup_with_subpaths(mapping, field):
+    if not isinstance(mapping, dict):
+        return None
+    direct = _first_box_entry(mapping.get(field))
+    if direct:
+        return direct
+    prefix = f"{field}."
+    for sub in VISUAL_SUBKEY_PRIORITY:
+        candidate = _first_box_entry(mapping.get(prefix + sub))
+        if candidate:
+            return candidate
+    for key, value in mapping.items():
+        if isinstance(key, str) and key.startswith(prefix):
+            candidate = _first_box_entry(value)
+            if candidate:
+                return candidate
+    return None
+
+
+def _lookup_errors_with_subpaths(errors_map, field):
+    if not isinstance(errors_map, dict):
+        return []
+    direct = errors_map.get(field)
+    if direct:
+        return list(direct) if isinstance(direct, list) else [str(direct)]
+    prefix = f"{field}."
+    collected = []
+    for key, value in errors_map.items():
+        if isinstance(key, str) and key.startswith(prefix) and value:
+            items = value if isinstance(value, list) else [str(value)]
+            for msg in items:
+                if msg not in collected:
+                    collected.append(msg)
+    return collected
 
 
 def rectangle(box, page):
@@ -98,6 +182,8 @@ def build_evidence(doc, response):
     for name, box in linked.items():
         boxes.setdefault(name, box)
     field_meta = (metadata.get("field_metadata") or {}).get("document_metadata") or {}
+    spatial_map = metadata.get("spatial_evidence") or {}
+    errors_map = metadata.get("spatial_errors") or {}
     revision = hashlib.sha256(
         (
             str(doc.sha256)
@@ -123,6 +209,12 @@ def build_evidence(doc, response):
                 if isinstance(observation, dict)
                 else observation if isinstance(observation, bool) else None
             )
+            if (
+                observed is None
+                and isinstance(observation, dict)
+                and observation.get("main_signature_present") is True
+            ):
+                observed = True
             item = {
                 "field": field,
                 "observed_present": observed,
@@ -135,28 +227,57 @@ def build_evidence(doc, response):
                 "parse_candidates": candidates.get(field, []),
             }
             try:
-                spatial = metadata.get("spatial_evidence", {}).get(field, [])
                 box = (
-                    boxes.get(field)
-                    or (spatial[0] if spatial else None)
-                    or field_meta.get(field)
+                    _lookup_with_subpaths(boxes, field)
+                    or _lookup_with_subpaths(spatial_map, field)
+                    or _lookup_with_subpaths(field_meta, field)
                     or {}
                 )
+                if (
+                    not box
+                    and field.startswith("page_initials.pages.")
+                    and isinstance(observation, dict)
+                    and observation.get("footer_present") is None
+                    and observation.get("main_signature_present") is True
+                ):
+                    fallback_sig = _lookup_with_subpaths(
+                        spatial_map, "customer_signature"
+                    )
+                    if (
+                        fallback_sig
+                        and fallback_sig.get("page_number")
+                        == observation.get("page_number")
+                    ):
+                        box = fallback_sig
                 if not box and candidates.get(field):
                     raise ValueError(
                         "Parse field has no unique localized visual region; select its region for review"
                     )
+                if (
+                    box
+                    and "bbox" in box
+                    and box.get("page_number") is None
+                    and isinstance(observation, dict)
+                    and isinstance(observation.get("page_number"), int)
+                    and not isinstance(observation.get("page_number"), bool)
+                    and observation.get("page_number") >= 1
+                ):
+                    box = {**box, "page_number": observation["page_number"]}
                 page_number = box.get("page_number")
                 if (
                     isinstance(page_number, bool)
                     or not isinstance(page_number, int)
                     or page_number < 1
                 ):
-                    details = metadata.get("spatial_errors", {}).get(field)
+                    details = _lookup_errors_with_subpaths(errors_map, field)
                     raise ValueError(
                         "; ".join(details)
                         if details
-                        else "Missing or invalid page number"
+                        else (
+                            "Observed absent on document; select a region if blank-area evidence is needed"
+                            if not box and observed is False
+                            else "Missing or invalid page number"
+                        )
                     )
                 expected = (
                     observation.get("page_number")
@@ -190,7 +311,11 @@ def build_evidence(doc, response):
                 item.update(
                     available=True,
                     review_status=(
-                        "REVIEW" if box.get("link_review_required") else "PENDING"
+                        "REVIEWED"
+                        if box.get("reviewed_by")
+                        else "REVIEW"
+                        if box.get("link_review_required")
+                        else "PENDING"
                     ),
                     link_review_required=bool(box.get("link_review_required")),
                     page_number=page_number,
@@ -198,6 +323,10 @@ def build_evidence(doc, response):
                     storage_key=key,
                     image_sha256=hashlib.sha256(data).hexdigest(),
                 )
+                if box.get("reviewed_by"):
+                    item["reviewed_by"] = box["reviewed_by"]
+                    if box.get("reason"):
+                        item["review_reason"] = box["reason"]
             except ValueError as exc:
                 item["error"] = str(exc)
             result.append(item)

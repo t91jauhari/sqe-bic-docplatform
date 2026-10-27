@@ -50,14 +50,28 @@ def riplay_identity_findings(documents, cfg):
     return findings
 
 
-def extract_path(documents, path):
+def extract_path(documents, path, context=None):
+    from .valas_resolution import is_valas_prefix, get_case_valas_document, resolve_valas_path
+
     parts = path.split(".")
-    documents = [
-        d for d in documents if d.doc_type == parts[0] and d.status == "COMPLETED"
+    prefix = parts[0]
+    matched = [
+        d
+        for d in documents
+        if (getattr(d, "doc_type", None) or (d.get("doc_type") if isinstance(d, dict) else None)) == prefix
+        and (getattr(d, "status", None) or (d.get("status") if isinstance(d, dict) else None)) == "COMPLETED"
     ]
-    if len(documents) != 1:
+    if len(matched) != 1 and is_valas_prefix(prefix):
+        valas_doc, valas_type = get_case_valas_document(documents, context)
+        if valas_doc:
+            remapped_path, applicable, _ = resolve_valas_path(path, valas_type, context)
+            if applicable:
+                matched = [valas_doc]
+                parts = remapped_path.split(".")
+    if len(matched) != 1:
         return None
-    value = documents[0].normalized
+    doc = matched[0]
+    value = doc.normalized if hasattr(doc, "normalized") else doc.get("normalized", {})
     for part in parts[1:]:
         if not isinstance(value, dict):
             return None
@@ -86,6 +100,19 @@ def evaluate_rules(documents, rules):
                 valid = Decimal(str(actual)) > 0
             except InvalidOperation:
                 valid = False
+        elif op in {"date_equal", "date_on_or_after"}:
+            from .date_utils import compare_dates
+            expected = rule.get("value")
+            if expected is None and rule.get("other_path"):
+                expected = extract_path(documents, rule["other_path"])
+            if expected is None:
+                result = "REVIEW"
+                valid = False
+            else:
+                try:
+                    valid = compare_dates(actual, expected, op=op)
+                except Exception:
+                    valid = False
         else:
             expected = extract_path(documents, rule["other_path"])
             if expected is None:

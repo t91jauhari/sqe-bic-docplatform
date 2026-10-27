@@ -3,14 +3,18 @@ import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
+  AlertTriangle,
   ArrowLeft,
+  CheckCircle2,
   Download,
   FileCheck2,
   Files,
   ListChecks,
+  ShieldCheck,
 } from "lucide-react";
 import { Shell } from "@/components/shell";
-import { useData } from "@/components/platform-provider";
+import { useData, usePlatform } from "@/components/platform-provider";
+import { api } from "@/lib/api";
 import { Badge, Busy, ErrorNotice, display, formatDate } from "@/components/ui";
 import { ForexPackageSummary } from "@/components/forex-package-summary";
 import type { Finding } from "@/lib/types";
@@ -25,6 +29,8 @@ type Report = {
   validation_status: string;
   provider: string;
   reference: string;
+  case_status?: string;
+  approved_by?: string | null;
   snapshot: {
     report_title?: string;
     config_version?: number;
@@ -42,6 +48,37 @@ type Report = {
     }[];
   };
 };
+const CATEGORY_LABELS: Record<string, { label: string; desc: string }> = {
+  DATA_COMPLETION: {
+    label: "Kelengkapan Data Transaksi",
+    desc: "Kesesuaian identitas, formulir aplikasi, dan data nominal",
+  },
+  CUSTOMER_SIGNATURE: {
+    label: "Keabsahan Tanda Tangan & Meterai",
+    desc: "Verifikasi spesimen tanda tangan dan meterai Rp 10.000",
+  },
+  DOCUMENT_COMPLETION: {
+    label: "Kelengkapan Dokumen Underlying",
+    desc: "Faktur/invoice komersial, e-KTP, dan surat pernyataan",
+  },
+  OFFICER_REVIEW_APPROVAL: {
+    label: "Verifikasi Pejabat Bank",
+    desc: "Pemeriksaan pejabat cabang dan kontrol maker-checker",
+  },
+  total_a: {
+    label: "Subtotal A: Data & Tanda Tangan",
+    desc: "Kepatuhan data administratif dan keabsahan tanda tangan",
+  },
+  total_b: {
+    label: "Subtotal B: Dokumen & Persetujuan",
+    desc: "Kepatuhan underlying transaksi dan otorisasi bank",
+  },
+  total: {
+    label: "Hasil Kepatuhan Akhir (Final KKP)",
+    desc: "Hasil evaluasi kepatuhan menyeluruh untuk laporan audit",
+  },
+};
+
 export default function ReportPage({
   params,
 }: {
@@ -50,8 +87,33 @@ export default function ReportPage({
   const { id } = use(params),
     router = useRouter();
   const { data, error, loading, refresh } = useData<Report>(`/reports/${id}`);
+  const { notify } = usePlatform();
   const [filter, setFilter] = useState("attention"),
     [query, setQuery] = useState("");
+  const [approving, setApproving] = useState(false);
+  const [approveError, setApproveError] = useState("");
+
+  const handleApprove = async () => {
+    if (!data) return;
+    setApproving(true);
+    setApproveError("");
+    try {
+      await api(`/reports/${data.id}/approve`, { method: "POST" });
+      notify(
+        "Kertas kerja berhasil disetujui & difinalisasi (Report released).",
+        "success",
+      );
+      await refresh();
+    } catch (e) {
+      const msg =
+        e instanceof Error ? e.message : "Gagal memfinalisasi laporan.";
+      setApproveError(msg);
+      notify(msg, "error");
+    } finally {
+      setApproving(false);
+    }
+  };
+
   useEffect(() => {
     if (data && data.id !== id) router.replace(`/reports/${data.id}`);
   }, [data, id, router]);
@@ -96,6 +158,23 @@ export default function ReportPage({
                 </p>
               </div>
               <div className="button-row">
+                {data.state !== "FINAL" && (
+                  <button
+                    className="primary"
+                    disabled={approving || data.case_status !== "READY"}
+                    onClick={() => void handleApprove()}
+                    title={
+                      data.case_status === "READY"
+                        ? "Setujui & Rilis Kertas Kerja Resmi (Checker Approval)"
+                        : "Laporan hanya dapat dirilis jika seluruh temuan review telah diselesaikan (Status Kasus: READY)"
+                    }
+                  >
+                    <ShieldCheck size={16} />
+                    {approving
+                      ? "Memproses..."
+                      : "Setujui & Finalisasi Kertas Kerja"}
+                  </button>
+                )}
                 <Link
                   className="secondary"
                   href={`/cases/${data.case_id}/review`}
@@ -114,6 +193,11 @@ export default function ReportPage({
                 ))}
               </div>
             </div>
+            {approveError && (
+              <div style={{ marginTop: "12px" }}>
+                <ErrorNotice message={approveError} />
+              </div>
+            )}
             <div className="report-summary-grid">
               <div>
                 <small>Customer</small>
@@ -124,14 +208,95 @@ export default function ReportPage({
                 <strong>v{data.version}</strong>
               </div>
               <div>
-                <small>Release</small>
-                <Badge value={data.state} />
+                <small>Release Status</small>
+                <Badge
+                  value={
+                    data.state === "FINAL"
+                      ? "FINAL / RELEASED"
+                      : data.case_status === "READY"
+                        ? "DRAFT (READY FOR RELEASE)"
+                        : "DRAFT (NEEDS REVIEW)"
+                  }
+                />
               </div>
               <div>
                 <small>SOP result</small>
                 <Badge value={data.validation_status} />
               </div>
             </div>
+
+            {data.state !== "FINAL" && (
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "14px 18px",
+                  borderRadius: "8px",
+                  border:
+                    data.case_status === "READY"
+                      ? "1px solid rgba(22, 163, 74, 0.35)"
+                      : "1px solid rgba(234, 179, 8, 0.35)",
+                  background:
+                    data.case_status === "READY"
+                      ? "rgba(22, 163, 74, 0.06)"
+                      : "rgba(234, 179, 8, 0.06)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "6px",
+                  fontSize: "0.875rem",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "8px",
+                    fontWeight: 600,
+                  }}
+                >
+                  {data.case_status === "READY" ? (
+                    <>
+                      <CheckCircle2
+                        size={18}
+                        style={{ color: "var(--success, #16a34a)" }}
+                      />
+                      <span>Kertas Kerja Siap Dirilis (Ready for Release)</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle
+                        size={18}
+                        style={{ color: "var(--warning, #d97706)" }}
+                      />
+                      <span>
+                        Status Laporan: DRAFT (Menunggu Penyelesaian Verifikasi)
+                      </span>
+                    </>
+                  )}
+                </div>
+                <p style={{ margin: 0, color: "var(--text-muted, #64748b)" }}>
+                  {data.case_status === "READY"
+                    ? "Seluruh dokumen dan kriteria SOP telah selesai diverifikasi tanpa ada temuan yang memerlukan review. Pejabat berwenang (Checker) dapat menekan tombol 'Setujui & Finalisasi Kertas Kerja' di atas untuk mengunci laporan audit resmi."
+                    : "Laporan audit berada dalam status DRAFT selama proses verifikasi kasus berlangsung. Status akan otomatis berubah menjadi READY setelah seluruh review visual dan dokumen prasyarat diselesaikan oleh Maker."}
+                </p>
+                {data.case_status !== "READY" && (
+                  <div style={{ marginTop: "4px" }}>
+                    <Link
+                      className="text-link"
+                      href={`/cases/${data.case_id}/review`}
+                      style={{
+                        fontWeight: 600,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "4px",
+                      }}
+                    >
+                      Buka Visual Review Kasus untuk menyelesaikan temuan →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
             <Link className="text-link" href={`/cases/${data.case_id}`}>
               Open source case →
             </Link>
@@ -209,14 +374,196 @@ export default function ReportPage({
           )}
           {!!Object.keys(data.snapshot.scores || {}).length && (
             <section className="panel settings-card">
-              <h2>Legacy category compliance indicators</h2>
-              <div className="report-summary-grid">
-                {Object.entries(data.snapshot.scores!).map(([key, value]) => (
-                  <div key={key}>
-                    <small>{key.replaceAll("_", " ")}</small>
-                    <strong>{value === null ? "Needs review" : value}</strong>
-                  </div>
-                ))}
+              <div className="section-head">
+                <div>
+                  <h2 className="illustrated-heading">
+                    <span>
+                      <FileCheck2 size={21} />
+                    </span>
+                    Kertas Kerja Pemeriksaan (KKP) · Indikator Kepatuhan
+                  </h2>
+                  <p>
+                    Evaluasi kepatuhan per kategori berdasarkan standar audit internal (SKAI), Bank Indonesia (PBI 24/7/2022), dan OJK.
+                  </p>
+                </div>
+              </div>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: "14px",
+                  marginTop: "16px",
+                }}
+              >
+                {Object.entries(data.snapshot.scores!).map(([key, value]) => {
+                  const isRollup = ["total_a", "total_b", "total"].includes(key);
+                  const catFindings = (data.snapshot.findings || []).filter((f) => {
+                    if (isRollup) {
+                      if (key === "total_a")
+                        return ["DATA_COMPLETION", "CUSTOMER_SIGNATURE"].includes(
+                          f.category || "",
+                        );
+                      if (key === "total_b")
+                        return [
+                          "DOCUMENT_COMPLETION",
+                          "OFFICER_REVIEW_APPROVAL",
+                        ].includes(f.category || "");
+                      return true;
+                    }
+                    return f.category === key;
+                  });
+
+                  const eligible = catFindings.filter(
+                    (f) =>
+                      f.eligible !== false && f.result !== "NOT_APPLICABLE",
+                  );
+                  const passedCount = eligible.filter(
+                    (f) => f.result === "PASS",
+                  ).length;
+                  const failedCount = eligible.filter(
+                    (f) => f.result === "FAIL",
+                  ).length;
+                  const reviewCount = eligible.filter((f) =>
+                    ["REVIEW", "ERROR"].includes(f.result),
+                  ).length;
+                  const totalCount = eligible.length;
+                  const pct =
+                    totalCount > 0
+                      ? Math.round((passedCount / totalCount) * 100)
+                      : null;
+
+                  return (
+                    <div
+                      key={key}
+                      style={{
+                        padding: "16px",
+                        borderRadius: "10px",
+                        border:
+                          value === 1
+                            ? "1px solid rgba(22, 163, 74, 0.3)"
+                            : value === 0
+                              ? "1px solid rgba(239, 68, 68, 0.3)"
+                              : "1px solid rgba(234, 179, 8, 0.3)",
+                        background:
+                          value === 1
+                            ? "rgba(22, 163, 74, 0.03)"
+                            : value === 0
+                              ? "rgba(239, 68, 68, 0.03)"
+                              : "rgba(234, 179, 8, 0.03)",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        gap: "10px",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "0.8rem",
+                            color: "var(--text-muted, #64748b)",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.025em",
+                          }}
+                        >
+                          {CATEGORY_LABELS[key]?.label ||
+                            key.replaceAll("_", " ")}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "var(--text-muted, #94a3b8)",
+                            marginTop: "3px",
+                          }}
+                        >
+                          {CATEGORY_LABELS[key]?.desc}
+                        </div>
+                      </div>
+
+                      <div style={{ marginTop: "6px" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "8px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "3px 10px",
+                              borderRadius: "9999px",
+                              fontSize: "0.75rem",
+                              fontWeight: 700,
+                              background:
+                                value === 1
+                                  ? "rgba(22, 163, 74, 0.15)"
+                                  : value === 0
+                                    ? "rgba(239, 68, 68, 0.15)"
+                                    : "rgba(234, 179, 8, 0.15)",
+                              color:
+                                value === 1
+                                  ? "#16a34a"
+                                  : value === 0
+                                    ? "#dc2626"
+                                    : "#d97706",
+                            }}
+                          >
+                            {value === 1
+                              ? "SESUAI"
+                              : value === 0
+                                ? `TEMUAN (${failedCount} temuan)`
+                                : `PERLU REVIEW (${reviewCount} pending)`}
+                          </span>
+                          {pct !== null && (
+                            <span
+                              style={{
+                                fontSize: "1.15rem",
+                                fontWeight: 700,
+                                color:
+                                  pct >= 90
+                                    ? "#16a34a"
+                                    : pct >= 70
+                                      ? "#d97706"
+                                      : "#dc2626",
+                              }}
+                            >
+                              {pct}%
+                            </span>
+                          )}
+                        </div>
+                        {totalCount > 0 && (
+                          <div
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "var(--text-muted, #64748b)",
+                              marginTop: "6px",
+                            }}
+                          >
+                            Kesesuaian: <strong>{passedCount}</strong> dari{" "}
+                            {totalCount} kriteria ({failedCount} temuan)
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div
+                style={{
+                  marginTop: "16px",
+                  padding: "10px 14px",
+                  background: "var(--bg-subtle, rgba(0,0,0,0.02))",
+                  borderRadius: "8px",
+                  fontSize: "0.8rem",
+                  color: "var(--text-muted, #64748b)",
+                  border: "1px solid rgba(0,0,0,0.05)",
+                }}
+              >
+                <strong>Pedoman Skoring Audit KKP:</strong> Sesuai format standar Kertas Kerja Pemeriksaan Bank Indonesia & SKAI, indikator <strong>SESUAI</strong> diberikan jika seluruh kriteria pengujian dalam kategori terpenuhi (100% compliant). Status <strong>TEMUAN</strong> mengindikasikan terdapat kriteria yang belum terpenuhi dan memerlukan pembetulan dokumen atau disposisi pejabat terkait.
               </div>
             </section>
           )}
@@ -265,36 +612,64 @@ export default function ReportPage({
                   <thead>
                     <tr>
                       <th>Rule / field</th>
-                      <th>Result</th>
-                      <th>Finding & evidence</th>
+                      <th>Finding message</th>
+                      <th>Observed vs expected</th>
+                      <th>Result & audit</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {findings.map((f, i) => (
-                      <tr key={`${f.rule_id}-${i}`}>
-                        <td>
-                          <strong>{f.rule_id}</strong>
-                          <div className="subtext">{f.field}</div>
-                        </td>
-                        <td>
-                          <Badge value={f.result} />
-                        </td>
-                        <td>
-                          {f.message}
-                          <details>
-                            <summary>Values & evidence</summary>
-                            <dl>
-                              <dt>Actual</dt>
-                              <dd>{display(f.actual)}</dd>
-                              <dt>Expected</dt>
-                              <dd>{display(f.expected)}</dd>
-                              <dt>Evidence</dt>
+                    {findings.map((f, i) => {
+                      const rev = (
+                        f.evidence as
+                          | {
+                              review?: {
+                                actor?: string;
+                                reason?: string;
+                                result?: string;
+                              };
+                            }
+                          | undefined
+                      )?.review;
+                      return (
+                        <tr key={`${f.rule_id}-${i}`}>
+                          <td>
+                            <strong>{f.rule_id}</strong>
+                            <div className="subtext">{f.field}</div>
+                            {f.evaluation_type && (
+                              <span className="mini-tag visual">
+                                {f.evaluation_type}
+                              </span>
+                            )}
+                          </td>
+                          <td>{f.message}</td>
+                          <td>
+                            <div className="finding-side-by-side compact">
+                              <div>
+                                <span className="small-label">OBSERVED</span>
+                                <div>{display(f.actual)}</div>
+                              </div>
+                              <div>
+                                <span className="small-label">EXPECTED</span>
+                                <div>{display(f.expected)}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <Badge value={f.result} />
+                            {rev && (
+                              <div className="subtext" style={{ marginTop: 6 }}>
+                                <strong>Reviewed ({rev.actor}):</strong>{" "}
+                                {rev.reason}
+                              </div>
+                            )}
+                            <details>
+                              <summary>Evidence details</summary>
                               <dd>{display(f.evidence)}</dd>
-                            </dl>
-                          </details>
-                        </td>
-                      </tr>
-                    ))}
+                            </details>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

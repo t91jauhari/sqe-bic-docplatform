@@ -53,7 +53,7 @@ def process_job(job_id, heartbeat=lambda: None):
             active.lease_until = time.time() + 120
 
     try:
-        if doc.raw:
+        if doc.raw and job.action != "reextract":
             response = {
                 "extract_result": doc.raw,
                 "extract_metadata": doc.metadata_json,

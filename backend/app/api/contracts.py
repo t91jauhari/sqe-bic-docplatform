@@ -3,6 +3,7 @@
 from app.contracts import (
     LoginInput,
     BranchInput,
+    BranchUpdateInput,
     UserInput,
     PreviewInput,
     SpiderResubmit,

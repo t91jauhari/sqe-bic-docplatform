@@ -14,7 +14,8 @@ def _release():
 
 
 def defaults(provider):
-    return copy.deepcopy(_release()[provider])
+    key = "gemini" if provider in {"gemini", "google-gemini"} else provider
+    return copy.deepcopy(_release()[key])
 
 
 def secure_url(value):
@@ -63,10 +64,41 @@ class SpiderConnectorInput(SpiderOptions):
     _key = field_validator("api_key")(bare_key)
 
 
+class GeminiOptions(BaseModel):
+    model_config = ConfigDict(extra="ignore", frozen=True)
+    base_url: str = Field(default_factory=lambda: defaults("gemini")["base_url"], max_length=2000)
+    model_id: str = Field(default_factory=lambda: defaults("gemini")["model_id"], min_length=1, max_length=200)
+    temperature: float = Field(default_factory=lambda: defaults("gemini")["temperature"], ge=0, le=2, strict=True)
+    top_p: float = Field(default_factory=lambda: defaults("gemini")["top_p"], ge=0, le=1, strict=True)
+    max_tokens: int = Field(default_factory=lambda: defaults("gemini")["max_tokens"], ge=1, le=65536, strict=True)
+    image_max_pixels: int = Field(default_factory=lambda: defaults("gemini")["image_max_pixels"], ge=256, le=4800, strict=True)
+    image_jpeg_quality: int = Field(default_factory=lambda: defaults("gemini")["image_jpeg_quality"], ge=20, le=100, strict=True)
+    classify_page_limit: int = Field(default_factory=lambda: defaults("gemini")["classify_page_limit"], ge=1, le=20, strict=True)
+    timeout_seconds: int = Field(default_factory=lambda: defaults("gemini")["timeout_seconds"], ge=1, le=1800, strict=True)
+    connect_timeout_seconds: int = Field(default_factory=lambda: defaults("gemini")["connect_timeout_seconds"], ge=1, le=120, strict=True)
+
+    _url = field_validator("base_url")(secure_url)
+
+    @field_validator("model_id")
+    @classmethod
+    def model_name(cls, value):
+        if not value.strip():
+            raise ValueError("Supply a non-empty model ID.")
+        return value.strip()
+
+
+class GeminiConnectorInput(GeminiOptions):
+    model_config = ConfigDict(extra="forbid", frozen=True)
+    api_key: str | None = Field(default=None, max_length=500, repr=False)
+    _key = field_validator("api_key")(bare_key)
+
+
 def _options_model(provider):
-    if provider != 'spider-ai':
-        raise ValueError('This extraction provider is no longer supported.')
-    return SpiderOptions
+    if provider == "spider-ai":
+        return SpiderOptions
+    if provider in {"gemini", "google-gemini"}:
+        return GeminiOptions
+    raise ValueError(f"Extraction provider '{provider}' is not supported.")
 
 
 def normalized_options(provider, options):

@@ -8,6 +8,12 @@ class SpiderAdapter:
         return run_spider(request.document, request.configuration, request.heartbeat)
 
 
+class GeminiAdapter:
+    def extract(self, request: ExtractionRequest):
+        from app.gemini_provider import run_gemini
+        return run_gemini(request.document, request.configuration, request.heartbeat)
+
+
 class FixtureAdapter:
     def extract(self, request: ExtractionRequest):
         from app.provider import run_fixture
@@ -15,4 +21,9 @@ class FixtureAdapter:
 
 
 def default_adapters():
-    return {"spider-ai": SpiderAdapter(), "fixture": FixtureAdapter()}
+    return {
+        "spider-ai": SpiderAdapter(),
+        "gemini": GeminiAdapter(),
+        "google-gemini": GeminiAdapter(),
+        "fixture": FixtureAdapter(),
+    }

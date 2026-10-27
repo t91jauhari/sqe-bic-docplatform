@@ -11,7 +11,8 @@ import { ContextEditor } from "@/components/context-editor";
 import { ComparisonUpgrade } from "@/components/comparison-upgrade";
 import { ProfileVersionComparison } from "@/components/profile-version-comparison";
 
-import { SpiderConnectorForm } from "@/components/spider-connector";
+import { ConnectorHub } from "@/components/connector-hub";
+import { AccessManager } from "@/components/access-manager";
 import { TransactionFlows } from "@/components/transaction-flows";
 import { DocumentFamilies } from "@/components/document-families";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -315,7 +316,7 @@ export default function Settings() {
         draft && (
           <>
             <fieldset className="configuration-content" disabled={pending}>
-              <div className="config-status">
+              <div className="config-status config-governance-sticky">
                 <ShieldCheck size={17} />
                 <span>
                   Published configuration <strong>v{version}</strong>
@@ -326,6 +327,33 @@ export default function Settings() {
                     ? "Changes apply to new cases; historical runs stay pinned."
                     : "You have read-only access to configuration."}
                 </span>
+                {canEdit && dirty && (
+                  <div className="button-row" style={{ marginLeft: "auto" }}>
+                    <button
+                      type="button"
+                      className="secondary compact-btn"
+                      disabled={pending}
+                      onClick={() => setDiscardOpen(true)}
+                    >
+                      Discard draft
+                    </button>
+                    <button
+                      type="button"
+                      className="primary compact-btn"
+                      disabled={
+                        !dirty ||
+                        pending ||
+                        !!policyError ||
+                        !online ||
+                        data?.version !== version
+                      }
+                      onClick={() => void save()}
+                    >
+                      <Save size={14} />
+                      {pending ? "Working..." : "Publish v" + (version + 1)}
+                    </button>
+                  </div>
+                )}
               </div>
               {dirty && data?.version !== version && (
                 <ErrorNotice message="A newer configuration was published while you were editing. Your draft is preserved. Discard it to load the latest version before editing again." />
@@ -519,6 +547,9 @@ export default function Settings() {
                           <option value="spider-ai">
                             Spider-AI (recommended) · image-based extraction
                           </option>
+                          <option value="gemini">
+                            Google Gemini (Native Multimodal) · Pro / Flash 3.8
+                          </option>
                           {draft.provider === "llama" && <option value="llama" disabled>Llama removed - select Spider-AI</option>}
                           <option value="fixture">
                             Synthetic fixtures · development only
@@ -530,6 +561,16 @@ export default function Settings() {
                           Spider-AI renders every PDF page to an image and uses
                           the profile’s system, parser and extraction
                           instructions, including saved field descriptions.
+                        </p>
+                      )}
+                      {draft.provider === "gemini" && (
+                        <p>
+                          Google Gemini uses native multimodal reasoning (Gemini 2.5 Pro or Flash 3.8) to extract structured fields, detect visual document structures, and perform validation checks. Active model and API keys can be managed in the Connector tab.
+                        </p>
+                      )}
+                      {draft.provider === "gemini" && (
+                        <p className="info-note">
+                          Gemini extraction results are automatically normalized to SQE enterprise schemas, ensuring full compatibility with bounding box crops, SOP audits, and work paper generation.
                         </p>
                       )}
                       {draft.provider === "fixture" && (
@@ -576,6 +617,24 @@ export default function Settings() {
                           <strong>Require a different approver</strong>
                           <small>
                             A case maker cannot release their own report.
+                          </small>
+                        </span>
+                      </label>
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={draft.visual_evidence_review ?? true}
+                          onChange={(e) =>
+                            update({
+                              ...draft,
+                              visual_evidence_review: e.target.checked,
+                            })
+                          }
+                        />
+                        <span>
+                          <strong>Visual evidence review (Mandatory human sign-off)</strong>
+                          <small>
+                            When enabled, visual evidence checks (signatures, stamps, meterai, photo regions) force human visual review regardless of automated detection. When disabled, valid detections evaluate directly to PASS without triggering visual review.
                           </small>
                         </span>
                       </label>
@@ -1063,6 +1122,39 @@ export default function Settings() {
               )}
               {tab === "rules" && (
                 <>
+                  <section className="panel settings-card" style={{ marginBottom: 16 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
+                      <div>
+                        <h2 style={{ margin: 0 }}>Visual Evidence Review Policy</h2>
+                        <p style={{ margin: "4px 0 0", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+                          Configure whether SOP visual checks require mandatory human verification or evaluate automatically.
+                        </p>
+                      </div>
+                      <span className="count-pill">
+                        {draft.visual_evidence_review ?? true ? "Enforced" : "Automatic / Bypassed"}
+                      </span>
+                    </div>
+                    <div style={{ marginTop: 12 }}>
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={draft.visual_evidence_review ?? true}
+                          onChange={(e) =>
+                            update({
+                              ...draft,
+                              visual_evidence_review: e.target.checked,
+                            })
+                          }
+                        />
+                        <span>
+                          <strong>Enable Visual Evidence Review (Mandatory Human Sign-off)</strong>
+                          <small>
+                            When <strong>enabled</strong>, visual checks (signatures, stamps, meterai, photo regions) force human review in the Visual Review Workspace regardless of automated detection. When <strong>disabled</strong>, visual checks pass directly if present and valid without blocking the case.
+                          </small>
+                        </span>
+                      </label>
+                    </div>
+                  </section>
                   <ContextEditor configuration={draft} family={family} editable={canEdit} onChange={update} />
                   <ComparisonUpgrade configuration={draft} version={version} editable={canEdit} onApply={update} family={family} />
                   {family === "forex" && (
@@ -1083,7 +1175,7 @@ export default function Settings() {
               )}
               {tab === "connector" && canEdit && (
                 <>
-                  <SpiderConnectorForm />
+                  <ConnectorHub />
                 </>
               )}
               {tab === "access" && <AccessManager />}
@@ -1171,183 +1263,5 @@ export default function Settings() {
         )
       )}
     </Shell>
-  );
-}
-function AccessManager() {
-  const { user, notify } = usePlatform(),
-    { data: branches, refresh: refreshBranches } = useData<Branch[]>(
-      "/branches",
-      0,
-    ),
-    { data: users, refresh: refreshUsers } = useData<User[]>("/users", 0);
-  const [dialog, setDialog] = useState<"branch" | "user" | null>(null),
-    [pending, setPending] = useState(false),
-    [error, setError] = useState("");
-  const close = useCallback(() => setDialog(null), []);
-  return (
-    <>
-      <div className="settings-grid">
-        <section className="panel settings-card">
-          <div className="section-head">
-            <h2>Branches</h2>
-            {user?.role === "bank_admin" && (
-              <button className="secondary" onClick={() => setDialog("branch")}>
-                <Plus size={15} />
-                Add branch
-              </button>
-            )}
-          </div>
-          {branches?.map((b) => (
-            <div className="access-row" key={b.id}>
-              <span className="branch-avatar">{b.code.slice(0, 2)}</span>
-              <div>
-                <strong>{b.name}</strong>
-                <span>{b.code}</span>
-              </div>
-            </div>
-          ))}
-        </section>
-        <section className="panel settings-card">
-          <div className="section-head">
-            <h2>Users & permissions</h2>
-            <button className="secondary" onClick={() => setDialog("user")}>
-              <Plus size={15} />
-              Add user
-            </button>
-          </div>
-          {users?.map((u) => (
-            <div className="access-row" key={u.id}>
-              <span className="avatar">{u.name[0]}</span>
-              <div>
-                <strong>{u.name}</strong>
-                <span>{u.email}</span>
-                <span>
-                  {u.branches
-                    .map(
-                      (id) =>
-                        branches?.find((b) => b.id === id)?.code ||
-                        id.slice(0, 8),
-                    )
-                    .join(", ")}
-                </span>
-              </div>
-              <span className="role-tag">{u.role.replaceAll("_", " ")}</span>
-            </div>
-          ))}
-        </section>
-      </div>
-      {dialog && (
-        <Modal
-          title={dialog === "branch" ? "Add branch" : "Add user"}
-          onClose={close}
-        >
-          <form
-            onSubmit={async (e) => {
-              e.preventDefault();
-              setPending(true);
-              setError("");
-              const form = new FormData(e.currentTarget);
-              try {
-                if (dialog === "branch") {
-                  await api("/branches", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      code: form.get("code"),
-                      name: form.get("name"),
-                    }),
-                  });
-                  await refreshBranches();
-                } else {
-                  await api("/users", {
-                    method: "POST",
-                    body: JSON.stringify({
-                      email: form.get("email"),
-                      name: form.get("name"),
-                      password: form.get("password"),
-                      role: form.get("role"),
-                      branches: form.getAll("branches"),
-                    }),
-                  });
-                  await refreshUsers();
-                }
-                notify(
-                  dialog === "branch" ? "Branch created." : "User created.",
-                );
-                setDialog(null);
-              } catch (err) {
-                setError(
-                  err instanceof Error ? err.message : "Unable to save.",
-                );
-              } finally {
-                setPending(false);
-              }
-            }}
-          >
-            {error && <ErrorNotice message={error} />}
-            <label>
-              {dialog === "branch" ? "Branch name" : "Full name"}
-              <input name="name" required />
-            </label>
-            {dialog === "branch" ? (
-              <label>
-                Branch code
-                <input name="code" required />
-              </label>
-            ) : (
-              <>
-                <label>
-                  Email
-                  <input name="email" type="email" required />
-                </label>
-                <label>
-                  Initial password
-                  <input
-                    name="password"
-                    type="password"
-                    autoComplete="new-password"
-                    minLength={12}
-                    required
-                  />
-                </label>
-                <label>
-                  Role
-                  <select name="role" defaultValue="officer">
-                    {(user?.role === "bank_admin"
-                      ? [
-                          "officer",
-                          "reviewer",
-                          "auditor",
-                          "branch_admin",
-                          "bank_admin",
-                        ]
-                      : ["officer", "reviewer", "auditor"]
-                    ).map((x) => (
-                      <option key={x} value={x}>
-                        {x.replaceAll("_", " ")}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label>Branch memberships</label>
-                {branches?.map((b) => (
-                  <label className="checkbox-label compact" key={b.id}>
-                    <input type="checkbox" name="branches" value={b.id} />
-                    {b.name}
-                  </label>
-                ))}
-              </>
-            )}
-            <div className="modal-actions">
-              <button type="button" className="secondary" onClick={close}>
-                Cancel
-              </button>
-              <button className="primary" disabled={pending}>
-                {pending ? "Saving…" : "Create"}
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
-    </>
   );
 }

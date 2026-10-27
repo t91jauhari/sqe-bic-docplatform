@@ -9,6 +9,36 @@ import json
 from copy import deepcopy
 
 
+def page_specific_initials(page_number, items):
+    """Keep only the current physical page's initial observation when a model
+    echoes prior-page observations from cross-page reference context.
+    """
+    if not isinstance(items, list):
+        return items
+    matching = [
+        item
+        for item in items
+        if isinstance(item, dict) and item.get("page_number") in (None, page_number)
+    ]
+    return matching if matching else items
+
+
+def deduplicate_page_initials(pages_list):
+    """Deduplicate page_initials.pages by 1-based page_number while preserving order."""
+    if not isinstance(pages_list, list):
+        return pages_list
+    by_page = {}
+    passthrough = []
+    for item in pages_list:
+        if isinstance(item, dict) and isinstance(item.get("page_number"), int) and not isinstance(item.get("page_number"), bool):
+            by_page[item["page_number"]] = deepcopy(item)
+        else:
+            passthrough.append(deepcopy(item))
+    if not by_page:
+        return pages_list
+    return [by_page[k] for k in sorted(by_page)] + passthrough
+
+
 def combine_pages(pages):
     from .spatial_grounding import split_locations
     original_pages = deepcopy(pages)
@@ -46,7 +76,16 @@ def combine_pages(pages):
                 for key in keys
             }
         if all(isinstance(value, list) for _, value in entries):
+            if path == "page_initials.pages":
+                combined = [
+                    deepcopy(item)
+                    for page, value in entries
+                    for item in page_specific_initials(page, value)
+                ]
+                return deduplicate_page_initials(combined)
             return [deepcopy(item) for _, value in entries for item in value]
+        if path == "page_initials.page_count":
+            return len(pages)
         first = entries[0][1]
         if all(type(value) is type(first) and value == first for _, value in entries):
             return deepcopy(first)
@@ -73,6 +112,10 @@ def combine_pages(pages):
     # page_count is source metadata, not an inferred observation from the model.
     if isinstance(merged.get("page_initials"), dict):
         merged["page_initials"]["page_count"] = len(pages)
+        if isinstance(merged["page_initials"].get("pages"), list):
+            merged["page_initials"]["pages"] = deduplicate_page_initials(
+                merged["page_initials"]["pages"]
+            )
     merged["page_results"] = original_pages
     return merged, conflicts
 
@@ -90,7 +133,14 @@ def prune_for_reference(value, max_chars=280):
         pruned = {
             key: prune_for_reference(child, max_chars)
             for key, child in value.items()
-            if key not in {"box_2d", "_field_locations", "field_locations", "page_results"}
+            if key
+            not in {
+                "box_2d",
+                "_field_locations",
+                "field_locations",
+                "page_results",
+                "page_initials",
+            }
         }
         return {key: child for key, child in pruned.items() if child is not None} or None
     if isinstance(value, list):
@@ -140,6 +190,8 @@ def extract_pages(doc, images, messages, options, key, heartbeat, cfg=None):
             f"Extract only this page; do not invent observations for unseen pages. "
             f"Fields absent on this page are null. "
             f"Any signature/stamp page_number must refer to physical page {number}. "
+            f"For page_initials.pages (when in schema), return only one entry for physical page {number}. "
+            f"Include _field_locations with page_number={number} and box_2d for every visible text and visual region (including signatures, stamps, meterai, photos, and footer initials) on this page. "
         )
 
         # Cross-page reference — provide extracted values from previous pages

@@ -56,7 +56,7 @@ function buildWorksheet(
   sheetName: string,
   resolveRow: ResolveRow,
 ): string {
-  const entries = Object.entries(doc.normalized).filter(
+  const entries = Object.entries(doc.normalized || {}).filter(
     ([field]) => field !== "page_results",
   );
   const header =

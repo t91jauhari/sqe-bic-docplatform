@@ -81,6 +81,18 @@ class Branch(Record):
     __table_args__ = (UniqueConstraint("org", "code"),)
     code: Mapped[str] = mapped_column(String(40))
     name: Mapped[str] = mapped_column(String(120))
+    tier: Mapped[str] = mapped_column(String(40), default="KCU")
+    menus: Mapped[list] = mapped_column(
+        JSON,
+        default=lambda: [
+            "overview",
+            "inbox",
+            "cases",
+            "reports",
+            "upload",
+            "settings",
+        ],
+    )
 
 
 class AuthSession(Base):
@@ -108,9 +120,23 @@ class Config(Record):
 
 class Connector(Record):
     __tablename__ = "connectors"
-    __table_args__ = (UniqueConstraint("org"),)
+    __table_args__ = ()
+    name: Mapped[str] = mapped_column(String(120), default="")
+    provider_type: Mapped[str] = mapped_column(String(60), default="spider-ai")
+    model_id: Mapped[str] = mapped_column(String(120), default="")
+    is_active: Mapped[bool] = mapped_column(default=False)
     encrypted: Mapped[str] = mapped_column(Text, default="")
     options: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class RolePermission(Record):
+    __tablename__ = "role_permissions"
+    __table_args__ = (UniqueConstraint("org", "role"),)
+    role: Mapped[str] = mapped_column(String(40))
+    menus: Mapped[list] = mapped_column(JSON, default=list)
+    can_edit_settings: Mapped[bool] = mapped_column(default=False)
+    can_override_cases: Mapped[bool] = mapped_column(default=False)
+    can_manage_users: Mapped[bool] = mapped_column(default=False)
 
 
 class SpiderConnector(Record):

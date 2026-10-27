@@ -31,6 +31,9 @@ def inputs(db, case):
         select(Document).where(Document.case_id == case.id).order_by(Document.id)
     ).all()
     context = db.scalar(select(CaseContext).where(CaseContext.case_id == case.id))
+    if not context or not context.payload or not any(k in context.payload for k in ("threshold_state", "customer_type", "payment_basis")):
+        from app.case_context import ensure_case_context
+        context = ensure_case_context(db, case.id)
     branch = db.get(Branch, case.branch_id)
     return {
         "sop_contract_version": 2,
@@ -75,7 +78,7 @@ def fingerprint(snapshot):
     ).hexdigest()
 
 
-def queue_case(db, case_id):
+def queue_case(db, case_id, force=False):
     from app.auditing import audit
 
     case = db.scalar(select(Case).where(Case.id == case_id).with_for_update())
@@ -89,7 +92,7 @@ def queue_case(db, case_id):
     prior = db.scalar(
         select(CaseRun).where(CaseRun.case_id == case.id, CaseRun.fingerprint == key)
     )
-    if prior:
+    if prior and not force:
         # The inputs match a prior run. A retry that reproduces identical
         # extraction (process_job reuses stored raw) yields the same
         # fingerprint, so no new SOP run is queued. Restore the case status
@@ -116,6 +119,9 @@ def queue_case(db, case_id):
             case.validation_status = "ERROR"
             case.updated_at = time.time()
         return frozen
+    if prior and force:
+        db.delete(prior)
+        db.flush()
     run = CaseRun(
         org=case.org,
         branch_id=case.branch_id,
@@ -321,7 +327,13 @@ def process_case_run(run_id):
                 else (
                     "NEEDS_REVIEW"
                     if any(
-                        (not e.get("available") or e.get("link_review_required"))
+                        (
+                            (
+                                e.get("observed_present") is not False
+                                and not e.get("available")
+                            )
+                            or e.get("link_review_required")
+                        )
                         for d in docs
                         for e in d.get("validation", {}).get("visual_evidence", [])
                     )
@@ -367,6 +379,11 @@ def process_case_run(run_id):
                     snapshot=snapshot,
                 )
                 db.add(report)
+                db.flush()
+                if not errors:
+                    persist_report(report)
+            else:
+                report.snapshot = snapshot
                 db.flush()
                 if not errors:
                     persist_report(report)

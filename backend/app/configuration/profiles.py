@@ -10,6 +10,7 @@ def validate_schema_adapter(profile):
         "extraction_sampling",
         "extraction_detail_regions",
         "case_address_reconciliation",
+        "case_name_reconciliation",
     }:
         raise ValueError(
             "Custom profiles support extraction controls only; configure business policy as SOP rules."
