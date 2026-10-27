@@ -26,7 +26,23 @@ from .workflow import CaseSOPWorkflow, DocumentWorkflow
 def process_document(job_id: str):
     from .worker_capacity import capacity
 
-    with capacity(lambda: activity.heartbeat(job_id)) as check:
+    raw_hb = None
+    try:
+        raw_hb = activity._Context.current().heartbeat
+    except Exception:
+        pass
+
+    def heartbeat_wrapper(*args):
+        try:
+            if raw_hb is not None:
+                raw_hb(*(args or (job_id,)))
+            else:
+                activity.heartbeat(*(args or (job_id,)))
+        except Exception as exc:
+            if "ActivityCancelledError" in type(exc).__name__:
+                raise
+
+    with capacity(heartbeat_wrapper) as check:
         process_job(job_id, check)
 
 
@@ -60,7 +76,23 @@ def record_workflow_failure(job_id: str):
 def process_case_sop(run_id: str):
     from .worker_capacity import capacity
 
-    with capacity(lambda: activity.heartbeat(run_id)):
+    raw_hb = None
+    try:
+        raw_hb = activity._Context.current().heartbeat
+    except Exception:
+        pass
+
+    def heartbeat_wrapper(*args):
+        try:
+            if raw_hb is not None:
+                raw_hb(*(args or (run_id,)))
+            else:
+                activity.heartbeat(*(args or (run_id,)))
+        except Exception as exc:
+            if "ActivityCancelledError" in type(exc).__name__:
+                raise
+
+    with capacity(heartbeat_wrapper):
         process_case_run(run_id)
 
 

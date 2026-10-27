@@ -302,8 +302,8 @@ def completion(doc, stage, messages, options, key, heartbeat):
         while not stop.wait(15):
             try:
                 heartbeat()
-            except Exception:
-                return
+            except Exception as e:
+                log.warning("Heartbeat failed in beat_loop: %s", e)
 
     context = contextvars.copy_context()
     thread = threading.Thread(target=lambda: context.run(beat_loop), daemon=True)

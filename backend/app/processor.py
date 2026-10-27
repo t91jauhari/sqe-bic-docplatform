@@ -26,7 +26,7 @@ def process_job(job_id, heartbeat=lambda: None):
             db.rollback()
             return process_fields(job_id, heartbeat)
         job.status = "RUNNING"
-        job.lease_until = time.time() + 120
+        job.lease_until = time.time() + 600
         doc = db.get(Document, job.document_id)
         case = db.get(Case, doc.case_id)
         case.status = "PROCESSING"
@@ -50,7 +50,8 @@ def process_job(job_id, heartbeat=lambda: None):
         heartbeat()
         with SessionLocal.begin() as db:
             active = db.get(Job, job_id)
-            active.lease_until = time.time() + 120
+            if active:
+                active.lease_until = time.time() + 600
 
     try:
         if doc.raw and job.action != "reextract":

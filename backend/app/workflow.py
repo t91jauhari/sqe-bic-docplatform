@@ -14,7 +14,7 @@ class DocumentWorkflow:
                 "process_document",
                 job_id,
                 start_to_close_timeout=timedelta(hours=4),
-                heartbeat_timeout=timedelta(minutes=2),
+                heartbeat_timeout=timedelta(minutes=10),
                 retry_policy=RetryPolicy(
                     maximum_attempts=3, initial_interval=timedelta(seconds=5)
                 ),
@@ -23,7 +23,7 @@ class DocumentWorkflow:
             await workflow.execute_activity(
                 "record_workflow_failure",
                 job_id,
-                start_to_close_timeout=timedelta(minutes=2),
+                start_to_close_timeout=timedelta(minutes=5),
                 retry_policy=RetryPolicy(
                     maximum_attempts=10, initial_interval=timedelta(seconds=5)
                 ),
@@ -38,8 +38,8 @@ class CaseSOPWorkflow:
             await workflow.execute_activity(
                 "process_case_sop",
                 run_id,
-                start_to_close_timeout=timedelta(minutes=15),
-                heartbeat_timeout=timedelta(minutes=2),
+                start_to_close_timeout=timedelta(minutes=30),
+                heartbeat_timeout=timedelta(minutes=10),
                 retry_policy=RetryPolicy(
                     maximum_attempts=3, initial_interval=timedelta(seconds=5)
                 ),
@@ -48,6 +48,6 @@ class CaseSOPWorkflow:
             await workflow.execute_activity(
                 "record_case_failure",
                 run_id,
-                start_to_close_timeout=timedelta(minutes=2),
+                start_to_close_timeout=timedelta(minutes=5),
                 retry_policy=RetryPolicy(maximum_attempts=10),
             )

@@ -19,6 +19,12 @@ x-backend: &backend
     MINIO_SECURE: "false"
     WORKFLOW_DRIVER: temporal
     TEMPORAL_ADDRESS: temporal:7233
+  deploy:
+    resources:
+      limits:
+        memory: 4096M
+      reservations:
+        memory: 512M
   logging: *logging
   restart: unless-stopped
 services:
@@ -104,6 +110,12 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1024M
+        reservations:
+          memory: 256M
     logging: *logging
     restart: unless-stopped
 volumes:
