@@ -111,6 +111,13 @@ export default function CasePage({
         d.status === "COMPLETED" &&
         Object.entries(d.normalized || {}).some(([f]) => f !== "page_results"),
     ) || [];
+  const failedDocs =
+    data?.documents.filter(
+      (d) =>
+        d.status === "ERROR" ||
+        d.status === "FAILED" ||
+        d.status === "NEEDS_CLASSIFICATION",
+    ) || [];
   const retryableDocs =
     data?.documents.filter((d) => !d.provider_state?.pending_create) || [];
   const exportAllDocuments = async () => {
@@ -294,6 +301,52 @@ export default function CasePage({
                 )}
               </div>
             </div>
+            {data.status === "SOP_ERROR" && (
+              <div
+                className="fixture-banner"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 16,
+                  background: "rgba(220, 38, 38, 0.08)",
+                  borderColor: "rgba(220, 38, 38, 0.3)",
+                  color: "inherit",
+                  marginTop: 12,
+                }}
+              >
+                <div>
+                  <strong style={{ color: "var(--color-danger, #dc2626)" }}>
+                    SOP Evaluation Interrupted
+                  </strong>
+                  <div style={{ fontSize: "13px", opacity: 0.85, marginTop: 2 }}>
+                    Case SOP checks encountered an issue. Saved extraction results are intact and preserved. Click to rerun SOP evaluation.
+                  </div>
+                </div>
+                {data.can_write && (
+                  <button
+                    className="primary"
+                    disabled={pending}
+                    style={{ whiteSpace: "nowrap" }}
+                    onClick={async () => {
+                      setPending(true);
+                      try {
+                        await api("/cases/" + id + "/sop-rerun", { method: "POST" });
+                        notify("SOP evaluation queued. Using saved extractions.");
+                        await refresh();
+                      } catch (e) {
+                        notify(e instanceof Error ? e.message : "Rerun failed.", "error");
+                      } finally {
+                        setPending(false);
+                      }
+                    }}
+                  >
+                    <RotateCcw size={15} />
+                    Rerun SOP checks
+                  </button>
+                )}
+              </div>
+            )}
             {report?.snapshot.provider === "fixture" && (
               <div className="fixture-banner">
                 DEVELOPMENT FIXTURE · These are synthetic values, not extraction
@@ -394,7 +447,68 @@ export default function CasePage({
                       {exporting ? "Exporting…" : "Export all to Excel"}
                     </button>
                   )}
-                  {data.can_write && retryableDocs.length > 0 && (
+                  {data.can_write && (data.status === "SOP_ERROR" || data.status === "PROCESSING_ERROR") && (
+                    <button
+                      className="primary"
+                      disabled={pending}
+                      title="Rerun SOP rules using saved extractions. No cloud API calls required."
+                      onClick={async () => {
+                        setPending(true);
+                        try {
+                          await api("/cases/" + id + "/sop-rerun", { method: "POST" });
+                          notify("SOP evaluation queued. Using saved extractions.");
+                          await refresh();
+                        } catch (e) {
+                          notify(e instanceof Error ? e.message : "SOP rerun failed.", "error");
+                        } finally {
+                          setPending(false);
+                        }
+                      }}
+                    >
+                      <RotateCcw size={15} />
+                      Rerun SOP
+                    </button>
+                  )}
+                  {data.can_write && failedDocs.length > 0 && (
+                    <button
+                      className="secondary"
+                      disabled={pending}
+                      title="Re-extract only the failed documents. Successfully extracted documents are preserved."
+                      onClick={async () => {
+                        setPending(true);
+                        try {
+                          const res = await api<{
+                            queued: unknown[];
+                            skipped: { reason: string }[];
+                          }>("/cases/" + id + "/retry-documents", {
+                            method: "POST",
+                          });
+                          notify(
+                            res.queued.length
+                              ? `Re-queued ${res.queued.length} failed document${
+                                  res.queued.length === 1 ? "" : "s"
+                                } for retry.` +
+                                  (res.skipped.length
+                                    ? ` (${res.skipped.length} completed documents preserved).`
+                                    : "")
+                              : "No documents were eligible for retry.",
+                          );
+                          await refresh();
+                        } catch (e) {
+                          notify(
+                            e instanceof Error ? e.message : "Retry failed.",
+                            "error",
+                          );
+                        } finally {
+                          setPending(false);
+                        }
+                      }}
+                    >
+                      <RotateCcw size={15} />
+                      Retry failed documents ({failedDocs.length})
+                    </button>
+                  )}
+                  {data.can_write && failedDocs.length === 0 && retryableDocs.length > 0 && (
                     <button
                       className="secondary"
                       disabled={pending}
@@ -405,7 +519,7 @@ export default function CasePage({
                           const res = await api<{
                             queued: unknown[];
                             skipped: { reason: string }[];
-                          }>("/cases/" + id + "/retry-documents", {
+                          }>("/cases/" + id + "/retry-documents?all=true", {
                             method: "POST",
                           });
                           notify(
@@ -430,7 +544,7 @@ export default function CasePage({
                       }}
                     >
                       <RotateCcw size={15} />
-                      Retry all documents ({retryableDocs.length})
+                      Re-extract all ({retryableDocs.length})
                     </button>
                   )}
                 </div>

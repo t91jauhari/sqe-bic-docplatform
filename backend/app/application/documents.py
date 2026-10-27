@@ -152,7 +152,12 @@ def retry_document(*, doc_id: str, user):
         d.normalized = {}
         d.validation = {}
         d.error = ""
-        d.provider_state = {}
+        preserved_state = {
+            k: v
+            for k, v in (d.provider_state or {}).items()
+            if k in {"storage_key", "grouping"}
+        }
+        d.provider_state = preserved_state
         d.status = "QUEUED"
         job = enqueue(db, d, action="reextract")
         audit(

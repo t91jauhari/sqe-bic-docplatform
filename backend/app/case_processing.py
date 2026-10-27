@@ -59,13 +59,13 @@ def inputs(db, case):
                 "doc_type": d.doc_type,
                 "status": d.status,
                 "classification": d.classification,
-                "raw": d.raw,
-                "normalized": d.normalized,
-                "overrides": d.overrides,
-                "validation": d.validation,
-                "metadata": d.metadata_json,
-                "provider_state": d.provider_state,
-                "error": d.error,
+                "raw": d.raw or {},
+                "normalized": d.normalized or {},
+                "overrides": d.overrides or {},
+                "validation": d.validation or {},
+                "metadata": d.metadata_json or {},
+                "provider_state": d.provider_state or {},
+                "error": d.error or "",
             }
             for d in docs
         ],
@@ -242,7 +242,7 @@ def process_case_run(run_id):
                         "evidence": {"document_id": d["id"]},
                     }
                 )
-            for k, v in d["validation"].get("fields", {}).items():
+            for k, v in (d.get("validation") or {}).get("fields", {}).items():
                 for issue in v.get("issues", []):
                     technical.append(
                         {

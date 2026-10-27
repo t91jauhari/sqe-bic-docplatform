@@ -20,8 +20,19 @@ def object_key(org, branch_id, kind, object_id, filename):
 
 
 def original_key(doc):
-    return getattr(doc, "provider_state", {}).get("storage_key") or object_key(
-        doc.org, doc.branch_id, "documents", doc.id, "original.pdf"
+    provider_state = getattr(doc, "provider_state", None) or {}
+    if isinstance(provider_state, dict):
+        key = provider_state.get("storage_key")
+        if key:
+            return key
+    filename = getattr(doc, "filename", "") or ""
+    ext = "pdf"
+    if "." in filename:
+        candidate = filename.lower().rsplit(".", 1)[-1]
+        if candidate in {"pdf", "png", "jpg", "jpeg"}:
+            ext = candidate
+    return object_key(
+        doc.org, doc.branch_id, "documents", doc.id, f"original.{ext}"
     )
 
 
@@ -105,13 +116,39 @@ class ObjectStore:
     def read(self, key):
         self._initialize()
         if not self.client:
-            return self._path(key).read_bytes()
-        response = self.client.get_object(settings.minio_bucket, key)
+            try:
+                return self._path(key).read_bytes()
+            except FileNotFoundError:
+                if "/original." in key:
+                    base = key.rsplit("/original.", 1)[0]
+                    for alt in ("png", "pdf", "jpg", "jpeg"):
+                        alt_path = self._path(f"{base}/original.{alt}")
+                        if alt_path.is_file():
+                            return alt_path.read_bytes()
+                raise
         try:
-            return response.read()
-        finally:
-            response.close()
-            response.release_conn()
+            response = self.client.get_object(settings.minio_bucket, key)
+            try:
+                return response.read()
+            finally:
+                response.close()
+                response.release_conn()
+        except S3Error as exc:
+            if exc.code in {"NoSuchKey", "NoSuchBucket"} and "/original." in key:
+                base = key.rsplit("/original.", 1)[0]
+                for alt in ("png", "pdf", "jpg", "jpeg"):
+                    alt_key = f"{base}/original.{alt}"
+                    if alt_key != key:
+                        try:
+                            resp = self.client.get_object(settings.minio_bucket, alt_key)
+                            try:
+                                return resp.read()
+                            finally:
+                                resp.close()
+                                resp.release_conn()
+                        except Exception:
+                            continue
+            raise
 
     def delete(self, key):
         self._initialize()

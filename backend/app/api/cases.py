@@ -65,8 +65,8 @@ def review_sop(case_id: str, data: FindingReview, user=Depends(REVIEW)):
 
 
 @router.post("/api/cases/{case_id}/retry-documents", status_code=202)
-def retry_case_documents(case_id: str, user=Depends(WRITE)):
-    return use_cases.retry_case_documents(case_id=case_id, user=user)
+def retry_case_documents(case_id: str, all: bool = False, user=Depends(WRITE)):
+    return use_cases.retry_case_documents(case_id=case_id, user=user, only_failed=not all)
 
 
 @router.get("/api/cases/{case_id}/assignment")

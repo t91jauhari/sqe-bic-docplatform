@@ -442,7 +442,7 @@ def review_sop(*, case_id: str, data: FindingReview, user):
         return {"queued": True}
 
 
-def retry_case_documents(*, case_id: str, user):
+def retry_case_documents(*, case_id: str, user, only_failed: bool = True):
     with SessionLocal.begin() as db:
         case = authorized(db, Case, case_id, user)
         # If case is bound to an obsolete configuration (e.g. removed 'llama' provider), upgrade to latest published config
@@ -451,9 +451,21 @@ def retry_case_documents(*, case_id: str, user):
             curr_cfg = db.scalar(select(Config).where(Config.id == case.config_id))
             if not curr_cfg or (curr_cfg.payload and curr_cfg.payload.get('provider') == 'llama'):
                 case.config_id = latest.id
+        docs = db.scalars(select(Document).where(Document.case_id == case.id)).all()
+        has_failed = any(d.status in {"ERROR", "FAILED"} for d in docs)
         queued = []
         skipped = []
-        for d in db.scalars(select(Document).where(Document.case_id == case.id)):
+        for d in docs:
+            # If only_failed is true and some documents failed, protect completed documents so valid extractions are never lost
+            if only_failed and has_failed and d.status == "COMPLETED" and d.raw:
+                skipped.append(
+                    {
+                        "id": d.id,
+                        "filename": d.filename,
+                        "reason": "already completed with stored extraction",
+                    }
+                )
+                continue
             if d.provider_state.get("pending_create"):
                 skipped.append(
                     {
@@ -463,13 +475,18 @@ def retry_case_documents(*, case_id: str, user):
                     }
                 )
                 continue
-            # Reset extraction state so processor triggers a fresh real extraction request
+            # Reset extraction state while preserving storage location and upload grouping
+            preserved_state = {
+                k: v
+                for k, v in (d.provider_state or {}).items()
+                if k in {"storage_key", "grouping"}
+            }
             d.raw = None
             d.metadata_json = {}
             d.normalized = {}
             d.validation = {}
             d.error = ""
-            d.provider_state = {}
+            d.provider_state = preserved_state
             d.status = "QUEUED"
             job = enqueue(db, d, action="reextract")
             queued.append({"id": d.id, "filename": d.filename, "job_id": job.id})
