@@ -336,8 +336,6 @@ export default function CasePage({
                   </div>
                 </div>
               </div>
-                </div>
-              </div>
             </header>
 
             {/* SOP Interrupted Alert Banner */}
