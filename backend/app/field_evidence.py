@@ -195,6 +195,14 @@ def build_field_evidence(doc, response):
                     "; ".join(errors)
                     or "No localized source evidence returned; select a region for review."
                 )
+            seen_boxes = set()
+            unique_boxes = []
+            for b in (boxes or []):
+                k = (b.get("page_number"), tuple(b.get("box", [])))
+                if k not in seen_boxes:
+                    seen_boxes.add(k)
+                    unique_boxes.append(b)
+            boxes = unique_boxes
             for i, box in enumerate(boxes):
                 try:
                     if source is None:

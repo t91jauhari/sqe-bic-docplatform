@@ -867,7 +867,10 @@ function ComparisonEvidence({
         revision: e.revision,
         storage_key: e.storage_key!,
       })),
-  ];
+  ].filter(
+    (crop, idx, arr) =>
+      arr.findIndex((other) => other.storage_key === crop.storage_key) === idx
+  );
   return (
     <div className="comparison-source-evidence">
       {crops.length ? (

@@ -135,7 +135,14 @@ export function FieldEvidenceWorkspace({
       const list = cropsByField.get(target) || [];
       for (const c of fe.crops || []) {
         const url = buildCropUrl(doc.id, c.revision, c.storage_key);
-        if (url && !list.some((existing) => existing.url === url)) {
+        if (
+          url &&
+          !list.some(
+            (existing) =>
+              existing.url === url ||
+              (existing.storageKey && existing.storageKey === c.storage_key)
+          )
+        ) {
           list.push({
             kind: "field",
             sourceField: fe.field,
@@ -165,18 +172,26 @@ export function FieldEvidenceWorkspace({
       const url = ve.available
         ? buildCropUrl(doc.id, ve.revision, ve.storage_key)
         : undefined;
-      list.push({
-        kind: "visual",
-        sourceField: ve.field,
-        pageNumber: ve.page_number,
-        revision: ve.revision,
-        storageKey: ve.storage_key,
-        url,
-        available: !!(ve.available && url),
-        observedPresent: ve.observed_present,
-        reviewStatus: ve.review_status,
-        error: ve.error,
-      });
+      if (
+        !list.some(
+          (existing) =>
+            (url && existing.url === url) ||
+            (ve.storage_key && existing.storageKey === ve.storage_key)
+        )
+      ) {
+        list.push({
+          kind: "visual",
+          sourceField: ve.field,
+          pageNumber: ve.page_number,
+          revision: ve.revision,
+          storageKey: ve.storage_key,
+          url,
+          available: !!(ve.available && url),
+          observedPresent: ve.observed_present,
+          reviewStatus: ve.review_status,
+          error: ve.error,
+        });
+      }
       cropsByField.set(target, list);
       if (ve.error) {
         const errs = errorsByField.get(target) || [];
@@ -422,7 +437,16 @@ export function FieldEvidenceWorkspace({
               ) : (
                 filteredRows.map((row) => {
                   const isSelected = activeRow?.field === row.field;
-                  const availableCrops = row.crops.filter((c) => c.url);
+                  const availableCrops = row.crops
+                    .filter((c) => c.url)
+                    .filter(
+                      (c, idx, arr) =>
+                        arr.findIndex(
+                          (other) =>
+                            (c.storageKey && other.storageKey === c.storageKey) ||
+                            (c.url && other.url === c.url)
+                        ) === idx
+                    );
                   const isOverridden =
                     doc.overrides &&
                     Object.prototype.hasOwnProperty.call(
@@ -434,10 +458,7 @@ export function FieldEvidenceWorkspace({
                   return (
                     <tr
                       key={row.field}
-                      className={
-                        (isSelected ? "selected-field-row " : "") +
-                        (row.needsAttention ? "attention-field-row" : "")
-                      }
+                      className={isSelected ? "selected-field-row" : ""}
                       onClick={() => setSelectedField(row.field)}
                     >
                       <td className="field-name-cell">
@@ -562,7 +583,7 @@ export function FieldEvidenceWorkspace({
                             >
                               OK
                             </span>
-                          ) : (
+                          ) : row.checkStatus === "SKIPPED" ? null : (
                             <Badge value={row.checkStatus} />
                           )}
                           {canReview &&
@@ -718,6 +739,14 @@ export function FieldEvidenceWorkspace({
                 <div className="inspector-crop-list">
                   {activeRow.crops
                     .filter((c) => c.url)
+                    .filter(
+                      (c, idx, arr) =>
+                        arr.findIndex(
+                          (other) =>
+                            (c.storageKey && other.storageKey === c.storageKey) ||
+                            (c.url && other.url === c.url)
+                        ) === idx
+                    )
                     .map((crop, idx) => (
                       <div
                         key={crop.storageKey || idx}

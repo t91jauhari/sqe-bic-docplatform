@@ -5,6 +5,13 @@ from .configuration.seed_catalog import seed_value
 import re
 
 MONTHS = seed_value("value_display.MONTHS")
+def clean_currency_duplication(text: str) -> str:
+    if not text or not isinstance(text, str):
+        return text
+    cleaned = re.sub(r"\b([A-Za-z]{3}|\$|Rp\.?)\s+\1\b", r"\1", text, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\b(Rp\.?)\s+(Rp\.?)\b", r"Rp", cleaned, flags=re.IGNORECASE)
+    return cleaned
+
 HIDDEN = seed_value("value_display.HIDDEN")
 
 
@@ -34,24 +41,29 @@ def display_value(value):
             parts.append(display_value(value["other_description"]))
         if value.get("raw") not in (None, ""):
             raw = display_value(value["raw"])
-            currency = str(value.get("currency") or "")
-            parts.append(
+            currency = str(value.get("currency") or "").strip()
+            combined = (
                 (currency + " " + raw).strip()
                 if currency and currency.casefold() not in raw.casefold()
                 else raw
             )
+            parts.append(clean_currency_duplication(combined))
         return " · ".join(parts) if parts else display_value(value["selected"])
     if "currency_raw" in value and "amount_raw" in value:
-        amount = (
-            " ".join(
-                display_value(value[k])
-                for k in ("currency_raw", "amount_raw")
-                if value[k] is not None and value[k] != ""
-            )
-            or "Missing"
-        )
+        cur = display_value(value["currency_raw"]).strip() if value.get("currency_raw") not in (None, "") else ""
+        raw_amt = display_value(value["amount_raw"]).strip() if value.get("amount_raw") not in (None, "") else ""
+        if raw_amt and raw_amt != "Missing":
+            if cur and cur != "Missing" and cur.casefold() not in raw_amt.casefold():
+                amount = f"{cur} {raw_amt}"
+            else:
+                amount = raw_amt
+        elif cur and cur != "Missing":
+            amount = cur
+        else:
+            amount = "Missing"
+        amount = clean_currency_duplication(amount)
         return (
-            amount + "/" + str(value["unit_raw"])
+            f"{amount}/{display_value(value['unit_raw'])}"
             if amount != "Missing" and value.get("unit_raw")
             else amount
         )
@@ -117,9 +129,13 @@ def display_value(value):
                 )
         return " · ".join(parts)
     if "raw" in value:
+        raw_val = display_value(value["raw"])
         if value.get("currency") not in (None, "") and value["raw"] not in (None, ""):
-            return f"{display_value(value['currency'])} {display_value(value['raw'])}"
-        return display_value(value["raw"])
+            cur = display_value(value["currency"]).strip()
+            if cur and cur.casefold() not in raw_val.casefold():
+                return clean_currency_duplication(f"{cur} {raw_val}")
+            return clean_currency_duplication(raw_val)
+        return clean_currency_duplication(raw_val)
     return (
         " · ".join(
             f"{key.replace('_', ' ').capitalize()}: {display_value(v)}"

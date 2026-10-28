@@ -4093,7 +4093,7 @@ html[data-density="compact"] .stat-card {
   box-shadow: inset 3px 0 0 var(--teal);
 }
 .side-by-side-table tbody tr.attention-field-row:not(.selected-field-row) {
-  background: #fffcf6;
+  background: transparent;
 }
 .field-label-wrap {
   display: flex;
@@ -4129,8 +4129,8 @@ html[data-density="compact"] .stat-card {
   color: #366f8b;
 }
 .mini-tag.override {
-  background: #fff3de;
-  color: #9e6e24;
+  background: #f1f5f9;
+  color: #475569;
 }
 .effective-value-text {
   font-size: 12px;
@@ -4580,4 +4580,134 @@ html[data-density="compact"] .stat-card {
   .finding-side-by-side {
     grid-template-columns: 1fr;
   }
+}
+
+/* Case Workflow Progress Pipeline */
+.case-workflow-pipeline {
+  margin-top: 14px;
+  margin-bottom: 14px;
+  padding: 16px 20px !important;
+  background: #ffffff;
+  border: 1px solid #dbe4e8;
+  border-radius: 12px;
+}
+.pipeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eef2f5;
+}
+.pipeline-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #1a3038;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.pipeline-meta {
+  font-size: 12px;
+  color: #657d87;
+}
+.pipeline-steps {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-x: auto;
+}
+.pipeline-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 170px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f8fafb;
+  border: 1px solid #e2e8ec;
+}
+.pipeline-step.step-done {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.pipeline-step.step-active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+.pipeline-step.step-attention {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+.pipeline-step.step-review {
+  background: #fefce8;
+  border-color: #fef08a;
+}
+.pipeline-step.step-ready {
+  background: #f0fdfa;
+  border-color: #99f6e4;
+}
+.step-indicator {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 11px;
+  background: #dde5e9;
+  color: #4b636e;
+  flex-shrink: 0;
+}
+.step-done .step-indicator {
+  background: #16a34a;
+  color: #ffffff;
+}
+.step-active .step-indicator {
+  background: #2563eb;
+  color: #ffffff;
+}
+.step-attention .step-indicator {
+  background: #dc2626;
+  color: #ffffff;
+}
+.step-review .step-indicator {
+  background: #ca8a04;
+  color: #ffffff;
+}
+.step-ready .step-indicator {
+  background: #0d9488;
+  color: #ffffff;
+}
+.step-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+.step-name {
+  font-weight: 600;
+  font-size: 12px;
+  color: #1e293b;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.step-desc {
+  font-size: 11px;
+  color: #64748b;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.pipeline-connector {
+  width: 16px;
+  height: 2px;
+  background: #cbd5e1;
+  flex-shrink: 0;
 }

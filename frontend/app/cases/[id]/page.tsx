@@ -14,6 +14,7 @@ import { VisualRegionEditor } from "@/components/visual-region-editor";
 import { use, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import {
+  GitBranch,
   Upload,
   FileText,
   ArrowUpRight,
@@ -299,6 +300,95 @@ export default function CasePage({
                       )}
                   </>
                 )}
+              </div>
+            </div>
+            {/* Informative Workflow Stage Stepper */}
+            <div className="case-workflow-pipeline">
+              <div className="pipeline-header">
+                <div className="pipeline-title">
+                  <GitBranch size={15} />
+                  <span>Workflow Pipeline</span>
+                </div>
+                <div className="pipeline-meta">
+                  Case: <strong>{data.reference}</strong> · Branch: <strong>{data.branch_id}</strong>
+                </div>
+              </div>
+              <div className="pipeline-steps">
+                <div className={`pipeline-step ${data.documents_count > 0 ? "step-done" : "step-pending"}`}>
+                  <div className="step-indicator">1</div>
+                  <div className="step-content">
+                    <div className="step-name">1. Document Intake</div>
+                    <div className="step-desc">
+                      {data.documents_count > 0 ? `${data.documents_count} uploaded` : "Waiting uploads"}
+                    </div>
+                  </div>
+                </div>
+                <div className="pipeline-connector" />
+                <div className={`pipeline-step ${
+                  data.completed_count === data.documents_count && data.documents_count > 0
+                    ? "step-done"
+                    : data.documents.some((d) => ["RUNNING", "PROCESSING", "QUEUED"].includes(d.status))
+                      ? "step-active"
+                      : data.documents.some((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status))
+                        ? "step-attention"
+                        : "step-pending"
+                }`}>
+                  <div className="step-indicator">2</div>
+                  <div className="step-content">
+                    <div className="step-name">2. AI Extraction</div>
+                    <div className="step-desc">
+                      {data.documents.some((d) => ["RUNNING", "PROCESSING", "QUEUED"].includes(d.status))
+                        ? `In progress (${data.completed_count}/${data.documents_count})`
+                        : data.documents.some((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status))
+                          ? `Action needed (${data.documents.filter((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status)).length} failed)`
+                          : `${data.completed_count}/${data.documents_count} completed`}
+                    </div>
+                  </div>
+                </div>
+                <div className="pipeline-connector" />
+                <div className={`pipeline-step ${
+                  data.status === "SOP_ERROR"
+                    ? "step-attention"
+                    : ["PASS", "COMPLIANT"].includes(data.validation_status)
+                      ? "step-done"
+                      : ["REVIEW", "FAIL"].includes(data.validation_status)
+                        ? "step-review"
+                        : "step-pending"
+                }`}>
+                  <div className="step-indicator">3</div>
+                  <div className="step-content">
+                    <div className="step-name">3. SOP Compliance</div>
+                    <div className="step-desc">
+                      {data.status === "SOP_ERROR"
+                        ? "Evaluation interrupted"
+                        : ["PASS", "COMPLIANT"].includes(data.validation_status)
+                          ? "All rules passed"
+                          : ["REVIEW", "FAIL"].includes(data.validation_status)
+                            ? "Findings under review"
+                            : "Awaiting extraction"}
+                    </div>
+                  </div>
+                </div>
+                <div className="pipeline-connector" />
+                <div className={`pipeline-step ${
+                  report?.state === "FINAL"
+                    ? "step-done"
+                    : report
+                      ? "step-ready"
+                      : "step-pending"
+                }`}>
+                  <div className="step-indicator">4</div>
+                  <div className="step-content">
+                    <div className="step-name">4. Kertas Kerja</div>
+                    <div className="step-desc">
+                      {report?.state === "FINAL"
+                        ? `Released v${report.version}`
+                        : report
+                          ? `Draft ready v${report.version}`
+                          : "Pending SOP checks"}
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             {data.status === "SOP_ERROR" && (
@@ -780,7 +870,7 @@ export default function CasePage({
                           />
                         )}
                         <div className="document-meta">
-                          <Badge value={doc.validation_status} />
+                          {doc.validation_status && doc.validation_status.toUpperCase() !== "SKIPPED" && <Badge value={doc.validation_status} />}
                           <CopyExtraction
                             doc={doc}
                             columns={
@@ -805,13 +895,7 @@ export default function CasePage({
                               </button>
                             )}
                         </div>
-                        {doc.validation_status === "SKIPPED" && (
-                          <p className="info-note">
-                            Values were formatted by Spider-AI during
-                            extraction. Document normalization and validation
-                            were skipped; case SOP results are shown separately.
-                          </p>
-                        )}
+                        
                         {Object.keys(doc.normalized || {}).length ||
                         doc.validation?.visual_evidence?.length ||
                         doc.validation?.field_evidence?.length ? (
@@ -1275,15 +1359,35 @@ function ActionModal({
       action.doc.doc_type === "unknown" ? "application" : action.doc.doc_type,
     ),
     [target, setTarget] = useState("");
-  const [value, setValue] = useState(
-      JSON.stringify(
-        action.doc.overrides?.[action.field || ""] ??
-          action.doc.raw?.[action.field || ""] ??
-          null,
-        null,
-        2,
-      ),
-    ),
+  const originalFieldVal =
+    action.doc.overrides?.[action.field || ""] ??
+    action.doc.raw?.[action.field || ""] ??
+    null;
+  const getInitialText = (val: unknown): string => {
+    if (val === null || val === undefined) return "";
+    if (typeof val === "object") {
+      const o = val as Record<string, unknown>;
+      if (o.raw !== undefined && o.raw !== null) return String(o.raw);
+      if (o.amount_raw !== undefined && o.amount_raw !== null) return String(o.amount_raw);
+      if (o.selected !== undefined && o.selected !== null) return Array.isArray(o.selected) ? o.selected.join(", ") : String(o.selected);
+      if (o.text !== undefined && o.text !== null) return String(o.text);
+      if (o.name !== undefined && o.name !== null) return String(o.name);
+      return JSON.stringify(o);
+    }
+    return String(val);
+  };
+  const getInitialCurrency = (val: unknown): string => {
+    if (val && typeof val === "object") {
+      const o = val as Record<string, unknown>;
+      return String(o.currency ?? o.currency_raw ?? "");
+    }
+    return "";
+  };
+  const [textValue, setTextValue] = useState(() => getInitialText(originalFieldVal));
+  const [currencyValue, setCurrencyValue] = useState(() => getInitialCurrency(originalFieldVal));
+  const [isJsonMode, setIsJsonMode] = useState(false);
+  const [rawJsonValue, setRawJsonValue] = useState(() => JSON.stringify(originalFieldVal, null, 2));
+  const [value, setValue] = useState(() => JSON.stringify(originalFieldVal, null, 2)),
     [providerId, setProviderId] = useState("");
   const [pending, setPending] = useState(false),
     [error, setError] = useState("");
@@ -1307,15 +1411,42 @@ function ActionModal({
                 method: "POST",
                 body: JSON.stringify({ doc_type: type, reason }),
               });
-            if (action.kind === "correction")
+            if (action.kind === "correction") {
+              let correctionPayload: unknown;
+              if (isJsonMode) {
+                correctionPayload = JSON.parse(rawJsonValue);
+              } else {
+                if (originalFieldVal && typeof originalFieldVal === "object" && !Array.isArray(originalFieldVal)) {
+                  const orig = { ...(originalFieldVal as Record<string, unknown>) };
+                  if ("raw" in orig || "currency" in orig) {
+                    orig.raw = textValue;
+                    if (currencyValue.trim()) orig.currency = currencyValue.trim();
+                    correctionPayload = orig;
+                  } else if ("amount_raw" in orig || "currency_raw" in orig) {
+                    orig.amount_raw = textValue;
+                    if (currencyValue.trim()) orig.currency_raw = currencyValue.trim();
+                    correctionPayload = orig;
+                  } else if ("selected" in orig) {
+                    orig.selected = textValue;
+                    correctionPayload = orig;
+                  } else {
+                    orig.raw = textValue;
+                    if (currencyValue.trim()) orig.currency = currencyValue.trim();
+                    correctionPayload = orig;
+                  }
+                } else {
+                  correctionPayload = textValue;
+                }
+              }
               await api(base + "/corrections", {
                 method: "POST",
                 body: JSON.stringify({
-                  field: action.field,
-                  value: JSON.parse(value),
+                  field: action.field || "",
+                  value: correctionPayload,
                   reason,
                 }),
               });
+            }
             if (action.kind === "move")
               await api(base + "/move", {
                 method: "POST",
@@ -1355,22 +1486,62 @@ function ActionModal({
           </label>
         )}
         {action.kind === "correction" && (
-          <>
-            <label>
-              {action.field} · effective raw value
-              <textarea
-                className="code-input"
-                rows={8}
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
-                required
-              />
-            </label>
-            <p className="subtext">
-              Use JSON matching the original field structure. The raw extraction
-              is preserved; SOP checks will rerun.
-            </p>
-          </>
+          <div className="correction-fields-group" style={{ marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "#1e293b", textTransform: "uppercase" }}>
+                {action.field ? `${action.field.replaceAll("_", " ")} (${action.field})` : "Field"}
+              </span>
+              <button
+                type="button"
+                className="text-link"
+                style={{ fontSize: "11px" }}
+                onClick={() => setIsJsonMode((m) => !m)}
+              >
+                {isJsonMode ? "Switch to Form Mode" : "Switch to Raw JSON"}
+              </button>
+            </div>
+            {isJsonMode ? (
+              <label>
+                Raw JSON payload
+                <textarea
+                  className="code-input"
+                  rows={6}
+                  value={rawJsonValue}
+                  onChange={(e) => setRawJsonValue(e.target.value)}
+                  required
+                />
+              </label>
+            ) : (
+              <>
+                <div style={{ display: "grid", gridTemplateColumns: (originalFieldVal && typeof originalFieldVal === "object" && ("currency" in originalFieldVal || "currency_raw" in originalFieldVal || (action.field || "").toLowerCase().includes("amount") || (action.field || "").toLowerCase().includes("total"))) ? "1fr 140px" : "1fr", gap: "12px", marginBottom: "8px" }}>
+                  <label>
+                    Corrected Field Value
+                    <input
+                      type="text"
+                      value={textValue}
+                      onChange={(e) => setTextValue(e.target.value)}
+                      placeholder="Enter corrected value as read from document..."
+                      required
+                    />
+                  </label>
+                  {(originalFieldVal && typeof originalFieldVal === "object" && ("currency" in originalFieldVal || "currency_raw" in originalFieldVal || (action.field || "").toLowerCase().includes("amount") || (action.field || "").toLowerCase().includes("total"))) && (
+                    <label>
+                      Currency
+                      <input
+                        type="text"
+                        value={currencyValue}
+                        onChange={(e) => setCurrencyValue(e.target.value.toUpperCase())}
+                        placeholder="e.g. USD, CNY"
+                      />
+                    </label>
+                  )}
+                </div>
+                <p className="subtext">
+                  Enter the field value directly as text. Original extraction is preserved; case SOP checks will rerun automatically.
+                </p>
+              </>
+            )}
+          </div>
         )}
         {action.kind === "move" && (
           <label>

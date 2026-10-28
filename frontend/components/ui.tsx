@@ -8,6 +8,7 @@ import { StatusBadge, SopBadge } from "@/components/status";
 import { formatWhen } from "@/lib/time";
 
 export function Badge({ value }: { value: string }) {
+  if (!value || value.toUpperCase() === "SKIPPED") return null;
   const color = [
     "PASS",
     "MATCH",
@@ -94,6 +95,12 @@ export function formatDate(value: number) {
     timeZone: "Asia/Jakarta",
   }).format(new Date(value * 1000));
 }
+function cleanCurrencyDuplication(text: string): string {
+  if (!text) return "";
+  let cleaned = text.replace(/\b([A-Za-z]{3}|\$|Rp\.?)\s+\1\b/gi, "$1");
+  cleaned = cleaned.replace(/\b(Rp\.?)\s+(Rp\.?)\b/gi, "Rp");
+  return cleaned;
+}
 export function display(value: unknown): string {
   if (value === null || value === undefined || value === "") return "Missing";
   if (typeof value === "boolean") return value ? "Present" : "Absent";
@@ -106,17 +113,26 @@ export function display(value: unknown): string {
     if (Array.isArray(v.selected) ? v.selected.length : v.selected) parts.push(display(v.selected));
     if (v.other_description) parts.push(display(v.other_description));
     if (v.raw != null && v.raw !== "") {
-      const raw = display(v.raw), currency = String(v.currency || "");
-      parts.push(currency && !raw.toLowerCase().includes(currency.toLowerCase()) ? `${currency} ${raw}` : raw);
+      const raw = display(v.raw), currency = String(v.currency || "").trim();
+      const combined = currency && !raw.toLowerCase().includes(currency.toLowerCase()) ? `${currency} ${raw}` : raw;
+      parts.push(cleanCurrencyDuplication(combined));
     }
     return parts.length ? parts.join(" · ") : display(v.selected);
   }
   if ("currency_raw" in v && "amount_raw" in v) {
-    const amount =
-      [v.currency_raw, v.amount_raw]
-        .filter((part) => part != null && part !== "")
-        .map(display)
-        .join(" ") || "Missing";
+    const cur = v.currency_raw != null && v.currency_raw !== "" ? display(v.currency_raw).trim() : "";
+    const rawAmt = v.amount_raw != null && v.amount_raw !== "" ? display(v.amount_raw).trim() : "";
+    let amount = "Missing";
+    if (rawAmt && rawAmt !== "Missing") {
+      if (cur && cur !== "Missing" && !rawAmt.toLowerCase().includes(cur.toLowerCase())) {
+        amount = `${cur} ${rawAmt}`;
+      } else {
+        amount = rawAmt;
+      }
+    } else if (cur && cur !== "Missing") {
+      amount = cur;
+    }
+    amount = cleanCurrencyDuplication(amount);
     return amount !== "Missing" && v.unit_raw
       ? `${amount}/${display(v.unit_raw)}`
       : amount;
@@ -185,13 +201,17 @@ export function display(value: unknown): string {
         parts.push(`${key.replaceAll("_", " ")}: ${display(v[key])}`);
     return parts.join(" · ");
   }
-  if ("raw" in v)
-    return v.currency != null &&
-      v.currency !== "" &&
-      v.raw != null &&
-      v.raw !== ""
-      ? `${display(v.currency)} ${display(v.raw)}`
-      : display(v.raw);
+  if ("raw" in v) {
+    const rawVal = display(v.raw);
+    if (v.currency != null && v.currency !== "" && v.raw != null && v.raw !== "") {
+      const cur = display(v.currency).trim();
+      if (cur && !rawVal.toLowerCase().includes(cur.toLowerCase())) {
+        return cleanCurrencyDuplication(`${cur} ${rawVal}`);
+      }
+      return cleanCurrencyDuplication(rawVal);
+    }
+    return cleanCurrencyDuplication(rawVal);
+  }
   const hidden = new Set([
     "evidence",
     "citation",

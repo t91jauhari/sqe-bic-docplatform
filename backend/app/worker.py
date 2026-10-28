@@ -120,8 +120,105 @@ def record_case_failure(run_id: str):
         )
 
 
+async def reconcile_and_resume_stalled_actions(client=None):
+    now = time.time()
+    resumed_jobs = 0
+    resumed_runs = 0
+    with SessionLocal.begin() as db:
+        stalled_jobs = db.scalars(
+            select(Job)
+            .where(
+                (Job.status.in_(["DISPATCHED", "RUNNING"]))
+                & (Job.lease_until < now)
+            )
+            .limit(30)
+        ).all()
+        for job in stalled_jobs:
+            doc = db.get(Document, job.document_id)
+            if doc:
+                audit(
+                    db,
+                    doc.org,
+                    "worker",
+                    "action.auto_resumed",
+                    doc.branch_id,
+                    doc.case_id,
+                    job_id=job.id,
+                    document_id=doc.id,
+                    reason=f"Application recovered. Resumed stalled extraction ({job.status})",
+                )
+                job.status = "QUEUED"
+                job.lease_until = 0
+                if doc.status in ["RUNNING", "PROCESSING"]:
+                    doc.status = "QUEUED"
+                resumed_jobs += 1
+        interrupted_docs = db.scalars(
+            select(Document)
+            .where(
+                (Document.status == "ERROR")
+                & (Document.error.like("%Processing interrupted%"))
+            )
+            .limit(10)
+        ).all()
+        for doc in interrupted_docs:
+            case = db.get(Case, doc.case_id)
+            if case and case.status != "FINAL":
+                job = db.scalars(select(Job).where(Job.document_id == doc.id)).first()
+                if job:
+                    job.status = "QUEUED"
+                    job.lease_until = 0
+                    job.error = ""
+                else:
+                    db.add(Job(org=doc.org, branch_id=doc.branch_id, document_id=doc.id, action="process", status="QUEUED", lease_until=0))
+                doc.status = "QUEUED"
+                doc.error = ""
+                audit(
+                    db,
+                    doc.org,
+                    "worker",
+                    "action.auto_resumed",
+                    doc.branch_id,
+                    doc.case_id,
+                    document_id=doc.id,
+                    reason="Application recovered. Resumed previously interrupted document extraction",
+                )
+                resumed_jobs += 1
+        stalled_runs = db.scalars(
+            select(CaseRun)
+            .where(
+                (CaseRun.status.in_(["DISPATCHED", "RUNNING"]))
+                & (CaseRun.lease_until < now)
+            )
+            .limit(30)
+        ).all()
+        for run in stalled_runs:
+            case = db.get(Case, run.case_id)
+            if case:
+                audit(
+                    db,
+                    case.org,
+                    "worker",
+                    "action.auto_resumed",
+                    case.branch_id,
+                    case.id,
+                    run_id=run.id,
+                    reason=f"Application recovered. Resumed stalled SOP run ({run.status})",
+                )
+                run.status = "QUEUED"
+                run.lease_until = 0
+                resumed_runs += 1
+    if resumed_jobs or resumed_runs:
+        logging.info("Auto-resume reconciled %d jobs, %d SOP runs", resumed_jobs, resumed_runs)
+
 async def dispatch(client):
+    tick = 0
     while True:
+        tick += 1
+        if tick % 10 == 1:
+            try:
+                await reconcile_and_resume_stalled_actions(client)
+            except Exception as e:
+                logging.warning("Reconciliation check failed: %s", e)
         with SessionLocal() as db:
             jobs = db.scalars(
                 select(Job)
