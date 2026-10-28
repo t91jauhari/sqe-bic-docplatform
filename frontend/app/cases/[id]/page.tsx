@@ -8,8 +8,6 @@ import { EnumRevalidation } from "@/components/enum-revalidation";
 import { CaseTask } from "@/components/case-task";
 import { SpiderResubmit } from "@/components/spider-resubmit";
 import { CopyExtraction } from "@/components/copy-extraction";
-import { extractionCheck } from "@/lib/extraction-export";
-import { downloadMultiSheetExcel } from "@/lib/excel-multi-sheet";
 import { VisualRegionEditor } from "@/components/visual-region-editor";
 import { use, useState, useCallback, useEffect } from "react";
 import Link from "next/link";
@@ -36,7 +34,6 @@ import {
   Layers,
   WandSparkles,
   FileSpreadsheet,
-  ArrowUpRight,
 } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { useData, usePlatform } from "@/components/platform-provider";
@@ -83,8 +80,6 @@ export default function CasePage({
   const [findingFilter, setFindingFilter] = useState<"all" | "attention" | "visual" | "pass">("all");
   const [action, setAction] = useState<Action | null>(null);
   const [pending, setPending] = useState(false);
-  const [exporting, setExporting] = useState(false);
-
   const branchName = data?.branch_name || branches?.find((b) => b.id === data?.branch_id)?.name || data?.branch_id || "-";
 
   const close = useCallback(() => setAction(null), []);
@@ -100,13 +95,6 @@ export default function CasePage({
     data?.documents.find((d) => d.id === selected) || data?.documents[0];
   const report = data?.reports[0];
 
-  const exportableDocs =
-    data?.documents.filter(
-      (d) =>
-        d.status === "COMPLETED" &&
-        Object.entries(d.normalized || {}).some(([f]) => f !== "page_results"),
-    ) || [];
-
   const failedDocs =
     data?.documents.filter(
       (d) =>
@@ -117,49 +105,6 @@ export default function CasePage({
 
   const retryableDocs =
     data?.documents.filter((d) => !d.provider_state?.pending_create) || [];
-
-  const exportAllDocuments = async () => {
-    if (!exportableDocs.length) return;
-    setExporting(true);
-    try {
-      const resolveRow = (
-        d: Document,
-        field: string,
-        value: unknown,
-      ): [string, string] => {
-        const columns =
-          cfg?.payload.profiles[
-            d.doc_type as keyof typeof cfg.payload.profiles
-          ]?.columns;
-        const label = columns?.find(([key]) => key === field)?.[1] || field;
-        const text =
-          value == null &&
-          d.validation?.fields?.[field]?.issues?.some((issue) =>
-            ["UNRECOGNIZED_ENUM", "INVALID_OR_MISSING_ENUM"].includes(issue.code),
-          )
-            ? "Unrecognized value · needs review"
-            : display(value);
-        return [label, text];
-      };
-      downloadMultiSheetExcel(
-        exportableDocs,
-        resolveRow,
-        `${data?.reference || "case"}-extraction.xls`,
-      );
-      notify(
-        `Exported ${exportableDocs.length} document${
-          exportableDocs.length === 1 ? "" : "s"
-        } to Excel.`,
-      );
-    } catch (err) {
-      notify(
-        err instanceof Error ? err.message : "Unable to export extraction to Excel.",
-        "error",
-      );
-    } finally {
-      setExporting(false);
-    }
-  };
 
   const run = async (fn: () => Promise<unknown>, success: string) => {
     setPending(true);
@@ -172,82 +117,6 @@ export default function CasePage({
     } finally {
       setPending(false);
     }
-  };
-
-  const renderReportSection = () => {
-    if (!report) return null;
-    return (
-      <section
-        className="panel report-history"
-        id="case-reports"
-        style={{
-          marginTop: 0,
-          marginBottom: 20,
-          padding: "18px 22px",
-          background: "#ffffff",
-          border: "1px solid #e2e8f0",
-          borderRadius: "10px",
-          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
-        }}
-      >
-        <div className="section-head" style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <FileSpreadsheet size={18} style={{ color: "#16a34a" }} />
-            <h2 style={{ fontSize: "16px", margin: 0 }}>
-              Official <span title="Work paper report">Kertas Kerja</span> (Work Paper)
-            </h2>
-            <Badge value="FINAL / RELEASED" />
-            <SopBadge value={report.snapshot.validation_status} />
-          </div>
-          <span className="muted" style={{ fontSize: "12px" }}>
-            Version {report.version} · Generated: {formatDate(report.created_at)}
-          </span>
-        </div>
-
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
-          <div>
-            <div style={{ fontWeight: 600, fontSize: "14px", color: "#1e293b" }}>
-              Pemeriksaan Transaksi Valas (Forex Compliance Paper)
-            </div>
-            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#64748b" }}>
-              Official work paper containing verified customer extractions, compliance findings, and SOP scores.
-            </p>
-          </div>
-
-          <div className="button-row" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <a
-              className="btn-secondary-action compact-btn"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              href={`/api/reports/${report.id}/download?format=xlsx`}
-              title="Download Official Kertas Kerja in Excel format (.xlsx)"
-            >
-              <FileSpreadsheet size={14} style={{ color: "#16a34a" }} />
-              <span>Download Excel</span>
-            </a>
-
-            <a
-              className="btn-secondary-action compact-btn"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              href={`/api/reports/${report.id}/download?format=pdf`}
-              title="Download Work Paper in PDF format"
-            >
-              <Download size={13} />
-              <span>PDF</span>
-            </a>
-
-            <Link
-              className="btn-secondary-action compact-btn"
-              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
-              href={`/reports/${report.id}`}
-              title="View interactive report and findings breakdown"
-            >
-              <span>View Full Report</span>
-              <ArrowUpRight size={13} />
-            </Link>
-          </div>
-        </div>
-      </section>
-    );
   };
 
   return (
@@ -287,55 +156,17 @@ export default function CasePage({
                 </div>
 
                 <div className="exec-actions">
-                  {report && (
-                    <>
-                      <a
-                        className="btn-primary-action"
-                        style={{
-                          background: "#16a34a",
-                          borderColor: "#15803d",
-                          color: "#ffffff",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 7,
-                          boxShadow: "0 1px 2px 0 rgba(22, 163, 74, 0.25)",
-                        }}
-                        href={`/api/reports/${report.id}/download?format=xlsx`}
-                        title="Download Official Kertas Kerja in Excel format (.xlsx)"
-                      >
-                        <FileSpreadsheet size={15} />
-                        <span>Download Official Kertas Kerja (XLSX)</span>
-                      </a>
-                      <a
-                        className="btn-secondary-action compact-btn"
-                        href={`/api/reports/${report.id}/download?format=pdf`}
-                        title="Download Work Paper in PDF format"
-                      >
-                        <Download size={14} />
-                        <span>PDF</span>
-                      </a>
-                      <Link
-                        className="btn-secondary-action compact-btn"
-                        href={`/reports/${report.id}`}
-                        title="View interactive compliance report"
-                      >
-                        <ArrowUpRight size={14} />
-                        <span>View Report</span>
-                      </Link>
-                    </>
-                  )}
-
-                  {data.can_write && (
-                    <Link
-                      className="btn-secondary-action compact-btn"
-                      style={{ color: "#475569" }}
-                      href={`/upload?case=${id}&branch=${data.branch_id}`}
-                      title="Upload supplementary or missing documents for this customer case. This does not create a new case."
+                  {report ? (
+                    <a
+                      className="btn-download-kertas-kerja"
+                      href={`/api/reports/${report.id}/download?format=xlsx`}
+                      title="Download Official Kertas Kerja in Excel format (.xlsx)"
                     >
-                      <Upload size={14} />
-                      <span>Add Documents</span>
-                    </Link>
-                  )}
+                      <FileSpreadsheet size={16} />
+                      <span>Download Excel Kertas Kerja</span>
+                      <span className="btn-version-pill">v{report.version}</span>
+                    </a>
+                  ) : null}
                 </div>
               </div>
 
@@ -505,9 +336,6 @@ export default function CasePage({
               </div>
             ) : null}
 
-            {/* Official Kertas Kerja Work Paper Output - Prominently Positioned Above Fold */}
-            {renderReportSection()}
-
             {/* 3-Mode Primary Navigation Tabs */}
             <nav className="workspace-mode-tabs" aria-label="Case workspace modes">
               <button
@@ -567,29 +395,6 @@ export default function CasePage({
                     </div>
 
                     <div className="doc-package-actions">
-                      {exportableDocs.length > 0 && (
-                        <button
-                          className="btn-secondary-action compact-btn"
-                          disabled={exporting}
-                          onClick={exportAllDocuments}
-                          title="Export all extracted document data to Excel"
-                        >
-                          <Download size={13} />
-                          <span>{exporting ? "Exporting…" : "Export Data"}</span>
-                        </button>
-                      )}
-
-                      {data.can_write && (
-                        <Link
-                          className="btn-secondary-action compact-btn"
-                          href={`/upload?case=${id}&branch=${data.branch_id}`}
-                          title="Upload supplementary or missing documents for this customer case. This does not create a new case."
-                        >
-                          <Upload size={13} />
-                          <span>Add Document</span>
-                        </Link>
-                      )}
-
                       {data.can_write && failedDocs.length > 0 && (
                         <button
                           className="primary compact-btn"

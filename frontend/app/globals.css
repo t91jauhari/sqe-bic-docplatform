@@ -4681,23 +4681,23 @@ html[data-density="compact"] .stat-card {
 }
 .pipeline-step.step-done {
   background: #f0fdf4;
-  border-bottom-color: #16a34a;
+  border-bottom-color: #059669;
 }
 .pipeline-step.step-active {
-  background: #eff6ff;
-  border-bottom-color: #2563eb;
+  background: #f0f9ff;
+  border-bottom-color: #0284c7;
 }
 .pipeline-step.step-attention {
-  background: #fef2f2;
-  border-bottom-color: #dc2626;
+  background: #fff1f2;
+  border-bottom-color: #e11d48;
 }
 .pipeline-step.step-review {
-  background: #fefce8;
-  border-bottom-color: #ca8a04;
+  background: #fffbeb;
+  border-bottom-color: #d97706;
 }
 .pipeline-step.step-ready {
   background: #f0fdfa;
-  border-bottom-color: #0d9488;
+  border-bottom-color: #0f766e;
 }
 .step-indicator {
   width: 24px;
@@ -4713,23 +4713,23 @@ html[data-density="compact"] .stat-card {
   flex-shrink: 0;
 }
 .step-done .step-indicator {
-  background: #16a34a;
+  background: #059669;
   color: #ffffff;
 }
 .step-active .step-indicator {
-  background: #2563eb;
+  background: #0284c7;
   color: #ffffff;
 }
 .step-attention .step-indicator {
-  background: #dc2626;
+  background: #e11d48;
   color: #ffffff;
 }
 .step-review .step-indicator {
-  background: #ca8a04;
+  background: #d97706;
   color: #ffffff;
 }
 .step-ready .step-indicator {
-  background: #0d9488;
+  background: #0f766e;
   color: #ffffff;
 }
 .step-content {
@@ -4792,11 +4792,11 @@ html[data-density="compact"] .stat-card {
 /* Executive Case Header Card */
 .case-executive-header {
   background: #ffffff;
-  border: 1px solid #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 20px 24px 16px;
   margin-bottom: 20px;
-  box-shadow: 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
 }
 .exec-header-top {
   display: flex;
@@ -4815,14 +4815,15 @@ html[data-density="compact"] .stat-card {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: #0284c7;
-  color: #ffffff;
+  background: #0f172a;
+  color: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   font-weight: 700;
   flex-shrink: 0;
+  border: 1px solid #1e293b;
 }
 .exec-customer-text h1 {
   margin: 0;
@@ -4894,6 +4895,41 @@ html[data-density="compact"] .stat-card {
   background: #f1f5f9;
   border-color: #94a3b8;
 }
+
+.btn-download-kertas-kerja {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  background: #0f766e;
+  color: #ffffff;
+  border: 1px solid #0d9488;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 1px 2px 0 rgba(15, 118, 110, 0.2);
+  transition: all 0.15s ease;
+}
+.btn-download-kertas-kerja:hover {
+  background: #115e59;
+  border-color: #0f766e;
+  color: #ffffff;
+}
+.btn-download-kertas-kerja:active {
+  background: #134e4a;
+}
+.btn-download-kertas-kerja .btn-version-pill {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
 
 /* Stepper Pipeline inside Executive Header */
 .exec-stepper-wrap {
