@@ -220,7 +220,7 @@ def run_gemini(doc, cfg, heartbeat):
         "schema_catalog": field_catalog(schema),
         "field_instructions": field_guidance(schema),
         "field_types": field_types(schema),
-        "reading_guidance": reading_instructions(doc.doc_type, cfg),
+        "reading_guidance": reading_instructions(profile),
     }
 
     user_text = (
