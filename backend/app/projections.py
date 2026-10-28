@@ -4,7 +4,7 @@ from app.configuration.repository import get_revision
 import re
 from urllib.parse import quote
 from sqlalchemy import select
-from app.db import Document
+from app.db import Document, Branch
 
 
 def user_view(user):
@@ -19,7 +19,7 @@ def user_view(user):
     }
 
 
-def case_view(c, db, *, doc_rows=None, rev=None):
+def case_view(c, db, *, doc_rows=None, rev=None, branch=None):
     rows = (
         doc_rows
         if doc_rows is not None
@@ -38,11 +38,16 @@ def case_view(c, db, *, doc_rows=None, rev=None):
             if doc_type in payload["profiles"] and doc_status != "COMPLETED"
         }
     )
+    b_obj = branch or (db.get(Branch, c.branch_id) if c.branch_id else None)
+    branch_name = b_obj.name if b_obj else (c.branch_id or "-")
+    branch_code = b_obj.code if b_obj else ""
     return {
         "id": c.id,
         "reference": c.reference,
         "customer": c.customer,
         "branch_id": c.branch_id,
+        "branch_name": branch_name,
+        "branch_code": branch_code,
         "status": c.status,
         "validation_status": c.validation_status,
         "template": c.template,
@@ -75,8 +80,21 @@ def case_views(cases, db):
             revisions[c.config_id] = get_revision(
                 db, c.config_id, copy_payload=False
             )
+    branch_ids = [c.branch_id for c in rows if c.branch_id]
+    branches_by_id = {}
+    if branch_ids:
+        branches_by_id = {
+            b.id: b
+            for b in db.scalars(select(Branch).where(Branch.id.in_(branch_ids))).all()
+        }
     return [
-        case_view(c, db, doc_rows=doc_rows_by_case[c.id], rev=revisions[c.config_id])
+        case_view(
+            c,
+            db,
+            doc_rows=doc_rows_by_case[c.id],
+            rev=revisions[c.config_id],
+            branch=branches_by_id.get(c.branch_id),
+        )
         for c in rows
     ]
 

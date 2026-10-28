@@ -18,6 +18,8 @@ type Context = {
   online: boolean;
   toasts: Toast[];
   upload: UploadState | null;
+  devMode: boolean;
+  setDevMode: (enabled: boolean) => void;
   notify: (message: string, tone?: "success" | "error") => void;
   dismiss: (id: number) => void;
   signIn: (
@@ -39,6 +41,18 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
     [online, setOnline] = useState(true);
   const [toasts, setToasts] = useState<Toast[]>([]),
     [upload, setUpload] = useState<UploadState | null>(null);
+  const [devMode, setDevModeState] = useState(false);
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setDevModeState(localStorage.getItem("app_dev_mode") === "true");
+    }
+  }, []);
+  const setDevMode = useCallback((enabled: boolean) => {
+    setDevModeState(enabled);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("app_dev_mode", enabled ? "true" : "false");
+    }
+  }, []);
   const notify = useCallback(
     (message: string, tone: "success" | "error" = "success") => {
       const id = Date.now() + Math.random();
@@ -136,6 +150,8 @@ export function PlatformProvider({ children }: { children: React.ReactNode }) {
         online,
         toasts,
         upload,
+        devMode,
+        setDevMode,
         notify,
         dismiss,
         signIn,

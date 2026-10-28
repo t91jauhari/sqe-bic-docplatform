@@ -188,6 +188,8 @@ export type CaseSummary = {
   reference: string;
   customer: string;
   branch_id: string;
+  branch_name?: string;
+  branch_code?: string;
   status: string;
   validation_status: string;
   template: string;

@@ -16,6 +16,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Badge, display } from "@/components/ui";
+import { usePlatform } from "@/components/platform-provider";
 import { VisualRegionEditor } from "@/components/visual-region-editor";
 import { extractionCheck } from "@/lib/extraction-export";
 import type { Configuration, Document, FieldResult } from "@/lib/types";
@@ -99,6 +100,7 @@ export function FieldEvidenceWorkspace({
   const [showInspector, setShowInspector] = useState<boolean>(true);
   const [inspectorZoom, setInspectorZoom] = useState<number>(100);
   const [showDevKeys, setShowDevKeys] = useState<boolean>(false);
+  const { devMode } = usePlatform();
 
   const rows = useMemo<UnifiedFieldRow[]>(() => {
     const labelMap = new Map<string, string>(columns || []);
@@ -403,14 +405,16 @@ export function FieldEvidenceWorkspace({
             {showInspector ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             {showInspector ? "Hide inspector" : "Show inspector"}
           </button>
-          <button
-            type="button"
-            className="dev-keys-toggle-btn"
-            onClick={() => setShowDevKeys((v) => !v)}
-            title="Tampilkan nama atribut database asli"
-          >
-            {showDevKeys ? "Sembunyikan Kunci Teknis" : "Kunci Teknis"}
-          </button>
+          {devMode && (
+            <button
+              type="button"
+              className="dev-keys-toggle-btn"
+              onClick={() => setShowDevKeys((v) => !v)}
+              title="Toggle database schema field names"
+            >
+              {showDevKeys ? "Hide Technical Keys" : "Technical Keys"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -423,10 +427,10 @@ export function FieldEvidenceWorkspace({
           <table>
             <thead>
               <tr>
-                <th>Atribut Dokumen</th>
-                <th>Nilai Terbaca</th>
-                <th>Bukti Visual</th>
-                <th>Status & Tindakan</th>
+                <th>Document Field</th>
+                <th>Extracted Value</th>
+                <th>Visual Evidence</th>
+                <th>Status & Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -638,7 +642,7 @@ export function FieldEvidenceWorkspace({
           >
             <div className="inspector-head">
               <div>
-                <span className="eyebrow">BUKTI SUMBER DOKUMEN</span>
+                <span className="eyebrow">DOCUMENT SOURCE EVIDENCE</span>
                 <h3>{activeRow.label}</h3>
                 <span className="field-key-code">{activeRow.field}</span>
               </div>
@@ -710,7 +714,7 @@ export function FieldEvidenceWorkspace({
             <div className="inspector-crops-section">
               <div className="inspector-crops-head">
                 <span className="small-label">
-                  BUKTI POTONGAN GAMBAR (
+                  VISUAL EVIDENCE CROPS (
                   {activeRow.crops.filter((c) => c.url).length})
                 </span>
                 {activeRow.crops.some((c) => c.url) && (
@@ -832,21 +836,23 @@ export function FieldEvidenceWorkspace({
               )}
             </div>
 
-            <details className="inspector-raw-details">
-              <summary>Raw, override & validation metadata</summary>
-              <pre>
-                {JSON.stringify(
-                  {
-                    raw: doc.raw?.[activeRow.field],
-                    override: doc.overrides?.[activeRow.field],
-                    evidence: activeRow.result?.metadata,
-                    issues: activeRow.result?.issues,
-                  },
-                  null,
-                  2,
-                )}
-              </pre>
-            </details>
+            {devMode && (
+              <details className="inspector-raw-details">
+                <summary>Raw, override & validation metadata</summary>
+                <pre>
+                  {JSON.stringify(
+                    {
+                      raw: doc.raw?.[activeRow.field],
+                      override: doc.overrides?.[activeRow.field],
+                      evidence: activeRow.result?.metadata,
+                      issues: activeRow.result?.issues,
+                    },
+                    null,
+                    2,
+                  )}
+                </pre>
+              </details>
+            )}
           </aside>
         )}
       </div>

@@ -119,7 +119,7 @@ type Test = {
   note: string;
 };
 export default function Settings() {
-  const { user, notify, online } = usePlatform(),
+  const { user, notify, online, devMode, setDevMode } = usePlatform(),
     { data, loading, error, refresh } = useData<ConfigResponse>("/config", 0);
   const [draft, setDraft] = useState<Configuration | null>(null),
     [version, setVersion] = useState(0),
@@ -697,6 +697,32 @@ export default function Settings() {
                         />
                       </label>
                     </fieldset>
+                  </section>
+                  <section className="panel settings-card">
+                    <h2>Developer & Maintenance Mode</h2>
+                    <p>
+                      Control visibility of technical diagnostics, low-level database operations, and developer maintenance drawers.
+                    </p>
+                    <label className="checkbox-label" style={{ marginTop: 16 }}>
+                      <input
+                        type="checkbox"
+                        checked={devMode}
+                        onChange={(e) => {
+                          setDevMode(e.target.checked);
+                          notify(
+                            e.target.checked
+                              ? "Developer & maintenance mode enabled."
+                              : "Developer & maintenance mode disabled; simplified interface active."
+                          );
+                        }}
+                      />
+                      <span>
+                        <strong>Enable Developer & Maintenance Tools</strong>
+                        <small>
+                          When enabled, displays grouping repair, technical schema keys, database reconciliation, and advanced JSON editing. When disabled, these technical tools are hidden to provide a clean, intuitive experience for bank operations.
+                        </small>
+                      </span>
+                    </label>
                   </section>
                   <section className="panel settings-card">
                     <h2>Customer filename aliases</h2>

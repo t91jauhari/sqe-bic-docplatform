@@ -166,18 +166,18 @@ export function display(value: unknown): string {
     const match =
       typeof v.date === "string" && /^(\d{2})-(\d{2})-(\d{4})$/.exec(v.date);
     const months = [
-      "Januari",
-      "Februari",
-      "Maret",
+      "January",
+      "February",
+      "March",
       "April",
-      "Mei",
-      "Juni",
-      "Juli",
-      "Agustus",
+      "May",
+      "June",
+      "July",
+      "August",
       "September",
-      "Oktober",
+      "October",
       "November",
-      "Desember",
+      "December",
     ];
     if (match && Number(match[2]) >= 1 && Number(match[2]) <= 12)
       date = `${Number(match[1])} ${months[Number(match[2]) - 1]} ${match[3]}`;
@@ -250,6 +250,7 @@ export function CaseTable({ cases }: { cases: CaseSummary[] }) {
                 </Link>
                 <div className="subtext">
                   {c.reference} · {c.transaction_flow_label || c.template}
+                  {c.branch_name ? ` · ${c.branch_name}` : ""}
                 </div>
               </td>
               <td>
