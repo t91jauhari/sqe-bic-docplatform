@@ -497,7 +497,7 @@ export default function CasePage({
                     className="panel evidence-panel"
                     style={{
                       padding: 0,
-                      overflow: "hidden",
+                      overflow: "visible",
                       background: "#ffffff",
                       border: "1px solid #f1f5f9",
                       borderRadius: "10px",

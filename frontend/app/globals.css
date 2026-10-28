@@ -4012,8 +4012,10 @@ html[data-density="compact"] .stat-card {
 }
 
 /* Side-by-side field extraction & crop evidence workspace (Option C) */
-.evidence-panel {
-  overflow: visible;
+.evidence-panel,
+.panel.evidence-panel,
+section.evidence-panel {
+  overflow: visible !important;
 }
 .field-evidence-workspace {
   border-top: 1px solid var(--line);
@@ -4082,6 +4084,7 @@ html[data-density="compact"] .stat-card {
 .field-evidence-split {
   display: grid;
   align-items: start;
+  overflow: visible;
 }
 .field-evidence-split.with-inspector {
   grid-template-columns: minmax(0, 1fr) 360px;
@@ -4261,19 +4264,22 @@ html[data-density="compact"] .stat-card {
 }
 /* Sticky right-hand evidence inspector */
 .field-inspector-pane {
+  position: -webkit-sticky;
   position: sticky;
-  top: 64px;
+  top: 16px;
+  align-self: start;
   border-left: 1px solid #e2e8f0;
-  background: rgba(248, 250, 252, 0.7); /* subtle off-white bg-slate-50/70 */
+  background: rgba(248, 250, 252, 0.85); /* subtle off-white bg-slate-50/70 */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: -4px 0 24px rgba(15, 23, 42, 0.015); /* sub-pixel boundary shadow */
+  box-shadow: -4px 0 24px rgba(15, 23, 42, 0.025); /* sub-pixel boundary shadow */
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 32px);
   overflow-y: auto;
+  z-index: 20;
 }
 .inspector-head {
   display: flex;
