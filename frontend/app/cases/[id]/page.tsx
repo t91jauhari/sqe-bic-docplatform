@@ -195,7 +195,7 @@ export default function CasePage({
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <div>
             <div style={{ fontWeight: 600, fontSize: "14px", color: "#1e293b" }}>
-              {report.snapshot.report_title || "Pemeriksaan Transaksi Valas (Forex Compliance Paper)"}
+              Pemeriksaan Transaksi Valas (Forex Compliance Paper)
             </div>
             <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#64748b" }}>
               Official work paper containing verified customer extractions, compliance findings, and SOP scores.
