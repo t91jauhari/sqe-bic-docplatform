@@ -1,5 +1,5 @@
 "use client";
-import {CaseConfiguration} from "@/components/case-configuration";
+import { CaseConfiguration } from "@/components/case-configuration";
 import { FieldEvidenceWorkspace } from "@/components/field-evidence-workspace";
 import { FieldReprocess } from "@/components/field-reprocess";
 import { FieldRequestRecovery } from "@/components/field-request-recovery";
@@ -17,7 +17,6 @@ import {
   GitBranch,
   Upload,
   FileText,
-  ArrowUpRight,
   RotateCcw,
   Check,
   Download,
@@ -28,6 +27,13 @@ import {
   Clock3,
   ShieldCheck,
   Wrench,
+  Scale,
+  FileCheck2,
+  FolderOpen,
+  ChevronRight,
+  AlertCircle,
+  CheckCircle2,
+  Layers,
 } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { useData, usePlatform } from "@/components/platform-provider";
@@ -49,11 +55,13 @@ import type {
   ConfigResponse,
   CaseSummary,
 } from "@/lib/types";
+
 type Action = {
   kind: "classification" | "correction" | "move" | "reconcile";
   doc: Document;
   field?: string;
 };
+
 export default function CasePage({
   params,
 }: {
@@ -63,55 +71,34 @@ export default function CasePage({
     { data, error, loading, refresh } = useData<CaseDetail>("/cases/" + id),
     { notify, user } = usePlatform();
   const { data: cfg } = useData<ConfigResponse>("/config", 0);
-  const [selected, setSelected] = useState(""),
-    [tab, setTab] = useState<"fields" | "findings" | "timeline">("fields"),
-    [findingFilter, setFindingFilter] = useState<"all" | "attention" | "visual" | "pass">("all"),
-    [sidebarCollapsed, setSidebarCollapsed] = useState(false),
-    [action, setAction] = useState<Action | null>(null),
-    [pending, setPending] = useState(false),
-    [exporting, setExporting] = useState(false);
+
+  const [activeMode, setActiveMode] = useState<"documents" | "sop" | "reports">("documents");
+  const [selected, setSelected] = useState("");
+  const [findingFilter, setFindingFilter] = useState<"all" | "attention" | "visual" | "pass">("all");
+  const [action, setAction] = useState<Action | null>(null);
+  const [pending, setPending] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
   const close = useCallback(() => setAction(null), []);
+
   useEffect(() => {
     if (!selected && data && window.location.hash === "#recovery") {
       const failed = data.documents.find((d) => d.error);
       if (failed) setSelected(failed.id);
     }
   }, [data, selected]);
-  // Step 8 — in-view highlight for the sticky section navigation.
-  const [activeSection, setActiveSection] = useState("case-overview");
-  useEffect(() => {
-    if (!data) return;
-    const ids = [
-      "case-overview",
-      "case-documents",
-      "case-fields",
-      "case-sop",
-      "case-reports",
-    ];
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible) setActiveSection(visible.target.id);
-      },
-      { rootMargin: "-96px 0px -55% 0px", threshold: [0, 0.1, 0.3] },
-    );
-    for (const id of ids) {
-      const el = document.getElementById(id);
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
-  }, [data, selected, tab]);
+
   const doc =
-      data?.documents.find((d) => d.id === selected) || data?.documents[0],
-    report = data?.reports[0];
+    data?.documents.find((d) => d.id === selected) || data?.documents[0];
+  const report = data?.reports[0];
+
   const exportableDocs =
     data?.documents.filter(
       (d) =>
         d.status === "COMPLETED" &&
         Object.entries(d.normalized || {}).some(([f]) => f !== "page_results"),
     ) || [];
+
   const failedDocs =
     data?.documents.filter(
       (d) =>
@@ -119,28 +106,28 @@ export default function CasePage({
         d.status === "FAILED" ||
         d.status === "NEEDS_CLASSIFICATION",
     ) || [];
+
   const retryableDocs =
     data?.documents.filter((d) => !d.provider_state?.pending_create) || [];
+
   const exportAllDocuments = async () => {
     if (!exportableDocs.length) return;
     setExporting(true);
     try {
       const resolveRow = (
-        doc: Document,
+        d: Document,
         field: string,
         value: unknown,
       ): [string, string] => {
         const columns =
           cfg?.payload.profiles[
-            doc.doc_type as keyof typeof cfg.payload.profiles
+            d.doc_type as keyof typeof cfg.payload.profiles
           ]?.columns;
         const label = columns?.find(([key]) => key === field)?.[1] || field;
         const text =
           value == null &&
-          doc.validation?.fields?.[field]?.issues?.some((issue) =>
-            ["UNRECOGNIZED_ENUM", "INVALID_OR_MISSING_ENUM"].includes(
-              issue.code,
-            ),
+          d.validation?.fields?.[field]?.issues?.some((issue) =>
+            ["UNRECOGNIZED_ENUM", "INVALID_OR_MISSING_ENUM"].includes(issue.code),
           )
             ? "Unrecognized value · needs review"
             : display(value);
@@ -156,241 +143,195 @@ export default function CasePage({
           exportableDocs.length === 1 ? "" : "s"
         } to Excel.`,
       );
-    } catch (error) {
+    } catch (err) {
       notify(
-        error instanceof Error ? error.message : "Unable to export extraction",
+        err instanceof Error ? err.message : "Unable to export extraction to Excel.",
         "error",
       );
     } finally {
       setExporting(false);
     }
   };
-  const run = async (operation: () => Promise<unknown>, message: string) => {
+
+  const run = async (fn: () => Promise<unknown>, success: string) => {
     setPending(true);
     try {
-      await operation();
-      notify(message);
+      await fn();
+      notify(success);
       await refresh();
-    } catch (e) {
-      notify(e instanceof Error ? e.message : "Action failed.", "error");
+    } catch (err) {
+      notify(err instanceof Error ? err.message : "Action failed.", "error");
     } finally {
       setPending(false);
     }
   };
+
   return (
     <Shell
-      title={data?.customer || "Customer case"}
-      subtitle={
-        data
-          ? data.reference +
-            " · " +
-            (data.transaction_flow_label || data.template) +
-            " · Configuration v" +
-            data.config_version
-          : "Opening case workspace…"
-      }
-      action={
-        data && (
-          <div className="button-row">
-            <Link className="secondary" href={`/cases/${id}/comparison`}>
-              Dataset comparison
-            </Link>
-            <Link className="secondary" href={`/cases/${id}/review`}>
-              <ShieldCheck size={17} />
-              Visual review
-            </Link>
-            {data.can_write && (
-              <Link
-                className="primary"
-                href={"/upload?case=" + id + "&branch=" + data.branch_id}
-              >
-                <Upload size={17} />
-                Add documents
-              </Link>
-            )}
-          </div>
-        )
-      }
+      title={data?.customer ? `${data.customer}` : "Kasus Nasabah"}
+      subtitle={data?.reference ? `Referensi: ${data.reference}` : "Memuat detail kasus..."}
     >
       {error && <ErrorNotice message={error} retry={() => void refresh()} />}
       {loading && !data ? (
-        <Busy />
+        <Busy label="Membuka berkas kasus nasabah…" />
       ) : (
         data && (
-          <>
-            {data.can_review && (
-              <details className="case-utilities">
-                <summary>
-                  <Wrench size={16} aria-hidden />
-                  Case maintenance tools<span>Grouping & identity checks</span>
-                </summary>
-                <BatchGroupingRepair
-                  key={id}
-                  batchIds={Array.from(
-                    new Set(
-                      data.documents
-                        .map((d) => d.batch_id)
-                        .filter((id): id is string => !!id),
-                    ),
-                  )}
-                />
-                {data.documents.some(
-                  (d) => d.doc_type === "ektp" && d.status === "COMPLETED",
-                ) && <EnumRevalidation caseId={id} refresh={refresh} />}
-                {data.can_adopt_configuration && <CaseConfiguration caseId={id} currentVersion={data.config_version} refresh={refresh} />}
-              </details>
-            )}
-            <div className="case-banner">
-              <div className="case-banner-title">
-                <span className="case-symbol">
-                  <LayersIcon />
-                </span>
-                <div>
-                  <strong>Case status</strong>
-                  <div className="badge-row">
-                    <StatusBadge value={data.status} />
-                    <SopBadge value={data.validation_status} />
+          <div className="case-page-container">
+            {/* Breadcrumb Navigation */}
+            <nav className="case-breadcrumb-bar" aria-label="Breadcrumb">
+              <Link href="/" className="bc-link">Beranda</Link>
+              <span className="bc-sep">/</span>
+              <Link href="/cases" className="bc-link">Daftar Kasus</Link>
+              <span className="bc-sep">/</span>
+              <span className="bc-current">{data.customer} ({data.reference})</span>
+            </nav>
+
+            {/* Executive Case Summary Card */}
+            <header className="case-executive-header">
+              <div className="exec-header-top">
+                <div className="exec-customer-info">
+                  <div className="exec-avatar">{data.customer.charAt(0).toUpperCase()}</div>
+                  <div className="exec-customer-text">
+                    <h1>{data.customer}</h1>
+                    <div className="exec-badges-row">
+                      <span className="pill-ref">REF: {data.reference}</span>
+                      <span className="pill-branch">Cabang: {data.branch_id}</span>
+                      <StatusBadge value={data.status} />
+                      <SopBadge value={data.validation_status} />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div>
-                <span className="muted">Documents completed</span>
-                <strong>
-                  {data.completed_count} / {data.documents_count}
-                </strong>
-              </div>
-              <div>
-                <span className="muted">Latest report</span>
-                <strong>{report ? `v${report.version}` : "Not ready"}</strong>
-              </div>
-              <div className="case-release">
-                {report && (
-                  <>
+
+                <div className="exec-actions">
+                  {report && (
                     <a
-                      className="secondary"
-                      href={
-                        "/api/reports/" + report.id + "/download?format=pdf"
+                      className="btn-secondary-action"
+                      href={`/api/reports/${report.id}/download?format=pdf`}
+                      title="Unduh Lembar Kertas Kerja Resmi"
+                    >
+                      <Download size={15} />
+                      <span>Kertas Kerja v{report.version}</span>
+                    </a>
+                  )}
+
+                  {data.can_review && data.status === "READY" && report && report.state !== "FINAL" && (
+                    <button
+                      className="btn-primary-action"
+                      disabled={pending}
+                      onClick={() =>
+                        void run(
+                          () => api(`/reports/${report.id}/approve`, { method: "POST" }),
+                          "Kertas kerja disetujui & laporan resmi dirilis.",
+                        )
                       }
                     >
-                      <Download size={16} />
-                      <span title="Work paper report — the standardized output pack for this case">
-                        Kertas kerja
-                      </span>{" "}
-                      v{report.version}
-                    </a>
-                    {data.can_review &&
-                      data.status === "READY" &&
-                      report.state !== "FINAL" && (
-                        <button
-                          className="primary"
-                          disabled={pending}
-                          onClick={() =>
-                            void run(
-                              () =>
-                                api("/reports/" + report.id + "/approve", {
-                                  method: "POST",
-                                }),
-                              "Report released.",
-                            )
-                          }
-                        >
-                          <ShieldCheck size={16} />
-                          Release report
-                        </button>
-                      )}
-                  </>
-                )}
-              </div>
-            </div>
-            {/* Informative Workflow Stage Stepper */}
-            <div className="case-workflow-pipeline">
-              <div className="pipeline-header">
-                <div className="pipeline-title">
-                  <GitBranch size={15} />
-                  <span>Workflow Pipeline</span>
-                </div>
-                <div className="pipeline-meta">
-                  Case: <strong>{data.reference}</strong> · Branch: <strong>{data.branch_id}</strong>
+                      <ShieldCheck size={16} />
+                      <span>Setujui & Rilis Kertas Kerja</span>
+                    </button>
+                  )}
+
+                  {data.can_write && (
+                    <Link
+                      className="btn-secondary-action"
+                      href={`/upload?case=${id}&branch=${data.branch_id}`}
+                    >
+                      <Upload size={15} />
+                      <span>Upload Dokumen</span>
+                    </Link>
+                  )}
                 </div>
               </div>
-              <div className="pipeline-steps">
-                <div className={`pipeline-step ${data.documents_count > 0 ? "step-done" : "step-pending"}`}>
-                  <div className="step-indicator">1</div>
-                  <div className="step-content">
-                    <div className="step-name">1. Document Intake</div>
-                    <div className="step-desc">
-                      {data.documents_count > 0 ? `${data.documents_count} uploaded` : "Waiting uploads"}
+
+              {/* Integrated 4-Step Workflow Pipeline */}
+              <div className="exec-stepper-wrap">
+                <div className="pipeline-steps">
+                  {/* Step 1: Document Intake */}
+                  <div className={`pipeline-step ${data.documents_count > 0 ? "step-done" : "step-pending"}`}>
+                    <div className="step-indicator">1</div>
+                    <div className="step-content">
+                      <div className="step-name">1. Dokumen Masuk</div>
+                      <div className="step-desc">
+                        {data.documents_count > 0 ? `${data.documents_count} berkas terunggah` : "Menunggu berkas"}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="pipeline-connector" />
-                <div className={`pipeline-step ${
-                  data.completed_count === data.documents_count && data.documents_count > 0
-                    ? "step-done"
-                    : data.documents.some((d) => ["RUNNING", "PROCESSING", "QUEUED"].includes(d.status))
-                      ? "step-active"
-                      : data.documents.some((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status))
-                        ? "step-attention"
-                        : "step-pending"
-                }`}>
-                  <div className="step-indicator">2</div>
-                  <div className="step-content">
-                    <div className="step-name">2. AI Extraction</div>
-                    <div className="step-desc">
-                      {data.documents.some((d) => ["RUNNING", "PROCESSING", "QUEUED"].includes(d.status))
-                        ? `In progress (${data.completed_count}/${data.documents_count})`
-                        : data.documents.some((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status))
-                          ? `Action needed (${data.documents.filter((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status)).length} failed)`
-                          : `${data.completed_count}/${data.documents_count} completed`}
-                    </div>
-                  </div>
-                </div>
-                <div className="pipeline-connector" />
-                <div className={`pipeline-step ${
-                  data.status === "SOP_ERROR"
-                    ? "step-attention"
-                    : ["PASS", "COMPLIANT"].includes(data.validation_status)
+                  <div className="pipeline-connector" />
+
+                  {/* Step 2: AI Extraction */}
+                  <div className={`pipeline-step ${
+                    data.completed_count === data.documents_count && data.documents_count > 0
                       ? "step-done"
-                      : ["REVIEW", "FAIL"].includes(data.validation_status)
-                        ? "step-review"
-                        : "step-pending"
-                }`}>
-                  <div className="step-indicator">3</div>
-                  <div className="step-content">
-                    <div className="step-name">3. SOP Compliance</div>
-                    <div className="step-desc">
-                      {data.status === "SOP_ERROR"
-                        ? "Evaluation interrupted"
-                        : ["PASS", "COMPLIANT"].includes(data.validation_status)
-                          ? "All rules passed"
-                          : ["REVIEW", "FAIL"].includes(data.validation_status)
-                            ? "Findings under review"
-                            : "Awaiting extraction"}
+                      : data.documents.some((d) => ["RUNNING", "PROCESSING", "QUEUED"].includes(d.status))
+                        ? "step-active"
+                        : data.documents.some((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status))
+                          ? "step-attention"
+                          : "step-pending"
+                  }`}>
+                    <div className="step-indicator">2</div>
+                    <div className="step-content">
+                      <div className="step-name">2. Ekstraksi AI</div>
+                      <div className="step-desc">
+                        {data.documents.some((d) => ["RUNNING", "PROCESSING", "QUEUED"].includes(d.status))
+                          ? `Diproses (${data.completed_count}/${data.documents_count})`
+                          : data.documents.some((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status))
+                            ? `Perlu Perhatian (${data.documents.filter((d) => ["ERROR", "PROCESSING_ERROR"].includes(d.status)).length} gagal)`
+                            : `${data.completed_count}/${data.documents_count} selesai`}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="pipeline-connector" />
-                <div className={`pipeline-step ${
-                  report?.state === "FINAL"
-                    ? "step-done"
-                    : report
-                      ? "step-ready"
-                      : "step-pending"
-                }`}>
-                  <div className="step-indicator">4</div>
-                  <div className="step-content">
-                    <div className="step-name">4. Kertas Kerja</div>
-                    <div className="step-desc">
-                      {report?.state === "FINAL"
-                        ? `Released v${report.version}`
-                        : report
-                          ? `Draft ready v${report.version}`
-                          : "Pending SOP checks"}
+                  <div className="pipeline-connector" />
+
+                  {/* Step 3: SOP Compliance */}
+                  <div className={`pipeline-step ${
+                    data.status === "SOP_ERROR"
+                      ? "step-attention"
+                      : ["PASS", "COMPLIANT"].includes(data.validation_status)
+                        ? "step-done"
+                        : ["REVIEW", "FAIL"].includes(data.validation_status)
+                          ? "step-review"
+                          : "step-pending"
+                  }`}>
+                    <div className="step-indicator">3</div>
+                    <div className="step-content">
+                      <div className="step-name">3. Kepatuhan SOP</div>
+                      <div className="step-desc">
+                        {data.status === "SOP_ERROR"
+                          ? "Evaluasi terhenti"
+                          : ["PASS", "COMPLIANT"].includes(data.validation_status)
+                            ? "Semua aturan sesuai"
+                            : ["REVIEW", "FAIL"].includes(data.validation_status)
+                              ? "Ada temuan verifikasi"
+                              : "Menunggu ekstraksi"}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="pipeline-connector" />
+
+                  {/* Step 4: Kertas Kerja */}
+                  <div className={`pipeline-step ${
+                    report?.state === "FINAL"
+                      ? "step-done"
+                      : report
+                        ? "step-ready"
+                        : "step-pending"
+                  }`}>
+                    <div className="step-indicator">4</div>
+                    <div className="step-content">
+                      <div className="step-name">4. Kertas Kerja</div>
+                      <div className="step-desc">
+                        {report?.state === "FINAL"
+                          ? `Selesai v${report.version}`
+                          : report
+                            ? `Draft siap v${report.version}`
+                            : "Menunggu SOP"}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </header>
+
+            {/* SOP Interrupted Alert Banner */}
             {data.status === "SOP_ERROR" && (
               <div
                 className="fixture-banner"
@@ -402,15 +343,16 @@ export default function CasePage({
                   background: "rgba(220, 38, 38, 0.08)",
                   borderColor: "rgba(220, 38, 38, 0.3)",
                   color: "inherit",
-                  marginTop: 12,
+                  marginTop: -6,
+                  marginBottom: 16,
                 }}
               >
                 <div>
                   <strong style={{ color: "var(--color-danger, #dc2626)" }}>
-                    SOP Evaluation Interrupted
+                    Evaluasi SOP Terhenti Sementara
                   </strong>
                   <div style={{ fontSize: "13px", opacity: 0.85, marginTop: 2 }}>
-                    Case SOP checks encountered an issue. Saved extraction results are intact and preserved. Click to rerun SOP evaluation.
+                    Pemeriksaan SOP mengalami kendala jaringan. Seluruh hasil ekstraksi tetap utuh dan tersimpan aman. Klik untuk evaluasi ulang.
                   </div>
                 </div>
                 {data.can_write && (
@@ -422,915 +364,460 @@ export default function CasePage({
                       setPending(true);
                       try {
                         await api("/cases/" + id + "/sop-rerun", { method: "POST" });
-                        notify("SOP evaluation queued. Using saved extractions.");
+                        notify("Pemeriksaan SOP dijalankan ulang menggunakan hasil ekstraksi tersimpan.");
                         await refresh();
                       } catch (e) {
-                        notify(e instanceof Error ? e.message : "Rerun failed.", "error");
+                        notify(e instanceof Error ? e.message : "Gagal menjalankan ulang.", "error");
                       } finally {
                         setPending(false);
                       }
                     }}
                   >
                     <RotateCcw size={15} />
-                    Rerun SOP checks
+                    Evaluasi Ulang SOP
                   </button>
                 )}
               </div>
             )}
-            {report?.snapshot.provider === "fixture" && (
-              <div className="fixture-banner">
-                DEVELOPMENT FIXTURE · These are synthetic values, not extraction
-                of the uploaded PDF.
-              </div>
-            )}
+
+            {/* Missing documents callout */}
             {report?.snapshot.missing.length ? (
               <div className="missing-strip">
                 <Clock3 size={18} />
-                <strong>Waiting for documents:</strong>
+                <strong>Menunggu Dokumen Prasyarat:</strong>
                 {report.snapshot.missing
                   .map(
                     (x) =>
-                      cfg?.payload.profiles[
-                        x as keyof typeof cfg.payload.profiles
-                      ]?.label || x,
+                      cfg?.payload.profiles[x as keyof typeof cfg.payload.profiles]?.label || x,
                   )
                   .join(", ")}
               </div>
             ) : null}
-            <nav className="section-tabs" aria-label="Case sections">
-              {[
-                ["case-overview", "Overview"],
-                ["case-documents", "Documents"],
-                ["case-fields", "Fields"],
-                ["case-sop", "SOP"],
-                ["case-reports", "Reports"],
-              ].map(([anchor, label]) => (
-                <a
-                  key={anchor}
-                  href={"#" + anchor}
-                  className={activeSection === anchor ? "active" : ""}
-                >
-                  {label}
-                </a>
-              ))}
+
+            {/* 3-Mode Primary Navigation Tabs */}
+            <nav className="workspace-mode-tabs" aria-label="Mode kerja kasus">
+              <button
+                type="button"
+                className={`mode-tab-btn ${activeMode === "documents" ? "active" : ""}`}
+                onClick={() => setActiveMode("documents")}
+              >
+                <FileText size={17} />
+                <span>1. Dokumen & Data Ekstraksi</span>
+                <span className="mode-tab-count">
+                  {data.completed_count}/{data.documents_count}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                className={`mode-tab-btn ${activeMode === "sop" ? "active" : ""}`}
+                onClick={() => setActiveMode("sop")}
+              >
+                <Scale size={17} />
+                <span>2. Evaluasi Kepatuhan SOP</span>
+                <span
+                  className={`mini-status-dot ${
+                    data.status === "SOP_ERROR"
+                      ? "error"
+                      : ["REVIEW", "FAIL"].includes(data.validation_status)
+                        ? "warn"
+                        : "good"
+                  }`}
+                  title={data.validation_status}
+                />
+              </button>
+
+              <button
+                type="button"
+                className={`mode-tab-btn ${activeMode === "reports" ? "active" : ""}`}
+                onClick={() => setActiveMode("reports")}
+              >
+                <FileCheck2 size={17} />
+                <span>3. Kertas Kerja & Riwayat Audit</span>
+                {report && <span className="mode-tab-count">v{report.version}</span>}
+              </button>
             </nav>
-            <div id="case-overview">
-              <details className="case-utilities" style={{ marginBottom: 14 }}>
-                <summary>
-                  <Clock3 size={16} aria-hidden />
-                  SLA & case assignment<span>Set reviewer owner and due date</span>
-                </summary>
-                <CaseTask caseId={data.id} />
-              </details>
-              <CaseSOP data={data} refresh={refresh} />
-            </div>
-            {sidebarCollapsed && (
-              <div className="collapsed-doc-strip panel">
-                <div className="collapsed-doc-pills">
-                  <span className="small-label">DOCUMENTS ({data.documents.length})</span>
+
+            {/* MODE 1: DOKUMEN & EKSTRAKSI DATA */}
+            {activeMode === "documents" && (
+              <div className="mode-view-documents">
+                {/* Document Selector Chips Bar */}
+                <div className="document-selector-bar">
+                  <span className="selector-bar-label">PILIH DOKUMEN:</span>
                   {data.documents.map((d) => (
                     <button
                       key={d.id}
                       type="button"
-                      className={"doc-pill-btn " + (doc?.id === d.id ? "active" : "")}
+                      className={`doc-chip-btn ${doc?.id === d.id ? "selected" : ""}`}
                       onClick={() => setSelected(d.id)}
                     >
-                      <FileText size={14} />
-                      <span>{d.filename}</span>
+                      <FileText size={16} />
+                      <div>
+                        <strong>{d.filename}</strong>
+                        <small>
+                          {cfg?.payload.profiles[d.doc_type as keyof typeof cfg.payload.profiles]?.label || d.doc_type}
+                        </small>
+                      </div>
                       <Badge value={d.status} />
                     </button>
                   ))}
-                </div>
-                <button
-                  type="button"
-                  className="secondary compact-btn"
-                  onClick={() => setSidebarCollapsed(false)}
-                >
-                  Show document sidebar
-                </button>
-              </div>
-            )}
-            <div
-              className={"case-workspace " + (sidebarCollapsed ? "sidebar-collapsed" : "")}
-              id="case-documents"
-            >
-              <aside className="document-list panel">
-                <div className="section-head">
-                  <h2>Documents</h2>
-                  <span className="count-pill">{data.documents.length}</span>
-                  <button
-                    type="button"
-                    className="text-link"
-                    onClick={() => setSidebarCollapsed(true)}
-                    title="Collapse document sidebar for full-width field & crop inspection"
-                  >
-                    Full width
-                  </button>
+
                   {exportableDocs.length > 0 && (
                     <button
-                      className="secondary"
+                      className="btn-secondary-action"
+                      style={{ marginLeft: "auto", fontSize: "12px", padding: "6px 12px" }}
                       disabled={exporting}
                       onClick={exportAllDocuments}
-                      title="Export every document's extracted fields to a multi-tab Excel file"
+                      title="Ekspor seluruh hasil ekstraksi ke file Excel"
                     >
-                      <Download size={15} />
-                      {exporting ? "Exporting…" : "Export all to Excel"}
+                      <Download size={14} />
+                      <span>{exporting ? "Mengekspor…" : "Ekspor Excel"}</span>
                     </button>
                   )}
-                  {data.can_write && (data.status === "SOP_ERROR" || data.status === "PROCESSING_ERROR") && (
-                    <button
-                      className="primary"
-                      disabled={pending}
-                      title="Rerun SOP rules using saved extractions. No cloud API calls required."
-                      onClick={async () => {
-                        setPending(true);
-                        try {
-                          await api("/cases/" + id + "/sop-rerun", { method: "POST" });
-                          notify("SOP evaluation queued. Using saved extractions.");
-                          await refresh();
-                        } catch (e) {
-                          notify(e instanceof Error ? e.message : "SOP rerun failed.", "error");
-                        } finally {
-                          setPending(false);
-                        }
-                      }}
-                    >
-                      <RotateCcw size={15} />
-                      Rerun SOP
-                    </button>
-                  )}
+
                   {data.can_write && failedDocs.length > 0 && (
                     <button
-                      className="secondary"
+                      className="primary compact-btn"
                       disabled={pending}
-                      title="Re-extract only the failed documents. Successfully extracted documents are preserved."
                       onClick={async () => {
                         setPending(true);
                         try {
                           const res = await api<{
                             queued: unknown[];
                             skipped: { reason: string }[];
-                          }>("/cases/" + id + "/retry-documents", {
-                            method: "POST",
-                          });
+                          }>("/cases/" + id + "/retry-documents", { method: "POST" });
                           notify(
                             res.queued.length
-                              ? `Re-queued ${res.queued.length} failed document${
-                                  res.queued.length === 1 ? "" : "s"
-                                } for retry.` +
-                                  (res.skipped.length
-                                    ? ` (${res.skipped.length} completed documents preserved).`
-                                    : "")
-                              : "No documents were eligible for retry.",
+                              ? `Memproses ulang ${res.queued.length} dokumen yang sempat gagal.`
+                              : "Tidak ada dokumen yang perlu diproses ulang.",
                           );
                           await refresh();
                         } catch (e) {
-                          notify(
-                            e instanceof Error ? e.message : "Retry failed.",
-                            "error",
-                          );
+                          notify(e instanceof Error ? e.message : "Gagal memproses ulang.", "error");
                         } finally {
                           setPending(false);
                         }
                       }}
                     >
-                      <RotateCcw size={15} />
-                      Retry failed documents ({failedDocs.length})
-                    </button>
-                  )}
-                  {data.can_write && failedDocs.length === 0 && retryableDocs.length > 0 && (
-                    <button
-                      className="secondary"
-                      disabled={pending}
-                      title="Re-trigger extraction with a fresh provider request for every document in this case"
-                      onClick={async () => {
-                        setPending(true);
-                        try {
-                          const res = await api<{
-                            queued: unknown[];
-                            skipped: { reason: string }[];
-                          }>("/cases/" + id + "/retry-documents?all=true", {
-                            method: "POST",
-                          });
-                          notify(
-                            res.queued.length
-                              ? `Re-queued ${res.queued.length} document${
-                                  res.queued.length === 1 ? "" : "s"
-                                } for retry.` +
-                                  (res.skipped.length
-                                    ? ` ${res.skipped.length} skipped.`
-                                    : "")
-                              : "No documents were eligible for retry.",
-                          );
-                          await refresh();
-                        } catch (e) {
-                          notify(
-                            e instanceof Error ? e.message : "Retry failed.",
-                            "error",
-                          );
-                        } finally {
-                          setPending(false);
-                        }
-                      }}
-                    >
-                      <RotateCcw size={15} />
-                      Re-extract all ({retryableDocs.length})
+                      <RotateCcw size={14} />
+                      Coba Ulang Gagal ({failedDocs.length})
                     </button>
                   )}
                 </div>
-                {data.documents.map((d) => (
-                  <button
-                    key={d.id}
-                    className={
-                      "document-item " + (doc?.id === d.id ? "selected" : "")
-                    }
-                    onClick={() => setSelected(d.id)}
-                  >
-                    <FileText size={19} />
-                    <div>
-                      <strong>{d.filename}</strong>
-                      <span>
-                        {cfg?.payload.profiles[
-                          d.doc_type as keyof typeof cfg.payload.profiles
-                        ]?.label || "Awaiting classification"}
-                      </span>
-                      <Badge value={d.status} />
-                    </div>
-                  </button>
-                ))}
-                <div className="version-note">
-                  <ShieldCheck size={16} />
-                  <span>
-                    Schema and SOP settings pinned to configuration v
-                    {data.config_version}.
-                  </span>
-                </div>
-              </aside>
-              <section className="panel evidence-panel" id="case-fields">
+
+                {/* Document Inspection Content */}
                 {doc ? (
-                  <>
-                    <div className="section-head">
+                  <section className="panel evidence-panel" style={{ padding: "20px 24px" }}>
+                    <div className="section-head" style={{ marginBottom: 16 }}>
                       <div>
-                        <h2>{doc.filename}</h2>
-                        <p>
-                          {doc.classification.method === "llama"
-                            ? "LlamaCloud classification verified"
-                            : doc.classification.method === "fixture"
-                              ? "Synthetic development fixture"
-                              : doc.classification.manual
-                                ? "Type confirmed by reviewer"
-                                : "Grouped by filename · verification pending"}
+                        <h2 style={{ fontSize: "16px", margin: 0 }}>{doc.filename}</h2>
+                        <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: "12px" }}>
+                          Tipe Dokumen: <strong>{cfg?.payload.profiles[doc.doc_type as keyof typeof cfg.payload.profiles]?.label || doc.doc_type}</strong> · Status: <Badge value={doc.status} />
                         </p>
                       </div>
-                      <a
-                        className="text-link"
-                        target="_blank"
-                        rel="noreferrer"
-                        href={"/api/documents/" + doc.id + "/file"}
-                      >
-                        Open PDF
-                        <ExternalLink size={15} />
-                      </a>
+                      <div className="document-actions-right" style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                        <CopyExtraction
+                          doc={doc}
+                          columns={cfg?.payload.profiles[doc.doc_type as keyof typeof cfg.payload.profiles]?.columns}
+                          provider={cfg?.payload.provider}
+                        />
+                        {data.can_review && ["COMPLETED", "ERROR", "NEEDS_CLASSIFICATION"].includes(doc.status) && (
+                          <button
+                            className="text-link"
+                            style={{ fontSize: "12px" }}
+                            onClick={() => setAction({ kind: "move", doc })}
+                          >
+                            <MoveRight size={14} />
+                            Pindah Kasus
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    <div className="tabs">
-                      <button
-                        className={tab === "fields" ? "active" : ""}
-                        onClick={() => setTab("fields")}
-                      >
-                        Extracted fields
-                      </button>
-                      <button
-                        className={tab === "findings" ? "active" : ""}
-                        onClick={() => setTab("findings")}
-                      >
-                        SOP findings
-                        <span>{report?.snapshot.findings.length || 0}</span>
-                      </button>
-                      <button
-                        className={tab === "timeline" ? "active" : ""}
-                        onClick={() => setTab("timeline")}
-                      >
-                        Audit timeline
-                      </button>
-                    </div>
-                    {Array.isArray(doc?.provider_state?.location_guidance) &&
-                      (doc.provider_state?.location_guidance?.length || 0) > 0 && (
-                        <details className="info-note">
-                          <summary>
-                            Reviewed location guidance for this job ·{" "}
-                            {doc.provider_state?.location_guidance?.length || 0} fields
-                          </summary>
-                          <p>
-                            Matching reviewed forms supplied location hints to
-                            Parse and Extract. Evidence below comes from this
-                            document and still requires independent
-                            verification.
-                          </p>
-                          {doc.provider_state?.location_guidance?.map(
-                            (hint, index) => (
-                              <div key={index}>
-                                {String(hint.field)} · page{" "}
-                                {String(hint.page_number)}
-                              </div>
-                            ),
-                          )}
-                        </details>
-                      )}
-                    {doc?.error && (
-                      <div className="document-error">
-                        <ErrorNotice message={doc.error} />
-                        {data.can_write &&
-                          !!doc.provider_state?.pending_create && (
-                            <p className="subtext">
-                              <strong>Provider request needs recovery</strong> —
-                              the request may have reached the provider before
-                              the connection dropped.{" "}
-                              <a
-                                href="#recovery"
-                                className="text-link"
-                                title={
-                                  "Request " +
-                                  String(doc.provider_state?.pending_create) +
-                                  (doc.provider_state?.provider_stage
-                                    ? " · stage " +
-                                      doc.provider_state.provider_stage
-                                    : "")
-                                }
-                              >
-                                Details
-                              </a>
-                            </p>
-                          )}
-                        <div className="recovery-block" id="recovery">
-                          <span className="small-label">NEXT STEP</span>
-                          {data.can_review &&
-                            ["ERROR", "NEEDS_CLASSIFICATION"].includes(
-                              doc.status,
-                            ) &&
-                            !Object.keys(doc.raw || {}).length && (
-                              <button
-                                className="primary"
-                                onClick={() =>
-                                  setAction({ kind: "classification", doc })
-                                }
-                              >
-                                Confirm document type
-                              </button>
-                            )}
-                          <span className="small-label">ADVANCED RECOVERY</span>
-                          {data.can_write &&
-                            doc.status === "COMPLETED" &&
-                            String(
-                              doc.provider_state?.provider_stage || "",
-                            ).startsWith("SPIDER_FIELDS_") && (
-                              <FieldRequestRecovery
-                                documentId={doc.id}
-                                onQueued={() => void refresh()}
-                              />
-                            )}
-                          <div className="button-row">
-                            {data.can_write &&
-                              doc.status === "ERROR" &&
-                              !doc.provider_state?.pending_create && (
-                                <button
-                                  className="secondary"
-                                  disabled={pending}
-                                  onClick={() =>
-                                    void run(
-                                      () =>
-                                        api("/documents/" + doc.id + "/retry", {
-                                          method: "POST",
-                                        }),
-                                      "Document queued for retry.",
-                                    )
-                                  }
-                                >
-                                  <RotateCcw size={15} />
-                                  Resume processing
-                                </button>
-                              )}
-                            {data.can_write &&
-                              doc.status === "ERROR" &&
-                              !String(
-                                doc.provider_state?.pending_create ||
-                                  doc.provider_state?.provider_stage ||
-                                  "",
-                              )
-                                .toLowerCase()
-                                .startsWith("spider_fields_") &&
-                              (String(
-                                doc.provider_state?.pending_create || "",
-                              ).startsWith("spider_") ||
-                                (String(
-                                  doc.provider_state?.provider_stage || "",
-                                ).startsWith("SPIDER_") &&
-                                  !!doc.provider_state?.[
-                                    `spider_${String(doc.provider_state?.provider_stage).slice(7).toLowerCase()}_response_key`
-                                  ])) && (
-                                <SpiderResubmit
-                                  documentId={doc.id}
-                                  onSaved={() => void refresh()}
-                                />
-                              )}
-                            {user?.role === "bank_admin" &&
-                              doc.status === "ERROR" &&
-                              !String(
-                                doc.provider_state?.pending_create || "",
-                              ).startsWith("spider_") &&
-                              !!doc.provider_state?.pending_create && (
-                                <button
-                                  className="secondary"
-                                  onClick={() =>
-                                    setAction({ kind: "reconcile", doc })
-                                  }
-                                >
-                                  Reconcile provider job
-                                </button>
-                              )}
-                          </div>
-                        </div>
-                      </div>
+
+                    {Object.keys(doc.normalized || {}).length ||
+                    doc.validation?.visual_evidence?.length ||
+                    doc.validation?.field_evidence?.length ? (
+                      <FieldEvidenceWorkspace
+                        doc={doc}
+                        columns={cfg?.payload.profiles[doc.doc_type as keyof typeof cfg.payload.profiles]?.columns}
+                        provider={cfg?.payload.provider}
+                        canWrite={data.can_write}
+                        canReview={data.can_review}
+                        pending={pending}
+                        onRefreshCrops={() =>
+                          void run(
+                            () => api(`/documents/${doc.id}/field-evidence`, { method: "POST" }),
+                            "Bukti visual diperbarui dari hasil tersimpan.",
+                          )
+                        }
+                        onCorrectField={(field) => setAction({ kind: "correction", doc, field })}
+                        onRegionSaved={() => void refresh()}
+                      />
+                    ) : (
+                      <Empty
+                        title={
+                          ["ERROR", "NEEDS_CLASSIFICATION"].includes(doc.status)
+                            ? "Perlu tindakan sebelum ekstraksi"
+                            : doc.status === "COMPLETED"
+                              ? "Tidak ada nilai atribut terbaca"
+                              : "Sedang diproses AI di latar belakang"
+                        }
+                        detail={
+                          doc.status === "COMPLETED"
+                            ? "Model ekstraksi tidak mendeteksi nilai bidang pada dokumen ini."
+                            : "Sistem sedang membaca dan memverifikasi isi dokumen secara otomatis."
+                        }
+                      />
                     )}
-                    {tab === "fields" && doc && (
-                      <>
-                        {data.can_write && doc.status === "COMPLETED" && (
-                          <FieldReprocess
-                            key={doc.id}
-                            documentId={doc.id}
-                            canReplaceOverrides={data.can_review}
-                            columns={
-                              cfg?.payload.profiles[
-                                doc.doc_type as keyof typeof cfg.payload.profiles
-                              ]?.columns ||
-                              Object.keys(doc.raw || {}).map(
-                                (key) => [key, key] as [string, string],
-                              )
-                            }
-                            onQueued={() => void refresh()}
-                          />
-                        )}
-                        <div className="document-meta">
-                          {doc.validation_status && doc.validation_status.toUpperCase() !== "SKIPPED" && <Badge value={doc.validation_status} />}
-                          <CopyExtraction
-                            doc={doc}
-                            columns={
-                              cfg?.payload.profiles[
-                                doc.doc_type as keyof typeof cfg.payload.profiles
-                              ]?.columns
-                            }
-                            provider={cfg?.payload.provider}
-                          />
-                          {data.can_review &&
-                            [
-                              "COMPLETED",
-                              "ERROR",
-                              "NEEDS_CLASSIFICATION",
-                            ].includes(doc.status) && (
-                              <button
-                                className="text-link"
-                                onClick={() => setAction({ kind: "move", doc })}
-                              >
-                                <MoveRight size={14} />
-                                Move to another case
-                              </button>
-                            )}
-                        </div>
-                        
-                        {Object.keys(doc.normalized || {}).length ||
-                        doc.validation?.visual_evidence?.length ||
-                        doc.validation?.field_evidence?.length ? (
-                          <FieldEvidenceWorkspace
-                            doc={doc}
-                            columns={
-                              cfg?.payload.profiles[
-                                doc.doc_type as keyof typeof cfg.payload.profiles
-                              ]?.columns
-                            }
-                            provider={cfg?.payload.provider}
-                            canWrite={data.can_write}
-                            canReview={data.can_review}
-                            pending={pending}
-                            onRefreshCrops={() =>
-                              void run(
-                                () =>
-                                  api(`/documents/${doc.id}/field-evidence`, {
-                                    method: "POST",
-                                  }),
-                                "Field evidence refreshed from saved results.",
-                              )
-                            }
-                            onCorrectField={(field) =>
-                              setAction({
-                                kind: "correction",
-                                doc,
-                                field,
-                              })
-                            }
-                            onRegionSaved={() => void refresh()}
-                          />
-                        ) : (
-                          <Empty
-                            title={
-                              ["ERROR", "NEEDS_CLASSIFICATION"].includes(
-                                doc.status,
-                              )
-                                ? "Action needed before extraction"
-                                : doc.status === "COMPLETED"
-                                  ? "No fields returned"
-                                  : "Processing in the background"
-                            }
-                            detail={
-                              doc.status === "COMPLETED"
-                                ? "The model returned no displayable field values. Inspect its saved response before requesting a new extraction."
-                                : "The worker will publish extracted values here when processing finishes. Progress updates automatically."
-                            }
-                          />
-                        )}
-                        {Array.isArray(doc.raw?.page_results) && (
-                          <details className="provider-details">
-                            <summary>
-                              Page extraction details (
-                              {doc.raw?.page_results?.length || 0} pages)
-                            </summary>
-                            <pre>
-                              {JSON.stringify(doc.raw?.page_results, null, 2)}
-                            </pre>
-                          </details>
-                        )}
-                        <details className="provider-details">
-                          <summary>
-                            Classification and provider checkpoints
-                            <ChevronDown size={15} />
-                          </summary>
-                          <pre>
-                            {JSON.stringify(
-                              {
-                                classification: doc.classification,
-                                provider_state: doc.provider_state,
-                              },
-                              null,
-                              2,
-                            )}
-                          </pre>
-                        </details>
-                      </>
-                    )}
-                    {tab === "findings" && (
-                      <div className="findings-list">
-                        {report?.snapshot.findings.length ? (
-                          <>
-                            <div className="field-evidence-toolbar" style={{ margin: "-20px -24px 16px", padding: "12px 24px" }}>
-                              <div className="field-filter-pills">
-                                {[
-                                  ["all", "All findings", report.snapshot.findings.length],
-                                  [
-                                    "attention",
-                                    "Needs attention",
-                                    report.snapshot.findings.filter((f) =>
-                                      ["FAIL", "REVIEW", "ERROR"].includes(f.result),
-                                    ).length,
-                                  ],
-                                  [
-                                    "visual",
-                                    "Visual checks",
-                                    report.snapshot.findings.filter(
-                                      (f) => f.evaluation_type === "VISUAL",
-                                    ).length,
-                                  ],
-                                  [
-                                    "pass",
-                                    "Passed",
-                                    report.snapshot.findings.filter(
-                                      (f) => f.result === "PASS",
-                                    ).length,
-                                  ],
-                                ].map(([key, label, count]) => (
-                                  <button
-                                    key={String(key)}
-                                    type="button"
-                                    className={findingFilter === key ? "active" : ""}
-                                    onClick={() =>
-                                      setFindingFilter(
-                                        key as "all" | "attention" | "visual" | "pass",
-                                      )
-                                    }
-                                  >
-                                    {label} <span>{count}</span>
-                                  </button>
-                                ))}
-                              </div>
-                              <Link className="secondary compact-btn" href={`/cases/${id}/review`}>
-                                <ShieldCheck size={14} />
-                                Open visual review
-                              </Link>
-                            </div>
-                            {report.snapshot.findings
-                              .filter((f) => {
-                                if (findingFilter === "attention")
-                                  return ["FAIL", "REVIEW", "ERROR"].includes(f.result);
-                                if (findingFilter === "visual")
-                                  return f.evaluation_type === "VISUAL";
-                                if (findingFilter === "pass")
-                                  return f.result === "PASS";
-                                return true;
-                              })
-                              .map((f, index) => {
-                                const leftPath = String(f.evidence?.path || f.field || "");
-                                const rightPath = String(f.evidence?.other_path || "");
-
-                                const leftDocIds = Array.isArray(f.evidence?.document_ids)
-                                  ? (f.evidence.document_ids as string[])
-                                  : typeof f.evidence?.document_id === "string"
-                                    ? [f.evidence.document_id]
-                                    : [];
-                                const leftDoc =
-                                  data.documents.find((d) => leftDocIds.includes(d.id)) ||
-                                  data.documents.find((d) => leftPath.startsWith(d.doc_type + "."));
-
-                                const rightDocIds = Array.isArray(f.evidence?.reference_document_ids)
-                                  ? (f.evidence.reference_document_ids as string[])
-                                  : [];
-                                const rightDoc =
-                                  data.documents.find((d) => rightDocIds.includes(d.id)) ||
-                                  (rightPath ? data.documents.find((d) => rightPath.startsWith(d.doc_type + ".")) : null);
-
-                                const leftParts = leftPath.split(".");
-                                const leftType = leftParts[0];
-                                const leftField = leftParts.slice(1).join(".") || leftPath;
-
-                                const rightParts = rightPath.split(".");
-                                const rightType = rightParts[0];
-                                const rightField = rightParts.slice(1).join(".") || rightPath;
-
-                                const getFieldLabel = (docType: string, fieldKey: string) => {
-                                  const profileCols = cfg?.payload.profiles[docType as keyof typeof cfg.payload.profiles]?.columns;
-                                  const col = profileCols?.find(([k]) => k === fieldKey || k === fieldKey.split(".").pop());
-                                  return col ? col[1] : fieldKey;
-                                };
-
-                                const leftLabel = leftDoc ? getFieldLabel(leftDoc.doc_type, leftField) : leftField;
-                                const rightLabel = rightDoc ? getFieldLabel(rightDoc.doc_type, rightField) : rightField;
-
-                                const isComparison = Boolean(
-                                  rightPath &&
-                                  (rightPath !== leftPath || (rightDoc && leftDoc && rightDoc.id !== leftDoc.id))
-                                );
-
-                                return (
-                                  <div className="finding-card" key={`${f.rule_id}-${index}`}>
-                                    <div>
-                                      <Badge value={f.result} />
-                                      {f.evaluation_type && (
-                                        <span className="mini-tag visual">
-                                          {f.evaluation_type}
-                                        </span>
-                                      )}
-                                      <strong>{f.field}</strong>
-                                      {f.source_ref && (
-                                        <span className="count-pill" style={{ fontSize: "0.75rem", padding: "1px 6px" }}>
-                                          {f.source_ref}
-                                        </span>
-                                      )}
-                                      <span className="rule-id">{f.rule_id}</span>
-                                    </div>
-
-                                    {/* Dedicated document and field comparison pathway */}
-                                    <div className="sop-pathway-banner">
-                                      {isComparison ? (
-                                        <div className="sop-comparison-flow">
-                                          <div className="sop-pathway-node source">
-                                            <span className="sop-node-tag">SOURCE DOCUMENT</span>
-                                            <div className="sop-node-title">
-                                              <FileText size={14} className="node-icon" />
-                                              <strong title={leftDoc?.filename || leftType}>
-                                                {leftDoc ? leftDoc.filename : leftType}
-                                              </strong>
-                                            </div>
-                                            <div className="sop-node-field">
-                                              <span className="field-name-badge">{leftLabel}</span>
-                                              <code className="field-path-code">{leftField}</code>
-                                            </div>
-                                          </div>
-
-                                          <div className="sop-comparison-badge">
-                                            <div className="sop-vs-pill">⇄ VS</div>
-                                            <span className="sop-comparison-method">
-                                              {f.evidence?.policy ? String(f.evidence.policy).replace(/_/g, " ") : "compared with"}
-                                            </span>
-                                          </div>
-
-                                          <div className="sop-pathway-node reference">
-                                            <span className="sop-node-tag">REFERENCE DOCUMENT</span>
-                                            <div className="sop-node-title">
-                                              <FileText size={14} className="node-icon" />
-                                              <strong title={rightDoc?.filename || rightType}>
-                                                {rightDoc ? rightDoc.filename : rightType}
-                                              </strong>
-                                            </div>
-                                            <div className="sop-node-field">
-                                              <span className="field-name-badge">{rightLabel}</span>
-                                              <code className="field-path-code">{rightField}</code>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <div className="sop-single-doc-flow">
-                                          <div className="sop-pathway-node single">
-                                            <span className="sop-node-tag">EVALUATED DOCUMENT & FIELD</span>
-                                            <div className="sop-node-title">
-                                              <FileText size={14} className="node-icon" />
-                                              <strong title={leftDoc?.filename || leftType}>
-                                                {leftDoc ? leftDoc.filename : (leftType || "Case Document")}
-                                              </strong>
-                                            </div>
-                                            <div className="sop-node-field">
-                                              <span className="field-name-badge">{leftLabel}</span>
-                                              <code className="field-path-code">{leftField || leftPath}</code>
-                                            </div>
-                                          </div>
-                                          <div className="sop-rule-objective">
-                                            <span className="sop-node-tag">EVALUATION RULE</span>
-                                            <div className="rule-policy-desc">
-                                              {f.evidence?.policy ? String(f.evidence.policy).replace(/_/g, " ") : f.evaluation_type === "VISUAL" ? "Visual verification check" : "Field validation requirement"}
-                                            </div>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-
-                                    <p>{f.message}</p>
-                                    <div className="finding-side-by-side">
-                                      <div>
-                                        <span className="small-label">
-                                          ACTUAL OBSERVATION · {leftDoc?.filename ? `${leftDoc.filename} (${leftField})` : leftPath}
-                                        </span>
-                                        <div>{display(f.actual)}</div>
-                                      </div>
-                                      <div>
-                                        <span className="small-label">
-                                          {isComparison
-                                            ? `EXPECTED / REFERENCE · ${rightDoc?.filename ? `${rightDoc.filename} (${rightField})` : rightPath}`
-                                            : "EXPECTED / RULE REQUIREMENT"}
-                                        </span>
-                                        <div>{display(f.expected)}</div>
-                                      </div>
-                                    </div>
-
-                                    {Array.isArray(f.evidence?.comparisons) && f.evidence.comparisons.length > 0 && (
-                                      <div className="finding-comparison-pills">
-                                        {f.evidence.comparisons.map((c: any, i: number) => (
-                                          <span key={i} className={`comparison-result-pill ${c.match ? "match" : "mismatch"}`}>
-                                            <strong>Method:</strong> {c.method || "match"} · <strong>Match:</strong> {c.match ? "✓ YES" : "✗ NO"}
-                                          </span>
-                                        ))}
-                                      </div>
-                                    )}
-
-                                    <div className="finding-actions-row">
-                                      {f.evaluation_type === "VISUAL" && (
-                                        <Link
-                                          className="text-link"
-                                          href={`/cases/${id}/review`}
-                                        >
-                                          Resolve in visual review
-                                          <ArrowUpRight size={13} />
-                                        </Link>
-                                      )}
-                                      {leftDoc && (
-                                        <button
-                                          type="button"
-                                          className="text-link"
-                                          onClick={() => {
-                                            setSelected(leftDoc.id);
-                                            setTab("fields");
-                                          }}
-                                        >
-                                          Inspect {leftDoc.filename} ({leftField})
-                                        </button>
-                                      )}
-                                      {rightDoc && rightDoc.id !== leftDoc?.id && (
-                                        <button
-                                          type="button"
-                                          className="text-link"
-                                          onClick={() => {
-                                            setSelected(rightDoc.id);
-                                            setTab("fields");
-                                          }}
-                                        >
-                                          Inspect {rightDoc.filename} ({rightField})
-                                        </button>
-                                      )}
-                                      <details>
-                                        <summary>Source evidence</summary>
-                                        <pre>{JSON.stringify(f.evidence, null, 2)}</pre>
-                                      </details>
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                          </>
-                        ) : (
-                          <Empty
-                            title={
-                              report
-                                ? "No findings recorded"
-                                : "Checks are still running"
-                            }
-                            detail={
-                              report
-                                ? "Review the report before release."
-                                : "A draft is generated after the active documents finish."
-                            }
-                          />
-                        )}
-                      </div>
-                    )}
-                    {tab === "timeline" && (
-                      <div className="timeline">
-                        {data.timeline.map((t) => (
-                          <div key={t.id}>
-                            <span className="timeline-dot" />
-                            <section>
-                              <strong>
-                                {t.event
-                                  .replaceAll(".", " / ")
-                                  .replaceAll("_", " ")}
-                              </strong>
-                              <p>
-                                {formatDate(t.created_at)} ·{" "}
-                                {t.actor === "worker"
-                                  ? "Background worker"
-                                  : t.actor === user?.id
-                                    ? "You"
-                                    : t.actor}
-                              </p>
-                              <details>
-                                <summary>Details</summary>
-                                <pre>{JSON.stringify(t.details, null, 2)}</pre>
-                              </details>
-                            </section>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </>
+                  </section>
                 ) : (
                   <Empty
-                    title="No documents in this case"
-                    detail="Add the required customer documents to continue."
+                    title="Belum ada dokumen pada kasus ini"
+                    detail="Unggah dokumen transaksi atau identitas nasabah untuk memulai ekstraksi otomatis."
                   />
                 )}
-              </section>
-            </div>
-            {!!data.reports.length && (
-              <section className="panel report-history" id="case-reports">
-                <div className="section-head">
-                  <h2>
-                    Latest <span title="Work paper report">Kertas kerja</span>
-                  </h2>
-                  <span className="muted">Current report for this case.</span>
-                </div>
-                <div className="report-versions">
-                  {data.reports.slice(0, 1).map((r) => (
-                    <div key={r.id}>
+              </div>
+            )}
+
+            {/* MODE 2: EVALUASI KEPATUHAN SOP */}
+            {activeMode === "sop" && (
+              <div className="mode-view-sop">
+                <CaseSOP data={data} refresh={refresh} />
+
+                {/* SOP Findings Section */}
+                <section className="panel findings-section" style={{ marginTop: 20, padding: "20px 24px" }}>
+                  <div className="field-evidence-toolbar" style={{ margin: "-20px -24px 16px", padding: "12px 24px" }}>
+                    <div className="field-filter-pills">
+                      {[
+                        ["all", "Semua Temuan", report?.snapshot.findings.length || 0],
+                        [
+                          "attention",
+                          "Perlu Perhatian",
+                          report?.snapshot.findings.filter((f) => ["FAIL", "REVIEW", "ERROR"].includes(f.result)).length || 0,
+                        ],
+                        [
+                          "visual",
+                          "Pemeriksaan Visual",
+                          report?.snapshot.findings.filter((f) => f.evaluation_type === "VISUAL").length || 0,
+                        ],
+                        [
+                          "pass",
+                          "Sesuai (Pass)",
+                          report?.snapshot.findings.filter((f) => f.result === "PASS").length || 0,
+                        ],
+                      ].map(([key, label, count]) => (
+                        <button
+                          key={String(key)}
+                          type="button"
+                          className={findingFilter === key ? "active" : ""}
+                          onClick={() => setFindingFilter(key as "all" | "attention" | "visual" | "pass")}
+                        >
+                          {label} <span>{count}</span>
+                        </button>
+                      ))}
+                    </div>
+                    <Link className="secondary compact-btn" href={`/cases/${id}/review`}>
+                      <ShieldCheck size={14} />
+                      Buka Review Visual
+                    </Link>
+                  </div>
+
+                  {report?.snapshot.findings.length ? (
+                    <div className="findings-list">
+                      {report.snapshot.findings
+                        .filter((f) => {
+                          if (findingFilter === "attention") return ["FAIL", "REVIEW", "ERROR"].includes(f.result);
+                          if (findingFilter === "visual") return f.evaluation_type === "VISUAL";
+                          if (findingFilter === "pass") return f.result === "PASS";
+                          return true;
+                        })
+                        .map((f, index) => {
+                          const leftPath = String(f.evidence?.path || f.field || "");
+                          const rightPath = String(f.evidence?.other_path || "");
+
+                          const leftDocIds = Array.isArray(f.evidence?.document_ids)
+                            ? (f.evidence.document_ids as string[])
+                            : typeof f.evidence?.document_id === "string"
+                              ? [f.evidence.document_id]
+                              : [];
+                          const leftDoc =
+                            data.documents.find((d) => leftDocIds.includes(d.id)) ||
+                            data.documents.find((d) => leftPath.startsWith(d.doc_type + "."));
+
+                          const rightDocIds = Array.isArray(f.evidence?.reference_document_ids)
+                            ? (f.evidence.reference_document_ids as string[])
+                            : typeof f.evidence?.reference_document_id === "string"
+                              ? [f.evidence.reference_document_id]
+                              : [];
+                          const rightDoc =
+                            data.documents.find((d) => rightDocIds.includes(d.id)) ||
+                            data.documents.find((d) => rightPath.startsWith(d.doc_type + "."));
+
+                          const leftLabel = leftDoc
+                            ? cfg?.payload.profiles[leftDoc.doc_type as keyof typeof cfg.payload.profiles]?.columns?.find(([k]) => k === leftPath.replace(leftDoc.doc_type + ".", ""))?.[1] || leftPath
+                            : leftPath;
+
+                          const rightLabel = rightDoc
+                            ? cfg?.payload.profiles[rightDoc.doc_type as keyof typeof cfg.payload.profiles]?.columns?.find(([k]) => k === rightPath.replace(rightDoc.doc_type + ".", ""))?.[1] || rightPath
+                            : rightPath;
+
+                          const actualVal = f.actual ?? f.evidence?.value ?? f.evidence?.actual_value;
+                          const expectedVal = f.expected ?? f.evidence?.other_value ?? f.evidence?.expected_value;
+                          const hasComparison = actualVal !== undefined || expectedVal !== undefined;
+
+                          return (
+                            <div key={f.rule_id || index} className="finding-item" style={{ padding: "16px", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "12px", background: "#ffffff" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                                <div>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                                    <strong style={{ fontSize: "14px", color: "#0f172a" }}>{f.rule_id}</strong>
+                                    <Badge value={f.result} />
+                                    {f.evaluation_type === "VISUAL" && <span className="mini-tag visual">Visual Check</span>}
+                                  </div>
+                                  <p style={{ margin: "4px 0 8px", fontSize: "13px", color: "#475569" }}>{f.message}</p>
+                                </div>
+                              </div>
+
+                              {hasComparison && (
+                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", background: "#f8fafc", padding: "12px 14px", borderRadius: "8px", marginTop: "8px", border: "1px solid #e2e8f0" }}>
+                                  <div>
+                                    <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>
+                                      {leftDoc ? leftDoc.filename : "Nilai Sumber"} ({leftLabel})
+                                    </span>
+                                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#1e293b", marginTop: 4 }}>
+                                      {display(actualVal)}
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <span style={{ fontSize: "11px", fontWeight: 600, color: "#64748b", textTransform: "uppercase" }}>
+                                      {rightDoc ? rightDoc.filename : "Nilai Pembanding"} ({rightLabel})
+                                    </span>
+                                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#1e293b", marginTop: 4 }}>
+                                      {display(expectedVal)}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+                  ) : (
+                    <Empty
+                      title="Belum ada temuan SOP"
+                      detail="Jalankan evaluasi SOP setelah dokumen selesai diekstraksi."
+                    />
+                  )}
+                </section>
+              </div>
+            )}
+
+            {/* MODE 3: KERTAS KERJA & RIWAYAT AUDIT */}
+            {activeMode === "reports" && (
+              <div className="mode-view-reports">
+                {report ? (
+                  <section className="panel report-summary-panel" style={{ padding: "20px 24px", marginBottom: 20 }}>
+                    <div className="section-head">
                       <div>
-                        <strong>Version {r.version}</strong>
-                        <span>{formatDate(r.created_at)}</span>
+                        <h2 style={{ fontSize: "17px", margin: 0 }}>Kertas Kerja Resmi (Work Paper v{report.version})</h2>
+                        <p style={{ color: "#64748b", fontSize: "13px", margin: "4px 0 0" }}>
+                          Status Laporan: <Badge value={report.state} /> · Diterbitkan: {formatDate(report.created_at)}
+                        </p>
                       </div>
-                      <Badge value={r.state} />
-                      <Badge value={r.snapshot.validation_status} />
-                      <div className="button-row">
-                        <Link className="primary" href={`/reports/${r.id}`}>
-                          View report <ArrowUpRight size={14} />
-                        </Link>
-                        {["pdf", "xlsx", "json"].map((fmt) => (
-                          <a
-                            key={fmt}
-                            className="text-link"
-                            href={
-                              "/api/reports/" + r.id + "/download?format=" + fmt
-                            }
-                          >
-                            {fmt.toUpperCase()}
-                            <Download size={13} />
-                          </a>
-                        ))}
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <a
+                          className="btn-primary-action"
+                          href={`/api/reports/${report.id}/download?format=pdf`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <Download size={15} />
+                          Unduh PDF Resmi
+                        </a>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </section>
+                  </section>
+                ) : (
+                  <Empty
+                    title="Kertas kerja belum siap"
+                    detail="Selesaikan ekstraksi dokumen dan evaluasi kepatuhan SOP terlebih dahulu."
+                  />
+                )}
+
+                {/* Audit Timeline */}
+                <section className="panel timeline-panel" style={{ padding: "20px 24px" }}>
+                  <div className="section-head" style={{ marginBottom: 16 }}>
+                    <h2 style={{ fontSize: "16px", margin: 0 }}>Jejak Audit & Riwayat Kasus (Audit Timeline)</h2>
+                    <span className="count-pill">{data.timeline.length} aktivitas</span>
+                  </div>
+
+                  <div className="timeline">
+                    {data.timeline.map((t) => (
+                      <div key={t.id}>
+                        <span className="timeline-dot" />
+                        <section>
+                          <strong>{t.event.replaceAll(".", " / ").replaceAll("_", " ")}</strong>
+                          <p>
+                            {formatDate(t.created_at)} ·{" "}
+                            {t.actor === "worker"
+                              ? "Sistem Otomatis (Worker)"
+                              : t.actor === user?.id
+                                ? "Anda"
+                                : t.actor}
+                          </p>
+                          <details style={{ marginTop: 4 }}>
+                            <summary style={{ fontSize: "11px", color: "#64748b", cursor: "pointer" }}>Rincian Teknis</summary>
+                            <pre style={{ fontSize: "11px", marginTop: 4 }}>{JSON.stringify(t.details, null, 2)}</pre>
+                          </details>
+                        </section>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              </div>
             )}
-          </>
+
+            {/* Bottom Maintenance Collapsible Drawer (For Admins & Developers Only) */}
+            {data.can_review && (
+              <details className="bottom-maintenance-drawer">
+                <summary>
+                  <Wrench size={15} />
+                  <span>Pengaturan Pemeliharaan Kasus (Admin & Developer)</span>
+                </summary>
+                <div style={{ marginTop: 14 }}>
+                  <BatchGroupingRepair
+                    key={id}
+                    batchIds={Array.from(
+                      new Set(
+                        data.documents
+                          .map((d) => d.batch_id)
+                          .filter((batchId): batchId is string => !!batchId),
+                      ),
+                    )}
+                  />
+                  {data.documents.some((d) => d.doc_type === "ektp" && d.status === "COMPLETED") && (
+                    <EnumRevalidation caseId={id} refresh={refresh} />
+                  )}
+                  {data.can_adopt_configuration && (
+                    <CaseConfiguration caseId={id} currentVersion={data.config_version} refresh={refresh} />
+                  )}
+                  <div style={{ marginTop: 12 }}>
+                    <CaseTask caseId={data.id} />
+                  </div>
+                </div>
+              </details>
+            )}
+          </div>
         )
       )}
+
+      {/* Action Modal (Corrections, Classification, Move, Reconcile) */}
       {action && (
         <ActionModal
           action={action}
-          cfg={cfg}
           onClose={close}
           onComplete={async () => {
-            setAction(null);
+            close();
             await refresh();
           }}
         />
@@ -1338,31 +825,30 @@ export default function CasePage({
     </Shell>
   );
 }
-function LayersIcon() {
-  return <FileText size={22} />;
-}
+
 function ActionModal({
   action,
-  cfg,
   onClose,
   onComplete,
 }: {
   action: Action;
-  cfg: ConfigResponse | null;
   onClose: () => void;
   onComplete: () => Promise<void>;
 }) {
   const { notify } = usePlatform(),
     { data: cases } = useData<{ items: CaseSummary[] }>("/cases?limit=100", 0);
+  const { data: cfg } = useData<ConfigResponse>("/config", 0);
   const [reason, setReason] = useState(""),
     [type, setType] = useState(
       action.doc.doc_type === "unknown" ? "application" : action.doc.doc_type,
     ),
     [target, setTarget] = useState("");
+
   const originalFieldVal =
     action.doc.overrides?.[action.field || ""] ??
     action.doc.raw?.[action.field || ""] ??
     null;
+
   const getInitialText = (val: unknown): string => {
     if (val === null || val === undefined) return "";
     if (typeof val === "object") {
@@ -1376,6 +862,7 @@ function ActionModal({
     }
     return String(val);
   };
+
   const getInitialCurrency = (val: unknown): string => {
     if (val && typeof val === "object") {
       const o = val as Record<string, unknown>;
@@ -1383,20 +870,23 @@ function ActionModal({
     }
     return "";
   };
+
   const [textValue, setTextValue] = useState(() => getInitialText(originalFieldVal));
   const [currencyValue, setCurrencyValue] = useState(() => getInitialCurrency(originalFieldVal));
   const [isJsonMode, setIsJsonMode] = useState(false);
   const [rawJsonValue, setRawJsonValue] = useState(() => JSON.stringify(originalFieldVal, null, 2));
-  const [value, setValue] = useState(() => JSON.stringify(originalFieldVal, null, 2)),
-    [providerId, setProviderId] = useState("");
+
+  const [providerId, setProviderId] = useState("");
   const [pending, setPending] = useState(false),
     [error, setError] = useState("");
+
   const title = {
-    classification: "Confirm document type",
-    correction: "Correct extracted field",
-    move: "Move document",
-    reconcile: "Reconcile provider submission",
+    classification: "Konfirmasi Jenis Dokumen",
+    correction: "Koreksi Nilai Atribut",
+    move: "Pindah Berkas ke Kasus Lain",
+    reconcile: "Rekonsiliasi Permintaan",
   }[action.kind];
+
   return (
     <Modal title={title} onClose={onClose}>
       <form
@@ -1461,10 +951,10 @@ function ActionModal({
                   reason,
                 }),
               });
-            notify("Action recorded in the audit trail.");
+            notify("Aktivitas berhasil dicatat dalam jejak audit.");
             await onComplete();
           } catch (err) {
-            setError(err instanceof Error ? err.message : "Action failed.");
+            setError(err instanceof Error ? err.message : "Tindakan gagal diproses.");
           } finally {
             setPending(false);
           }
@@ -1474,11 +964,11 @@ function ActionModal({
         {error && <ErrorNotice message={error} />}
         {action.kind === "classification" && (
           <label>
-            Verified document type
+            Jenis Dokumen Terverifikasi
             <select value={type} onChange={(e) => setType(e.target.value)}>
               {cfg &&
-                Object.entries(cfg.payload.profiles).map(([id, p]) => (
-                  <option value={id} key={id}>
+                Object.entries(cfg.payload.profiles).map(([profileId, p]) => (
+                  <option value={profileId} key={profileId}>
                     {p.label}
                   </option>
                 ))}
@@ -1489,7 +979,7 @@ function ActionModal({
           <div className="correction-fields-group" style={{ marginBottom: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
               <span style={{ fontSize: "12px", fontWeight: 700, color: "#1e293b", textTransform: "uppercase" }}>
-                {action.field ? `${action.field.replaceAll("_", " ")} (${action.field})` : "Field"}
+                {action.field ? `${action.field.replaceAll("_", " ")} (${action.field})` : "Bidang"}
               </span>
               <button
                 type="button"
@@ -1497,12 +987,12 @@ function ActionModal({
                 style={{ fontSize: "11px" }}
                 onClick={() => setIsJsonMode((m) => !m)}
               >
-                {isJsonMode ? "Switch to Form Mode" : "Switch to Raw JSON"}
+                {isJsonMode ? "Gunakan Formulir Teks" : "Gunakan Mode JSON"}
               </button>
             </div>
             {isJsonMode ? (
               <label>
-                Raw JSON payload
+                Payload JSON
                 <textarea
                   className="code-input"
                   rows={6}
@@ -1515,29 +1005,29 @@ function ActionModal({
               <>
                 <div style={{ display: "grid", gridTemplateColumns: (originalFieldVal && typeof originalFieldVal === "object" && ("currency" in originalFieldVal || "currency_raw" in originalFieldVal || (action.field || "").toLowerCase().includes("amount") || (action.field || "").toLowerCase().includes("total"))) ? "1fr 140px" : "1fr", gap: "12px", marginBottom: "8px" }}>
                   <label>
-                    Corrected Field Value
+                    Nilai Koreksi yang Benar
                     <input
                       type="text"
                       value={textValue}
                       onChange={(e) => setTextValue(e.target.value)}
-                      placeholder="Enter corrected value as read from document..."
+                      placeholder="Masukkan nilai yang terbaca pada dokumen..."
                       required
                     />
                   </label>
                   {(originalFieldVal && typeof originalFieldVal === "object" && ("currency" in originalFieldVal || "currency_raw" in originalFieldVal || (action.field || "").toLowerCase().includes("amount") || (action.field || "").toLowerCase().includes("total"))) && (
                     <label>
-                      Currency
+                      Mata Uang
                       <input
                         type="text"
                         value={currencyValue}
                         onChange={(e) => setCurrencyValue(e.target.value.toUpperCase())}
-                        placeholder="e.g. USD, CNY"
+                        placeholder="contoh: USD, CNY, IDR"
                       />
                     </label>
                   )}
                 </div>
                 <p className="subtext">
-                  Enter the field value directly as text. Original extraction is preserved; case SOP checks will rerun automatically.
+                  Koreksi dicatat ke audit trail. Nilai asli tersimpan; aturan SOP akan diperiksa ulang otomatis.
                 </p>
               </>
             )}
@@ -1545,18 +1035,18 @@ function ActionModal({
         )}
         {action.kind === "move" && (
           <label>
-            Target case
+            Pilih Kasus Tujuan
             <select
               required
               value={target}
               onChange={(e) => setTarget(e.target.value)}
             >
-              <option value="">Select a case</option>
+              <option value="">Pilih kasus...</option>
               {cases?.items
                 .filter((c) => c.id !== action.doc.case_id)
                 .map((c) => (
                   <option value={c.id} key={c.id}>
-                    {c.reference}
+                    {c.reference} — {c.customer}
                   </option>
                 ))}
             </select>
@@ -1565,7 +1055,7 @@ function ActionModal({
         {action.kind === "reconcile" && (
           <>
             <p className="muted">
-              Reconcile only a saved job for a supported provider. Historical Llama submissions cannot resume; upgrade the case to Spider-AI before retrying.
+              Rekonsiliasi berkas penyedia eksternal.
             </p>
             <label>
               {String(action.doc.provider_state?.pending_create)}
@@ -1578,7 +1068,7 @@ function ActionModal({
           </>
         )}
         <label>
-          Reason for this action
+          Alasan Tindakan (Wajib diisi untuk audit perbankan)
           <textarea
             required
             minLength={5}
@@ -1586,15 +1076,15 @@ function ActionModal({
             rows={3}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            placeholder="Describe the source evidence or correction."
+            placeholder="Jelaskan alasan koreksi atau bukti yang terlihat pada berkas..."
           />
         </label>
         <div className="modal-actions">
           <button className="secondary" type="button" onClick={onClose}>
-            Cancel
+            Batal
           </button>
           <button className="primary" disabled={pending}>
-            {pending ? "Saving…" : "Confirm action"}
+            {pending ? "Menyimpan…" : "Konfirmasi Tindakan"}
             <Check size={16} />
           </button>
         </div>

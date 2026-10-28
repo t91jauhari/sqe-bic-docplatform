@@ -278,7 +278,8 @@ button:not(.icon-button):not(.text-link) {
   color: #8b9ba3;
 }
 .badge {
-  font-size: 10px;
+  font-size: 11px;
+  letter-spacing: 0.2px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -4106,9 +4107,14 @@ html[data-density="compact"] .stat-card {
   font-size: 12px;
 }
 .field-key-code {
+  display: none;
   font-family: "Cascadia Code", "SFMono-Regular", monospace;
   font-size: 10px;
   color: #8b9ea6;
+}
+.show-dev-keys .field-key-code {
+  display: inline-block;
+  margin-top: 2px;
 }
 .field-tags-row {
   display: flex;
@@ -4710,4 +4716,303 @@ html[data-density="compact"] .stat-card {
   height: 2px;
   background: #cbd5e1;
   flex-shrink: 0;
+}
+
+/* ==========================================================================
+   Modern Intuitive Banking UI Overhaul
+   ========================================================================== */
+
+/* Breadcrumb Bar */
+.case-breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+.case-breadcrumb-bar .bc-link {
+  color: #0284c7;
+  text-decoration: none;
+  font-weight: 500;
+}
+.case-breadcrumb-bar .bc-link:hover {
+  text-decoration: underline;
+}
+.case-breadcrumb-bar .bc-sep {
+  color: #cbd5e1;
+}
+.case-breadcrumb-bar .bc-current {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+/* Executive Case Header Card */
+.case-executive-header {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 18px 24px;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+.exec-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.exec-customer-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.exec-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: #0284c7;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.exec-customer-text h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  line-height: 1.2;
+}
+.exec-badges-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.pill-ref {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 5px;
+  background: #f1f5f9;
+  color: #475569;
+}
+.pill-branch {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+.exec-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.btn-primary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 16px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s ease;
+}
+.btn-primary-action:hover {
+  background: #0369a1;
+}
+.btn-secondary-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+.btn-secondary-action:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+/* Stepper Pipeline inside Executive Header */
+.exec-stepper-wrap {
+  padding-top: 14px;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Workspace 3-Mode Navigation Tabs */
+.workspace-mode-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 0;
+}
+.mode-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.mode-tab-btn:hover {
+  color: #0f172a;
+}
+.mode-tab-btn.active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+}
+.mode-tab-count {
+  font-size: 11px;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  color: #475569;
+}
+.mode-tab-btn.active .mode-tab-count {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+.mini-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.mini-status-dot.good { background: #16a34a; }
+.mini-status-dot.warn { background: #ca8a04; }
+.mini-status-dot.error { background: #dc2626; }
+
+/* Document Selector Chips Bar */
+.document-selector-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+.selector-bar-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.doc-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.doc-chip-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+.doc-chip-btn.selected {
+  background: #f0fdfa;
+  border-color: #0d9488;
+  box-shadow: 0 0 0 1px #0d9488;
+}
+.doc-chip-btn strong {
+  font-size: 12px;
+  color: #1e293b;
+  display: block;
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.doc-chip-btn small {
+  font-size: 10px;
+  color: #64748b;
+  display: block;
+}
+
+/* Two-Pane Workspace Adjustments */
+.two-pane-deck {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 440px);
+  gap: 18px;
+  align-items: start;
+}
+@media (max-width: 1200px) {
+  .two-pane-deck {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Clean Technical Keys Toggle */
+.dev-keys-toggle-btn {
+  font-size: 11px;
+  color: #64748b;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 5px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.dev-keys-toggle-btn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+/* Bottom Maintenance Collapsible Drawer */
+.bottom-maintenance-drawer {
+  margin-top: 28px;
+  padding: 12px 18px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+}
+.bottom-maintenance-drawer summary {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bottom-maintenance-drawer summary:hover {
+  color: #1e293b;
 }

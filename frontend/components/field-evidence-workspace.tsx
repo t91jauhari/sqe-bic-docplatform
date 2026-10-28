@@ -98,6 +98,7 @@ export function FieldEvidenceWorkspace({
   const [selectedField, setSelectedField] = useState<string>("");
   const [showInspector, setShowInspector] = useState<boolean>(true);
   const [inspectorZoom, setInspectorZoom] = useState<number>(100);
+  const [showDevKeys, setShowDevKeys] = useState<boolean>(false);
 
   const rows = useMemo<UnifiedFieldRow[]>(() => {
     const labelMap = new Map<string, string>(columns || []);
@@ -402,6 +403,14 @@ export function FieldEvidenceWorkspace({
             {showInspector ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             {showInspector ? "Hide inspector" : "Show inspector"}
           </button>
+          <button
+            type="button"
+            className="dev-keys-toggle-btn"
+            onClick={() => setShowDevKeys((v) => !v)}
+            title="Tampilkan nama atribut database asli"
+          >
+            {showDevKeys ? "Sembunyikan Kunci Teknis" : "Kunci Teknis"}
+          </button>
         </div>
       </div>
 
@@ -414,10 +423,10 @@ export function FieldEvidenceWorkspace({
           <table>
             <thead>
               <tr>
-                <th>Field</th>
-                <th>Effective value</th>
-                <th>Source crop evidence</th>
-                <th>Check</th>
+                <th>Atribut Dokumen</th>
+                <th>Nilai Terbaca</th>
+                <th>Bukti Visual</th>
+                <th>Status & Tindakan</th>
               </tr>
             </thead>
             <tbody>
@@ -629,7 +638,7 @@ export function FieldEvidenceWorkspace({
           >
             <div className="inspector-head">
               <div>
-                <span className="eyebrow">EVIDENCE INSPECTOR</span>
+                <span className="eyebrow">BUKTI SUMBER DOKUMEN</span>
                 <h3>{activeRow.label}</h3>
                 <span className="field-key-code">{activeRow.field}</span>
               </div>
@@ -665,7 +674,7 @@ export function FieldEvidenceWorkspace({
 
             <div className="inspector-value-box">
               <div className="inspector-value-header">
-                <span className="small-label">EFFECTIVE VALUE</span>
+                <span className="small-label">NILAI TERBACA EFEKTIF</span>
                 {activeRow.checkStatus === "OK" ? (
                   <span className="badge good">OK</span>
                 ) : (
@@ -701,7 +710,7 @@ export function FieldEvidenceWorkspace({
             <div className="inspector-crops-section">
               <div className="inspector-crops-head">
                 <span className="small-label">
-                  SOURCE CROP EVIDENCE (
+                  BUKTI POTONGAN GAMBAR (
                   {activeRow.crops.filter((c) => c.url).length})
                 </span>
                 {activeRow.crops.some((c) => c.url) && (
