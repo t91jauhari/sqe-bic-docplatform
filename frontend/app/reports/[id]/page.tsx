@@ -290,9 +290,6 @@ export default function ReportPage({
                     </span>
                     Kertas Kerja Pemeriksaan (KKP) · Indikator Kepatuhan
                   </h2>
-                  <p>
-                    Evaluasi kepatuhan per kategori berdasarkan standar audit internal (SKAI), Bank Indonesia (PBI 24/7/2022), dan OJK.
-                  </p>
                 </div>
               </div>
               <div
@@ -459,19 +456,6 @@ export default function ReportPage({
                     </div>
                   );
                 })}
-              </div>
-              <div
-                style={{
-                  marginTop: "16px",
-                  padding: "10px 14px",
-                  background: "var(--bg-subtle, rgba(0,0,0,0.02))",
-                  borderRadius: "8px",
-                  fontSize: "0.8rem",
-                  color: "var(--text-muted, #64748b)",
-                  border: "1px solid rgba(0,0,0,0.05)",
-                }}
-              >
-                <strong>Pedoman Skoring Audit KKP:</strong> Sesuai format standar Kertas Kerja Pemeriksaan Bank Indonesia & SKAI, indikator <strong>SESUAI</strong> diberikan jika seluruh kriteria pengujian dalam kategori terpenuhi (100% compliant). Status <strong>TEMUAN</strong> mengindikasikan terdapat kriteria yang belum terpenuhi dan memerlukan pembetulan dokumen atau disposisi pejabat terkait.
               </div>
             </section>
           )}

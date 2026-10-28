@@ -9,6 +9,7 @@ import { formatWhen } from "@/lib/time";
 
 export function Badge({ value }: { value: string }) {
   if (!value || value.toUpperCase() === "SKIPPED") return null;
+  const upper = value.toUpperCase();
   const color = [
     "PASS",
     "MATCH",
@@ -17,17 +18,18 @@ export function Badge({ value }: { value: string }) {
     "COMPLETED",
     "FINAL",
     "FINALIZED",
-  ].includes(value)
+  ].includes(upper)
     ? "good"
     : [
           "FAIL",
+          "NOT_COMPLIANT",
           "MISMATCH",
           "VALUE_MISSING",
           "DOCUMENT_MISSING",
           "ERROR",
           "PROCESSING_ERROR",
           "SOP_ERROR",
-        ].includes(value)
+        ].includes(upper)
       ? "bad"
       : [
             "REVIEW",
@@ -35,12 +37,13 @@ export function Badge({ value }: { value: string }) {
             "NEEDS_REVIEW",
             "NEEDS_CLASSIFICATION",
             "WAITING_DOCUMENTS",
-          ].includes(value)
+          ].includes(upper)
         ? "warn"
         : "neutral";
+  const label = upper === "FAIL" || upper === "FAILED" ? "Not Compliant" : value.replaceAll("_", " ").toLowerCase();
   return (
     <span className={"badge " + color}>
-      {value.replaceAll("_", " ").toLowerCase()}
+      {label}
     </span>
   );
 }

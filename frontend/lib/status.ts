@@ -27,9 +27,11 @@ export const STATUS_LABELS: Record<
 
 // Canonical SOP-result vocabulary. "none" renders as "Not run", never blank.
 export const SOP_LABELS: Record<string, { label: string; tone: StatusTone }> = {
-  pass: { label: "Pass", tone: "ok" },
+  pass: { label: "Compliant", tone: "ok" },
   review: { label: "Needs Review", tone: "warn" },
-  fail: { label: "Fail", tone: "error" },
+  fail: { label: "Not Compliant", tone: "error" },
+  failed: { label: "Not Compliant", tone: "error" },
+  not_compliant: { label: "Not Compliant", tone: "error" },
   pending: { label: "Not run", tone: "neutral" },
   none: { label: "Not run", tone: "neutral" },
 };

@@ -63,7 +63,7 @@ def readable_remarks(snapshot, compact=False):
                     else "Awaiting data assessment"
                 )
                 if finding["result"] == "REVIEW"
-                else "Failed"
+                else "Not Compliant"
             )
             lines.append(f"{n}. {state}: {message}")
         groups.append("\n".join(lines))

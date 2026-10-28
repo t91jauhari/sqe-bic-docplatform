@@ -1,7 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ScanEye, RotateCcw, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
+import {
+  ArrowRight,
+  RotateCcw,
+  CheckCircle2,
+  AlertTriangle,
+  ShieldCheck,
+  Layers,
+  Sparkles,
+  Check,
+  ChevronDown,
+} from "lucide-react";
 import { useData, usePlatform } from "@/components/platform-provider";
 import { api } from "@/lib/api";
 import { ContextInputs } from "@/components/context-inputs";
@@ -220,153 +230,316 @@ export function CaseSOP({
       )}
 
       {current?.error && <ErrorNotice message={current.error} />}
-      <details>
-        <summary style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
-          <span>Case context and transaction metadata</span>
+      <details
+        style={{
+          border: "1px solid #e2e8f0",
+          borderRadius: "10px",
+          background: "#ffffff",
+          overflow: "hidden",
+          marginTop: "16px",
+        }}
+      >
+        <summary
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            cursor: "pointer",
+            padding: "14px 18px",
+            background: "#f8fafc",
+            borderBottom: "1px solid #e2e8f0",
+            fontWeight: 600,
+            fontSize: "14px",
+            color: "#1e293b",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <Layers size={16} style={{ color: "#0d9488" }} />
+            <span>Case Context & Transaction Metadata</span>
+          </div>
           {Boolean((data.case_context as any)?.annotation?.actor === "system.auto_inference") && (
-            <span style={{ fontSize: "0.75rem", background: "#dcfce7", color: "#15803d", padding: "0.15rem 0.5rem", borderRadius: "12px", fontWeight: "normal" }}>
+            <span
+              style={{
+                fontSize: "11px",
+                background: "#dcfce7",
+                color: "#15803d",
+                padding: "3px 8px",
+                borderRadius: "12px",
+                fontWeight: 600,
+                border: "1px solid #bbf7d0",
+              }}
+            >
               ✓ Auto-filled by System
             </span>
           )}
         </summary>
-        {(data.case_context as any)?.annotation?.actor === "system.auto_inference" && (
-          <div
-            style={{
-              padding: "0.65rem 0.9rem",
-              background: "var(--bg-accent, #f0fdf4)",
-              border: "1px solid #bbf7d0",
-              borderRadius: "6px",
-              marginTop: "0.75rem",
-              marginBottom: "0.75rem",
-              fontSize: "0.85rem",
-              color: "#166534",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "0.5rem",
-            }}
-          >
-            <span>
-              <strong>✓ Auto-resolved by Platform Engine:</strong> Metadata fields are pre-populated from verified case documents (Straight-Through Processing).
-            </span>
-            <button
-              type="button"
-              className="secondary"
-              style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
-              onClick={() => {
-                const autoValues: Record<string, string> = {};
-                for (const s of data.context_suggestions || []) {
-                  if (!s.conflict && s.value && s.value !== "UNKNOWN") {
-                    autoValues[s.field] = s.value;
-                  }
-                }
-                setValues({ ...values, ...autoValues });
-                setReason("Re-aligned with automated case document inference");
-                setEvidence("Verified from Application slip, EKTP, and Valas Declaration");
+
+        <div style={{ padding: "16px" }}>
+          {(data.case_context as any)?.annotation?.actor === "system.auto_inference" && (
+            <div
+              style={{
+                padding: "12px 16px",
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                borderRadius: "8px",
+                marginBottom: "16px",
+                fontSize: "13px",
+                color: "#166534",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: "10px",
               }}
             >
-              Reset to Auto Values
-            </button>
-          </div>
-        )}
-        {Boolean(data.context_suggestions && data.context_suggestions.length > 0) && (
-          <div style={{ margin: "0.5rem 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-              {data.context_suggestions?.filter(s => !s.conflict).length} automated evidence suggestions
-            </span>
-            {data.can_write && (
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <CheckCircle2 size={16} style={{ color: "#16a34a", flexShrink: 0 }} />
+                <span>
+                  <strong>Auto-resolved by Platform Engine:</strong> Metadata fields are pre-populated directly from verified case documents (Straight-Through Processing).
+                </span>
+              </div>
               <button
                 type="button"
-                className="secondary"
-                style={{ padding: "0.2rem 0.5rem", fontSize: "0.75rem" }}
+                className="btn-secondary-action compact-btn"
                 onClick={() => {
-                  const draftValues = { ...values };
-                  const evParts: string[] = [];
+                  const autoValues: Record<string, string> = {};
                   for (const s of data.context_suggestions || []) {
                     if (!s.conflict && s.value && s.value !== "UNKNOWN") {
-                      draftValues[s.field] = s.value;
-                      evParts.push(`${s.field}: ${s.value}`);
+                      autoValues[s.field] = s.value;
                     }
                   }
-                  setValues(draftValues);
-                  setReason("Accepted all automated document context suggestions");
-                  setEvidence(evParts.slice(0, 3).join("; "));
+                  setValues({ ...values, ...autoValues });
+                  setReason("Re-aligned with automated case document inference");
+                  setEvidence("Verified from Application slip, EKTP, and Valas Declaration");
                 }}
               >
-                Apply All Suggestions
+                Reset to Auto Values
               </button>
-            )}
-          </div>
-        )}
-        {data.context_suggestions?.map((s, i) => (
-          <div key={i} style={{ padding: 8 }}>
-            <strong>
-              {s.field}: {s.value}
-            </strong>{" "}
-            — {s.source}
-            {s.conflict ? " · Conflicting evidence; review required" : ""}
-            {!s.conflict && data.can_write && (
-              <button
-                className="text-link"
-                onClick={() => {
-                  setValues({ ...values, [s.field]: s.value });
-                  setEvidence(`Document ${s.document_id}: ${s.source}`);
-                }}
-              >
-                Use suggestion in draft
-              </button>
-            )}
-          </div>
-        ))}
-        <p>
-          Enter values from supplied documents. Unknown values fail data checks;
-          carrier and transaction staff are never inferred from platform users.
-        </p>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void run(
-              `/cases/${data.id}/context`,
-              { values, reason, evidence },
-              "PUT",
-            );
-          }}
-        >
-          <fieldset disabled={!data.can_write || pending}>
-            <div className="form-grid">
-              <ContextInputs definitions={catalog?.context_definitions || {}} values={values}
-                onChange={setValues} documents={data.documents} />
             </div>
-            {forex && (
-              <p className="subtext">
-                Select documents when several copies could apply. Partial
-                payment requires an explicit amount, three-letter currency and
-                supporting document/page evidence below. No extraction is
-                repeated.
-              </p>
-            )}
-            <label>
-              Reason for annotation
-              <input
-                required
-                minLength={5}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-              />
-            </label>
-            <label>
-              Document / page evidence
-              <input
-                required
-                minLength={5}
-                value={evidence}
-                onChange={(e) => setEvidence(e.target.value)}
-              />
-            </label>
-            <button className="primary">Save context and rerun</button>
-          </fieldset>
-        </form>
+          )}
+
+          {Boolean(data.context_suggestions && data.context_suggestions.length > 0) && (
+            <div style={{ marginBottom: "20px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "10px",
+                }}
+              >
+                <div>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#1e293b" }}>
+                    Automated Document Evidence ({data.context_suggestions?.filter((s) => !s.conflict).length} suggestions)
+                  </span>
+                  <p style={{ margin: "2px 0 0", fontSize: "12px", color: "#64748b" }}>
+                    Parameters inferred from customer identity cards, application slips, and declarations.
+                  </p>
+                </div>
+                {data.can_write && (
+                  <button
+                    type="button"
+                    className="btn-secondary-action compact-btn"
+                    onClick={() => {
+                      const draftValues = { ...values };
+                      const evParts: string[] = [];
+                      for (const s of data.context_suggestions || []) {
+                        if (!s.conflict && s.value && s.value !== "UNKNOWN") {
+                          draftValues[s.field] = s.value;
+                          evParts.push(`${s.field}: ${s.value}`);
+                        }
+                      }
+                      setValues(draftValues);
+                      setReason("Accepted all automated document context suggestions");
+                      setEvidence(evParts.slice(0, 3).join("; "));
+                    }}
+                  >
+                    Apply All Suggestions
+                  </button>
+                )}
+              </div>
+
+              {/* Responsive Structured Grid */}
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(310px, 1fr))",
+                  gap: "10px",
+                }}
+              >
+                {data.context_suggestions?.map((s, i) => {
+                  const docObj = data.documents.find(
+                    (d) => d.id === s.value || d.id === s.document_id,
+                  );
+                  const isDocId = s.field.includes("document_id");
+                  const displayVal = isDocId && docObj ? docObj.filename : s.value;
+                  const fieldLabel = s.field.replaceAll("_", " ");
+                  const isApplied = values[s.field] === s.value;
+
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        padding: "10px 14px",
+                        borderRadius: "8px",
+                        border: isApplied ? "1px solid #86efac" : "1px solid #e2e8f0",
+                        background: isApplied ? "#f0fdf4" : "#ffffff",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        gap: "6px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
+                          gap: "8px",
+                        }}
+                      >
+                        <div style={{ flex: 1 }}>
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              color: "#64748b",
+                              textTransform: "uppercase",
+                              display: "block",
+                            }}
+                          >
+                            {fieldLabel}
+                          </span>
+                          <span
+                            style={{
+                              fontSize: "13px",
+                              fontWeight: 700,
+                              color: "#0f172a",
+                              wordBreak: "break-all",
+                            }}
+                          >
+                            {displayVal}
+                          </span>
+                        </div>
+                        {isApplied ? (
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              color: "#16a34a",
+                              fontWeight: 600,
+                              background: "#dcfce7",
+                              padding: "2px 6px",
+                              borderRadius: "4px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "3px",
+                            }}
+                          >
+                            <Check size={11} /> Applied
+                          </span>
+                        ) : (
+                          !s.conflict &&
+                          data.can_write && (
+                            <button
+                              type="button"
+                              className="btn-secondary-action compact-btn"
+                              style={{ fontSize: "11px", padding: "2px 8px" }}
+                              onClick={() => {
+                                setValues({ ...values, [s.field]: s.value });
+                                setEvidence(`Document ${s.document_id}: ${s.source}`);
+                              }}
+                            >
+                              Apply
+                            </button>
+                          )
+                        )}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          color: "#64748b",
+                          borderTop: "1px solid #f1f5f9",
+                          paddingTop: "6px",
+                        }}
+                      >
+                        {s.source}
+                        {s.conflict && (
+                          <span style={{ color: "#dc2626", fontWeight: 600 }}>
+                            {" "}
+                            · Conflicting evidence; review required
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Manual Overrides Form */}
+          <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "16px" }}>
+            <h3 style={{ fontSize: "14px", margin: "0 0 6px", color: "#1e293b" }}>
+              Regulatory Parameters & Manual Overrides
+            </h3>
+            <p style={{ margin: "0 0 14px", fontSize: "12px", color: "#64748b" }}>
+              Modify values only when a transaction requires non-standard routing or audit annotation. All modifications are logged to the case audit trail.
+            </p>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                void run(
+                  `/cases/${data.id}/context`,
+                  { values, reason, evidence },
+                  "PUT",
+                );
+              }}
+            >
+              <fieldset disabled={!data.can_write || pending} style={{ border: "none", padding: 0 }}>
+                <div className="form-grid" style={{ marginBottom: "12px" }}>
+                  <ContextInputs
+                    definitions={catalog?.context_definitions || {}}
+                    values={values}
+                    onChange={setValues}
+                    documents={data.documents}
+                  />
+                </div>
+                {forex && (
+                  <p className="subtext" style={{ fontSize: "12px", marginBottom: "12px" }}>
+                    Select specific documents when multiple copies apply. Partial payment requires an explicit amount, currency, and verified page evidence.
+                  </p>
+                )}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "14px" }}>
+                  <label>
+                    Reason for annotation
+                    <input
+                      required
+                      minLength={5}
+                      value={reason}
+                      onChange={(e) => setReason(e.target.value)}
+                      placeholder="e.g. Standard STP verification or manual adjustment"
+                    />
+                  </label>
+                  <label>
+                    Document / page evidence
+                    <input
+                      required
+                      minLength={5}
+                      value={evidence}
+                      onChange={(e) => setEvidence(e.target.value)}
+                      placeholder="e.g. Verified against Application slip and e-KTP"
+                    />
+                  </label>
+                </div>
+                <button type="submit" className="btn-primary-action compact-btn" disabled={pending}>
+                  Save Context & Rerun SOP
+                </button>
+              </fieldset>
+            </form>
+          </div>
+        </div>
       </details>
     </section>
   );
