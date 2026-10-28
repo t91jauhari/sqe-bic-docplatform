@@ -242,7 +242,7 @@ class Report(Record):
     fingerprint: Mapped[str] = mapped_column(String(64))
     version: Mapped[int] = mapped_column(Integer)
     snapshot: Mapped[dict] = mapped_column(JSON)
-    state: Mapped[str] = mapped_column(String(20), default="DRAFT")
+    state: Mapped[str] = mapped_column(String(20), default="FINAL")
     approved_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
     __table_args__ = (UniqueConstraint("case_id", "fingerprint"),)
 

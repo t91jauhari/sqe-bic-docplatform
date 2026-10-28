@@ -377,6 +377,7 @@ def process_case_run(run_id):
                     version=version,
                     fingerprint=run.fingerprint,
                     snapshot=snapshot,
+                    state="FINAL",
                 )
                 db.add(report)
                 db.flush()
@@ -384,6 +385,7 @@ def process_case_run(run_id):
                     persist_report(report)
             else:
                 report.snapshot = snapshot
+                report.state = "FINAL"
                 db.flush()
                 if not errors:
                     persist_report(report)

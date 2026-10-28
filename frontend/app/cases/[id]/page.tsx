@@ -184,7 +184,7 @@ export default function CasePage({
             <h2 style={{ fontSize: "16px", margin: 0 }}>
               Official <span title="Work paper report">Kertas Kerja</span> (Work Paper)
             </h2>
-            <Badge value={report.state} />
+            <Badge value="FINAL / RELEASED" />
             <SopBadge value={report.snapshot.validation_status} />
           </div>
           <span className="muted" style={{ fontSize: "12px" }}>
@@ -297,21 +297,7 @@ export default function CasePage({
                     </>
                   )}
 
-                  {data.can_review && ["READY", "NEEDS_REVIEW"].includes(data.status) && report && report.state !== "FINAL" && (
-                    <button
-                      className="btn-primary-action"
-                      disabled={pending}
-                      onClick={() =>
-                        void run(
-                          () => api(`/reports/${report.id}/approve`, { method: "POST" }),
-                          "Work paper approved and official report released.",
-                        )
-                      }
-                    >
-                      <ShieldCheck size={16} />
-                      <span>Approve & Release Work Paper</span>
-                    </button>
-                  )}
+
 
                   {data.can_write && (
                     <Link

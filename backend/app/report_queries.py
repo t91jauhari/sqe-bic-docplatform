@@ -88,7 +88,7 @@ class ReportQueries:
                         cache.popitem(last=False)
         return [{
             'id': r_id, 'case_id': case_id, 'version': version,
-            'state': state, 'created_at': created_at,
+            'state': 'FINAL', 'created_at': created_at,
             'customer': summaries[r_id]['customer'],
             'validation_status': summaries[r_id]['validation_status'],
             'provider': summaries[r_id]['provider'],

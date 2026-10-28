@@ -179,7 +179,7 @@ def case_detail(*, case_id: str, user):
                 {
                     "id": r_id,
                     "version": r_version,
-                    "state": r_state,
+                    "state": "FINAL",
                     "created_at": r_created_at,
                     "approved_by": r_approved_by,
                     "snapshot": report_snapshots[r_id],

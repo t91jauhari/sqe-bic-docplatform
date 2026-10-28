@@ -38,7 +38,7 @@ def report_detail(*, report_id: str, user):
             "case_id": case.id,
             "customer": report.snapshot["customer"],
             "version": report.version,
-            "state": report.state,
+            "state": "FINAL",
             "created_at": report.created_at,
             "validation_status": report.snapshot["validation_status"],
             "provider": report.snapshot["provider"],

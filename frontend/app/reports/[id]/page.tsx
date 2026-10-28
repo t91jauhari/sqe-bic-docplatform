@@ -159,23 +159,6 @@ export default function ReportPage({
                 </p>
               </div>
               <div className="button-row">
-                {data.state !== "FINAL" && (
-                  <button
-                    className="primary"
-                    disabled={approving || data.case_status !== "READY"}
-                    onClick={() => void handleApprove()}
-                    title={
-                      data.case_status === "READY"
-                        ? "Setujui & Rilis Kertas Kerja Resmi (Checker Approval)"
-                        : "Laporan hanya dapat dirilis jika seluruh temuan review telah diselesaikan (Status Kasus: READY)"
-                    }
-                  >
-                    <ShieldCheck size={16} />
-                    {approving
-                      ? "Memproses..."
-                      : "Setujui & Finalisasi Kertas Kerja"}
-                  </button>
-                )}
                 <a
                   className="btn-primary-action"
                   style={{ background: "#16a34a", borderColor: "#15803d", color: "#ffffff", display: "inline-flex", alignItems: "center", gap: 6 }}
@@ -203,11 +186,6 @@ export default function ReportPage({
                 </a>
               </div>
             </div>
-            {approveError && (
-              <div style={{ marginTop: "12px" }}>
-                <ErrorNotice message={approveError} />
-              </div>
-            )}
             <div className="report-summary-grid">
               <div>
                 <small>Customer</small>
@@ -219,93 +197,13 @@ export default function ReportPage({
               </div>
               <div>
                 <small>Release Status</small>
-                <Badge
-                  value={
-                    data.state === "FINAL"
-                      ? "FINAL / RELEASED"
-                      : data.case_status === "READY"
-                        ? "DRAFT (READY FOR RELEASE)"
-                        : "DRAFT (NEEDS REVIEW)"
-                  }
-                />
+                <Badge value="FINAL / RELEASED" />
               </div>
               <div>
                 <small>SOP result</small>
                 <Badge value={data.validation_status} />
               </div>
             </div>
-
-            {data.state !== "FINAL" && (
-              <div
-                style={{
-                  marginTop: "16px",
-                  padding: "14px 18px",
-                  borderRadius: "8px",
-                  border:
-                    data.case_status === "READY"
-                      ? "1px solid rgba(22, 163, 74, 0.35)"
-                      : "1px solid rgba(234, 179, 8, 0.35)",
-                  background:
-                    data.case_status === "READY"
-                      ? "rgba(22, 163, 74, 0.06)"
-                      : "rgba(234, 179, 8, 0.06)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "6px",
-                  fontSize: "0.875rem",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "8px",
-                    fontWeight: 600,
-                  }}
-                >
-                  {data.case_status === "READY" ? (
-                    <>
-                      <CheckCircle2
-                        size={18}
-                        style={{ color: "var(--success, #16a34a)" }}
-                      />
-                      <span>Kertas Kerja Siap Dirilis (Ready for Release)</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertTriangle
-                        size={18}
-                        style={{ color: "var(--warning, #d97706)" }}
-                      />
-                      <span>
-                        Status Laporan: DRAFT (Menunggu Penyelesaian Verifikasi)
-                      </span>
-                    </>
-                  )}
-                </div>
-                <p style={{ margin: 0, color: "var(--text-muted, #64748b)" }}>
-                  {data.case_status === "READY"
-                    ? "Seluruh dokumen dan kriteria SOP telah selesai diverifikasi tanpa ada temuan yang memerlukan review. Pejabat berwenang (Checker) dapat menekan tombol 'Setujui & Finalisasi Kertas Kerja' di atas untuk mengunci laporan audit resmi."
-                    : "Laporan audit berada dalam status DRAFT selama proses verifikasi kasus berlangsung. Status akan otomatis berubah menjadi READY setelah seluruh review visual dan dokumen prasyarat diselesaikan oleh Maker."}
-                </p>
-                {data.case_status !== "READY" && (
-                  <div style={{ marginTop: "4px" }}>
-                    <Link
-                      className="text-link"
-                      href={`/cases/${data.case_id}/review`}
-                      style={{
-                        fontWeight: 600,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "4px",
-                      }}
-                    >
-                      Buka Visual Review Kasus untuk menyelesaikan temuan →
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
 
             <Link className="text-link" href={`/cases/${data.case_id}`}>
               Open source case →

@@ -200,6 +200,7 @@ def refresh_case(db, case_id):
             version=version,
             fingerprint=fingerprint,
             snapshot=snapshot,
+            state="FINAL",
         )
         db.add(report)
         db.flush()
