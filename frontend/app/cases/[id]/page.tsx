@@ -214,35 +214,35 @@ export default function CasePage({
             </p>
           </div>
 
-          <div className="button-row" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div className="button-row" style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <a
-              className="btn-primary-action"
-              style={{ background: "#16a34a", borderColor: "#15803d", color: "#ffffff", display: "inline-flex", alignItems: "center", gap: 6 }}
+              className="btn-secondary-action compact-btn"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
               href={`/api/reports/${report.id}/download?format=xlsx`}
               title="Download Official Kertas Kerja in Excel format (.xlsx)"
             >
-              <FileSpreadsheet size={16} />
-              <span>Download Excel (XLSX)</span>
+              <FileSpreadsheet size={14} style={{ color: "#16a34a" }} />
+              <span>Download Excel</span>
             </a>
 
             <a
-              className="btn-secondary-action"
+              className="btn-secondary-action compact-btn"
               style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
               href={`/api/reports/${report.id}/download?format=pdf`}
               title="Download Work Paper in PDF format"
             >
-              <Download size={15} />
-              <span>Download PDF</span>
+              <Download size={13} />
+              <span>PDF</span>
             </a>
 
             <Link
-              className="btn-secondary-action"
+              className="btn-secondary-action compact-btn"
               style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
               href={`/reports/${report.id}`}
               title="View interactive report and findings breakdown"
             >
               <span>View Full Report</span>
-              <ArrowUpRight size={14} />
+              <ArrowUpRight size={13} />
             </Link>
           </div>
         </div>
@@ -291,12 +291,20 @@ export default function CasePage({
                     <>
                       <a
                         className="btn-primary-action"
-                        style={{ background: "#16a34a", borderColor: "#15803d", color: "#ffffff", display: "inline-flex", alignItems: "center", gap: 6 }}
+                        style={{
+                          background: "#16a34a",
+                          borderColor: "#15803d",
+                          color: "#ffffff",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 7,
+                          boxShadow: "0 1px 2px 0 rgba(22, 163, 74, 0.25)",
+                        }}
                         href={`/api/reports/${report.id}/download?format=xlsx`}
                         title="Download Official Kertas Kerja in Excel format (.xlsx)"
                       >
                         <FileSpreadsheet size={15} />
-                        <span>Download Excel (v{report.version})</span>
+                        <span>Download Official Kertas Kerja (XLSX)</span>
                       </a>
                       <a
                         className="btn-secondary-action compact-btn"
@@ -306,19 +314,26 @@ export default function CasePage({
                         <Download size={14} />
                         <span>PDF</span>
                       </a>
+                      <Link
+                        className="btn-secondary-action compact-btn"
+                        href={`/reports/${report.id}`}
+                        title="View interactive compliance report"
+                      >
+                        <ArrowUpRight size={14} />
+                        <span>View Report</span>
+                      </Link>
                     </>
                   )}
 
-
-
                   {data.can_write && (
                     <Link
-                      className="btn-secondary-action"
+                      className="btn-secondary-action compact-btn"
+                      style={{ color: "#475569" }}
                       href={`/upload?case=${id}&branch=${data.branch_id}`}
                       title="Upload supplementary or missing documents for this customer case. This does not create a new case."
                     >
-                      <Upload size={15} />
-                      <span>Add Supplementary Documents</span>
+                      <Upload size={14} />
+                      <span>Add Documents</span>
                     </Link>
                   )}
                 </div>
@@ -559,8 +574,8 @@ export default function CasePage({
                           onClick={exportAllDocuments}
                           title="Export all extracted document data to Excel"
                         >
-                          <Download size={14} />
-                          <span>{exporting ? "Exporting…" : "Export Excel"}</span>
+                          <Download size={13} />
+                          <span>{exporting ? "Exporting…" : "Export Data"}</span>
                         </button>
                       )}
 
@@ -570,8 +585,8 @@ export default function CasePage({
                           href={`/upload?case=${id}&branch=${data.branch_id}`}
                           title="Upload supplementary or missing documents for this customer case. This does not create a new case."
                         >
-                          <Upload size={14} />
-                          <span>Add Supplementary Document</span>
+                          <Upload size={13} />
+                          <span>Add Document</span>
                         </Link>
                       )}
 
@@ -673,8 +688,26 @@ export default function CasePage({
 
                 {/* Document Inspection Content */}
                 {doc ? (
-                  <section className="panel evidence-panel" style={{ padding: "20px 24px" }}>
-                    <div className="section-head" style={{ marginBottom: 16 }}>
+                  <section
+                    className="panel evidence-panel"
+                    style={{
+                      padding: 0,
+                      overflow: "hidden",
+                      background: "#ffffff",
+                      border: "1px solid #f1f5f9",
+                      borderRadius: "10px",
+                      boxShadow: "0 1px 2px 0 rgba(15, 23, 42, 0.02)",
+                    }}
+                  >
+                    <div
+                      className="section-head"
+                      style={{
+                        padding: "16px 20px",
+                        borderBottom: "1px solid #f1f5f9",
+                        margin: 0,
+                        background: "#ffffff",
+                      }}
+                    >
                       <div>
                         <h2 style={{ fontSize: "16px", margin: 0 }}>{doc.filename}</h2>
                         <p style={{ margin: "4px 0 0", color: "#64748b", fontSize: "12px" }}>
