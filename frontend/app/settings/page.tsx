@@ -59,46 +59,62 @@ type Tab =
   | "rules"
   | "connector"
   | "access";
-const settingsSections = {
-  families: {
-    label: "Document families",
-    detail: "Group documents & defaults",
-    icon: Layers,
+const settingsSections: Record<
+  Tab,
+  {
+    label: string;
+    detail: string;
+    icon: any;
+    category: "business" | "engine";
+  }
+> = {
+  access: {
+    label: "Branches & Staff Access",
+    detail: "Staff accounts, maker-checker roles & branch offices",
+    icon: Users,
+    category: "business",
   },
   flows: {
-    label: "Transaction flows",
-    detail: "Required documents per service",
+    label: "Transaction Requirements",
+    detail: "Mandatory documents & checks per banking service",
     icon: Route,
-  },
-  profiles: {
-    label: "Document profiles",
-    detail: "Fields, prompts & reading rules",
-    icon: ScanLine,
+    category: "business",
   },
   rules: {
-    label: "SOP rules",
-    detail: "Validation & review checks",
+    label: "SOP Compliance Rules",
+    detail: "Regulatory checklists, thresholds & validation policies",
     icon: ListChecks,
+    category: "business",
   },
-  automation: {
-    label: "Automation",
-    detail: "Workflow steps & replay",
-    icon: Workflow,
+  families: {
+    label: "Document Packages",
+    detail: "Banking service suites (Forex, Retail, Trade)",
+    icon: Layers,
+    category: "business",
+  },
+  profiles: {
+    label: "Document Profiles (Schema & OCR)",
+    detail: "Field definitions, bounding boxes & prompts",
+    icon: ScanLine,
+    category: "engine",
   },
   workflow: {
-    label: "Processing defaults",
-    detail: "Shared extraction behavior",
+    label: "Engine Processing Defaults",
+    detail: "Multimodal AI provider, confidence & page flows",
     icon: SlidersHorizontal,
+    category: "engine",
   },
   connector: {
-    label: "Connector",
-    detail: "Model provider connections",
+    label: "AI Connectors & Credentials",
+    detail: "Spider-AI & Google Gemini model endpoints",
     icon: Plug,
+    category: "engine",
   },
-  access: {
-    label: "Branches & users",
-    detail: "Organization access controls",
-    icon: Users,
+  automation: {
+    label: "Pipeline Automations",
+    detail: "Workflow state machine & retry rules",
+    icon: Workflow,
+    category: "engine",
   },
 };
 type Test = {
@@ -137,6 +153,25 @@ export default function Settings() {
     [policyError, setPolicyError] = useState(""),
     [test, setTest] = useState<Test | null>(null);
   const canEdit = user?.role === "bank_admin";
+  const canManageAccess = ["bank_admin", "branch_admin"].includes(user?.role || "");
+  const businessTabs: Tab[] = [
+    ...(canManageAccess ? ["access" as Tab] : []),
+    "flows",
+    "rules",
+    "families",
+  ];
+  const developerTabs: Tab[] = [
+    "profiles",
+    "workflow",
+    ...(canEdit ? ["connector" as Tab] : []),
+    "automation",
+  ];
+
+  useEffect(() => {
+    if (user && canManageAccess && tab === "flows" && !dirty) {
+      setTab("access");
+    }
+  }, [user, canManageAccess]);
   const dirtyRef = useRef(false);
   const [discardOpen, setDiscardOpen] = useState(false);
   const [draftEpoch, setDraftEpoch] = useState(0);
@@ -316,118 +351,403 @@ export default function Settings() {
         draft && (
           <>
             <fieldset className="configuration-content" disabled={pending}>
-              <div className="config-status config-governance-sticky">
-                <ShieldCheck size={17} />
-                <span>
-                  Published configuration <strong>v{version}</strong>
-                </span>
-                {dirty && <span className="unsaved">Unpublished changes</span>}
-                <span className="muted">
+              <div
+                className="config-status config-governance-sticky"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                  padding: "12px 18px",
+                  background: "#ffffff",
+                  border: "1px solid #e2e8f0",
+                  borderRadius: "10px",
+                  boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+                  marginBottom: "18px",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <ShieldCheck size={18} style={{ color: "#16a34a" }} />
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a" }}>
+                    Published Configuration <strong>v{version}</strong>
+                  </span>
+                  {dirty ? (
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 700,
+                        background: "#fef3c7",
+                        color: "#92400e",
+                        padding: "2px 8px",
+                        borderRadius: "10px",
+                        border: "1px solid #fde68a",
+                      }}
+                    >
+                      Unpublished Draft Changes
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        fontWeight: 600,
+                        background: "#dcfce7",
+                        color: "#166534",
+                        padding: "2px 8px",
+                        borderRadius: "10px",
+                        border: "1px solid #bbf7d0",
+                      }}
+                    >
+                      Active & In Effect
+                    </span>
+                  )}
+                </div>
+
+                <span
+                  className="muted"
+                  style={{
+                    fontSize: "12px",
+                    color: "#64748b",
+                    maxWidth: "500px",
+                  }}
+                >
                   {canEdit
-                    ? "Changes apply to new cases; historical runs stay pinned."
+                    ? "Changes apply to newly uploaded customer cases; historical runs remain pinned to their creation snapshot."
                     : "You have read-only access to configuration."}
                 </span>
-                {canEdit && dirty && (
-                  <div className="button-row" style={{ marginLeft: "auto" }}>
-                    <button
-                      type="button"
-                      className="secondary compact-btn"
-                      disabled={pending}
-                      onClick={() => setDiscardOpen(true)}
-                    >
-                      Discard draft
-                    </button>
-                    <button
-                      type="button"
-                      className="primary compact-btn"
-                      disabled={
-                        !dirty ||
-                        pending ||
-                        !!policyError ||
-                        !online ||
-                        data?.version !== version
-                      }
-                      onClick={() => void save()}
-                    >
-                      <Save size={14} />
-                      {pending ? "Working..." : "Publish v" + (version + 1)}
-                    </button>
-                  </div>
-                )}
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginLeft: "auto",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  {/* Mode Toggle Button */}
+                  <button
+                    type="button"
+                    className="btn-secondary-action compact-btn"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      fontSize: "12px",
+                      padding: "5px 11px",
+                      borderRadius: "6px",
+                      background: devMode ? "#eff6ff" : "#f8fafc",
+                      borderColor: devMode ? "#93c5fd" : "#cbd5e1",
+                      color: devMode ? "#1d4ed8" : "#475569",
+                      fontWeight: 600,
+                    }}
+                    onClick={() => {
+                      const next = !devMode;
+                      setDevMode(next);
+                      notify(
+                        next
+                          ? "Developer & engine tools enabled."
+                          : "Simplified operator mode active.",
+                      );
+                    }}
+                    title="Toggle between simplified operator view and technical developer controls"
+                  >
+                    <SlidersHorizontal size={13} />
+                    <span>
+                      {devMode ? "Developer Mode (Full)" : "Operator Mode (Clean)"}
+                    </span>
+                  </button>
+
+                  {canEdit && dirty && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn-secondary-action compact-btn"
+                        disabled={pending}
+                        onClick={() => setDiscardOpen(true)}
+                      >
+                        Discard Draft
+                      </button>
+                      <button
+                        type="button"
+                        className="btn-primary-action compact-btn"
+                        style={{
+                          background: "#16a34a",
+                          borderColor: "#15803d",
+                          color: "#ffffff",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                        disabled={
+                          !dirty ||
+                          pending ||
+                          !!policyError ||
+                          !online ||
+                          data?.version !== version
+                        }
+                        onClick={() => void save()}
+                      >
+                        <Save size={13} />
+                        <span>{pending ? "Working..." : `Publish v${version + 1}`}</span>
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
+
               {dirty && data?.version !== version && (
                 <ErrorNotice message="A newer configuration was published while you were editing. Your draft is preserved. Discard it to load the latest version before editing again." />
               )}
-              <section className="family-context">
-                <label>
-                  Document family
-                  <select
-                    value={family}
-                    onChange={(e) => {
-                      const next = e.target.value as DocumentFamily;
-                      setFamily(next);
-                      if (!inFamily(profile, next, draft))
-                        setProfile(families[next].profiles[0] || profile);
+
+              {/* Categorized Navigation Bar */}
+              <div style={{ marginBottom: "20px" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      color: "#64748b",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
                     }}
                   >
-                    {Object.entries(families).map(([key, value]) => (
-                      <option key={key} value={key}>
-                        {value.label}
-                        {value.enabled === false ? " · Inactive" : ""}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <strong>{families[family]?.label} configuration</strong>
-                <p>
-                  Required documents, profile choices and SOP rules show this
-                  family. eKTP and RIPLAY are shared.
-                </p>
-              </section>
-              <nav
-                className="tabs settings-tabs settings-navigation"
-                aria-label="Configuration sections"
-              >
-                {(
-                  [
-                    "families",
-                    "flows",
-                    "profiles",
-                    "rules",
-                    "automation",
-                    "workflow",
-                    ...(canEdit ? ["connector"] : []),
-                    ...(["bank_admin", "branch_admin"].includes(
-                      user?.role || "",
-                    )
-                      ? ["access"]
-                      : []),
-                  ] as Tab[]
-                ).map((x) => (
-                  <button
-                    key={x}
-                    aria-label={settingsSections[x].label}
-                    aria-pressed={tab === x}
-                    className={tab === x ? "active" : ""}
-                    onClick={() => setTab(x)}
+                    Business & Operations
+                  </span>
+                  {!devMode && (
+                    <button
+                      type="button"
+                      className="text-link"
+                      style={{
+                        fontSize: "12px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                      onClick={() => {
+                        setDevMode(true);
+                        notify("Advanced developer & engine settings revealed.");
+                      }}
+                    >
+                      <SlidersHorizontal size={12} />
+                      <span>Show Advanced & Developer Settings (4 tools)</span>
+                    </button>
+                  )}
+                </div>
+
+                <nav
+                  className="tabs settings-tabs settings-navigation"
+                  aria-label="Business sections"
+                  style={{ marginBottom: devMode ? "14px" : "20px" }}
+                >
+                  {businessTabs.map((x) => {
+                    const Icon = settingsSections[x].icon;
+                    return (
+                      <button
+                        key={x}
+                        aria-label={settingsSections[x].label}
+                        aria-pressed={tab === x}
+                        className={tab === x ? "active" : ""}
+                        onClick={() => setTab(x)}
+                      >
+                        <span className="settings-navigation-icon">
+                          <Icon size={19} aria-hidden />
+                        </span>
+                        <span>
+                          <strong>{settingsSections[x].label}</strong>
+                          <small>{settingsSections[x].detail}</small>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </nav>
+
+                {devMode && (
+                  <div
+                    style={{
+                      padding: "12px 14px",
+                      background: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "8px",
+                      marginTop: "12px",
+                    }}
                   >
-                    {(() => {
-                      const Icon = settingsSections[x].icon;
-                      return (
-                        <>
-                          <span className="settings-navigation-icon">
-                            <Icon size={20} aria-hidden />
-                          </span>
-                          <span>
-                            <strong>{settingsSections[x].label}</strong>
-                            <small>{settingsSections[x].detail}</small>
-                          </span>
-                        </>
-                      );
-                    })()}
-                  </button>
-                ))}
-              </nav>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: "10px",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span
+                          style={{
+                            fontSize: "12px",
+                            fontWeight: 700,
+                            color: "#2563eb",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                          }}
+                        >
+                          Engine & Integrations (Developer Mode)
+                        </span>
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            background: "#dbeafe",
+                            color: "#1e40af",
+                            padding: "1px 7px",
+                            borderRadius: "10px",
+                            fontWeight: 600,
+                          }}
+                        >
+                          Advanced
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        className="text-link"
+                        style={{ fontSize: "12px", color: "#64748b" }}
+                        onClick={() => {
+                          setDevMode(false);
+                          if (developerTabs.includes(tab)) setTab("flows");
+                          notify("Simplified operator mode active.");
+                        }}
+                      >
+                        Hide Advanced Settings
+                      </button>
+                    </div>
+
+                    <nav
+                      className="tabs settings-tabs settings-navigation"
+                      aria-label="Developer sections"
+                      style={{ marginBottom: 0 }}
+                    >
+                      {developerTabs.map((x) => {
+                        const Icon = settingsSections[x].icon;
+                        return (
+                          <button
+                            key={x}
+                            aria-label={settingsSections[x].label}
+                            aria-pressed={tab === x}
+                            className={tab === x ? "active" : ""}
+                            onClick={() => setTab(x)}
+                            style={{
+                              borderLeft:
+                                tab === x ? "3px solid #2563eb" : undefined,
+                            }}
+                          >
+                            <span
+                              className="settings-navigation-icon"
+                              style={{ color: "#2563eb" }}
+                            >
+                              <Icon size={19} aria-hidden />
+                            </span>
+                            <span>
+                              <strong>{settingsSections[x].label}</strong>
+                              <small>{settingsSections[x].detail}</small>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </nav>
+                  </div>
+                )}
+              </div>
+
+              {/* Contextual Document Suite Switcher - Only shown when relevant */}
+              {["flows", "rules", "families", "profiles"].includes(tab) && (
+                <section
+                  className="family-context"
+                  style={{
+                    marginBottom: 20,
+                    padding: "14px 18px",
+                    background: "#f0f9ff",
+                    border: "1px solid #bae6fd",
+                    borderRadius: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: "12px",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <Layers size={18} style={{ color: "#0284c7", flexShrink: 0 }} />
+                    <div>
+                      <div
+                        style={{
+                          fontWeight: 700,
+                          fontSize: "13px",
+                          color: "#0369a1",
+                        }}
+                      >
+                        Active Banking Service Suite:{" "}
+                        <span style={{ color: "#0c4a6e" }}>
+                          {families[family]?.label}
+                        </span>
+                      </div>
+                      <p
+                        style={{
+                          margin: "2px 0 0",
+                          fontSize: "12px",
+                          color: "#075985",
+                        }}
+                      >
+                        Required documents, profile choices, and regulatory SOP
+                        rules below apply to this service. eKTP identity cards and
+                        RIPLAY are shared across all suites.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label
+                    style={{
+                      margin: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      fontSize: "13px",
+                      fontWeight: 600,
+                      color: "#0369a1",
+                    }}
+                  >
+                    <span>Switch Service:</span>
+                    <select
+                      value={family}
+                      onChange={(e) => {
+                        const next = e.target.value as DocumentFamily;
+                        setFamily(next);
+                        if (!inFamily(profile, next, draft))
+                          setProfile(families[next].profiles[0] || profile);
+                      }}
+                      style={{
+                        padding: "5px 10px",
+                        borderRadius: "6px",
+                        border: "1px solid #7dd3fc",
+                        background: "#ffffff",
+                        fontSize: "13px",
+                        color: "#0c4a6e",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {Object.entries(families).map(([key, value]) => (
+                        <option key={key} value={key}>
+                          {value.label}
+                          {value.enabled === false ? " · Inactive" : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </section>
+              )}
               {test && (
                 <section className="panel test-results">
                   <div className="section-head">
@@ -506,13 +826,15 @@ export default function Settings() {
                 </section>
               )}
               {tab === "flows" && (
-                <>
-                  <p>
-                    1. Choose a transaction flow. 2. Confirm its documents and
-                    SOP checks. 3. Test and publish using the configuration
-                    actions. Uploads use the published version; document
-                    profiles are shared across flows.
-                  </p>
+                <div>
+                  <div style={{ marginBottom: 16 }}>
+                    <h2 style={{ fontSize: "16px", fontWeight: 700, margin: "0 0 4px", color: "#0f172a" }}>
+                      Transaction Service Requirements
+                    </h2>
+                    <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>
+                      1. Select a transaction type below. 2. Verify its mandatory document checklist and regulatory SOP checks. 3. Publish to activate.
+                    </p>
+                  </div>
                   <TransactionFlows
                     family={family}
                     onFamilyChange={setFamily}
@@ -520,7 +842,7 @@ export default function Settings() {
                     update={update}
                     canEdit={canEdit}
                   />
-                </>
+                </div>
               )}
               {tab === "workflow" && (
                 <div className="settings-grid">
@@ -783,15 +1105,25 @@ export default function Settings() {
                 </div>
               )}
               {tab === "families" && (
-                <DocumentFamilies
-                  key={family}
-                  draft={draft}
-                  update={update}
-                  family={family}
-                  select={setFamily}
-                  editable={canEdit}
-                  navigate={setTab}
-                />
+                <div>
+                  <div style={{ marginBottom: 16 }}>
+                    <h2 style={{ fontSize: "16px", fontWeight: 700, margin: "0 0 4px", color: "#0f172a" }}>
+                      Document Packages & Banking Service Suites
+                    </h2>
+                    <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>
+                      Organize banking services into dedicated document packages (Forex Transactions, Retail Account Opening, Trade Finance).
+                    </p>
+                  </div>
+                  <DocumentFamilies
+                    key={family}
+                    draft={draft}
+                    update={update}
+                    family={family}
+                    select={setFamily}
+                    editable={canEdit}
+                    navigate={setTab}
+                  />
+                </div>
               )}
               {tab === "profiles" && (
                 <section className="panel settings-card">
@@ -1147,7 +1479,15 @@ export default function Settings() {
                 />
               )}
               {tab === "rules" && (
-                <>
+                <div>
+                  <div style={{ marginBottom: 16 }}>
+                    <h2 style={{ fontSize: "16px", fontWeight: 700, margin: "0 0 4px", color: "#0f172a" }}>
+                      SOP Compliance & Regulatory Checkpoints
+                    </h2>
+                    <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>
+                      Configure automated banking audit rules, regulatory thresholds (Bank Indonesia PBI USD 100k eq), and validation policies.
+                    </p>
+                  </div>
                   <section className="panel settings-card" style={{ marginBottom: 16 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "0.5rem" }}>
                       <div>
@@ -1197,14 +1537,26 @@ export default function Settings() {
                     update={update}
                     editable={canEdit}
                   />
-                </>
+                </div>
               )}
               {tab === "connector" && canEdit && (
                 <>
                   <ConnectorHub />
                 </>
               )}
-              {tab === "access" && <AccessManager />}
+              {tab === "access" && (
+                <div>
+                  <div style={{ marginBottom: 16 }}>
+                    <h2 style={{ fontSize: "16px", fontWeight: 700, margin: "0 0 4px", color: "#0f172a" }}>
+                      Branch Network & Staff Access Control
+                    </h2>
+                    <p style={{ margin: 0, fontSize: "13px", color: "#64748b" }}>
+                      Manage physical bank branch offices, assign staff user accounts, and enforce segregated maker-checker compliance roles.
+                    </p>
+                  </div>
+                  <AccessManager />
+                </div>
+              )}
             </fieldset>
             {policyError && (
               <ErrorNotice
