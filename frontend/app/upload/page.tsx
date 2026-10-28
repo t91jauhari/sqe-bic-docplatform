@@ -8,6 +8,8 @@ import {
   X,
   ArrowRight,
   ShieldCheck,
+  FolderPlus,
+  Info,
 } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { useData, usePlatform } from "@/components/platform-provider";
@@ -64,7 +66,11 @@ function UploadForm() {
     if (!caseId) return;
     let active = true;
     api<CaseDetail>(`/cases/${caseId}`).then(value => {
-      if (active) { setAttachedCase(value); setTemplate(value.template); }
+      if (active) {
+        setAttachedCase(value);
+        setTemplate(value.template);
+        if (value.branch_id) setBranch(value.branch_id);
+      }
     }).catch(e => { if (active) setError(e instanceof Error ? e.message : "Unable to load existing case"); });
     return () => { active = false; };
   }, [caseId]);
@@ -160,8 +166,12 @@ function UploadForm() {
   ).size;
   return (
     <Shell
-      title={caseId ? "Add documents to case" : "Bulk upload"}
-      subtitle="Match customer names across the batch, review uncertain matches, then process."
+      title={caseId ? "Add Supplementary Documents" : "Bulk upload"}
+      subtitle={
+        caseId
+          ? `Upload additional or missing mandatory documents for case ${attachedCase?.reference ? `"${attachedCase.reference}"` : ""} (${attachedCase?.customer || "Customer"}). All uploaded documents will be processed and verified as part of the existing case workflow.`
+          : "Match customer names across the batch, review uncertain matches, then process."
+      }
     >
       {groupingOpen && (
         <GroupingDialog
@@ -200,14 +210,73 @@ function UploadForm() {
       ) : (
         <div className="upload-layout">
           <section className="panel upload-panel">
+            {caseId && (
+              <div
+                style={{
+                  padding: "16px 20px",
+                  background: "#f0fdf4",
+                  border: "1px solid #bbf7d0",
+                  borderRadius: "10px",
+                  marginBottom: "20px",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "14px",
+                }}
+              >
+                <div
+                  style={{
+                    padding: "8px",
+                    background: "#dcfce7",
+                    borderRadius: "8px",
+                    color: "#15803d",
+                    flexShrink: 0,
+                  }}
+                >
+                  <FolderPlus size={20} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+                    <strong style={{ fontSize: "15px", color: "#166534" }}>
+                      Upload Supplementary Documents for Existing Case
+                    </strong>
+                    {attachedCase && (
+                      <span
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 700,
+                          background: "#ffffff",
+                          color: "#166534",
+                          padding: "2px 8px",
+                          borderRadius: "12px",
+                          border: "1px solid #bbf7d0",
+                        }}
+                      >
+                        Case: {attachedCase.reference}
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ margin: "0 0 8px", fontSize: "13px", color: "#374151", lineHeight: 1.5 }}>
+                    This page is used to upload documents to a specific ongoing case (<strong>{attachedCase?.customer || "Current Customer"}</strong>). Use this when the case requires another mandatory document, or when you need to attach missing documents required by the SOP compliance workflow.
+                  </p>
+                  <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#4b5563", flexWrap: "wrap" }}>
+                    <span>✓ Documents are automatically linked to this case package</span>
+                    <span>✓ SOP compliance checks rerun automatically after extraction</span>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="section-head">
               <div>
                 <h2>
                   {caseId
-                    ? "Supplement an existing case"
+                    ? "Upload Missing or Supplementary Documents"
                     : "A batch, one upload"}
                 </h2>
-                <p>Processing continues when you leave this screen.</p>
+                <p>
+                  {caseId
+                    ? "Select and upload the missing mandatory documents required to complete this customer case."
+                    : "Processing continues when you leave this screen."}
+                </p>
               </div>
               <span className="small-label">PDF · UP TO 30 MB EACH</span>
             </div>
@@ -282,14 +351,14 @@ function UploadForm() {
               <div className="drop-icon">
                 <UploadCloud size={29} />
               </div>
-              <h3>Drop customer documents here</h3>
-              <p>Or choose a batch from your computer</p>
+              <h3>{caseId ? "Drop supplementary documents here" : "Drop customer documents here"}</h3>
+              <p>{caseId ? "Select additional files for this case from your computer" : "Or choose a batch from your computer"}</p>
               <button
                 className="secondary"
                 disabled={pending}
                 onClick={() => input.current?.click()}
               >
-                Browse files
+                {caseId ? "Browse supplementary files" : "Browse files"}
               </button>
               <input
                 ref={input}
@@ -443,7 +512,9 @@ function UploadForm() {
               <span>
                 {pending
                   ? "Upload " + (upload?.progress || 0) + "%"
-                  : "Classification verifies the schema after grouping."}
+                  : caseId
+                    ? "Uploaded files will be directly attached to this case package."
+                    : "Classification verifies the schema after grouping."}
               </span>
               <button
                 className="primary"
@@ -458,7 +529,11 @@ function UploadForm() {
                 }
                 onClick={() => void submit()}
               >
-                {pending ? "Uploading…" : "Upload & start processing"}
+                {pending
+                  ? "Uploading…"
+                  : caseId
+                    ? "Upload & Attach to Case"
+                    : "Upload & start processing"}
                 <ArrowRight size={17} />
               </button>
             </div>
@@ -467,40 +542,64 @@ function UploadForm() {
             <div className="guidance-icon">
               <ShieldCheck size={23} />
             </div>
-            <h3>Names bring the case together.</h3>
-            <p>
-              Full names and unambiguous initials are matched automatically.
-              Review uncertain assignments before processing.
-            </p>
-            <div className="filename-example">
-              customer_transaction.pdf
-              <br />
-              customer_lld.pdf
-              <br />
-              customer_invoice.pdf
-            </div>
-            <ol>
-              <li>
-                <strong>Group first</strong>
-                <span>
-                  Same customer label, selected branch and upload batch.
-                </span>
-              </li>
-              <li>
-                <strong>Classify next</strong>
-                <span>The configured provider verifies the document type.</span>
-              </li>
-              <li>
-                <strong>Extract and check</strong>
-                <span>
-                  The matching schema and SOP rules run automatically.
-                </span>
-              </li>
-            </ol>
-            <p className="subtext">
-              Later uploads create new cases unless explicitly attached to an
-              existing case.
-            </p>
+            {caseId ? (
+              <>
+                <h3>Supplementary Intake</h3>
+                <p>
+                  Documents uploaded here will be attached directly to customer case <strong>{attachedCase?.reference || caseId}</strong> ({attachedCase?.customer || "Customer"}).
+                </p>
+                <div style={{ marginTop: "14px", fontSize: "13px", color: "var(--text-muted)" }}>
+                  <p style={{ margin: "0 0 8px", fontWeight: 600, color: "var(--text)" }}>
+                    When to use this page:
+                  </p>
+                  <ul style={{ paddingLeft: "18px", margin: "0 0 12px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                    <li>To fulfill missing mandatory documents required by SOP.</li>
+                    <li>To provide supplementary customer identity (e-KTP) or transaction slips.</li>
+                    <li>To replace unreadable or incomplete document scans.</li>
+                  </ul>
+                  <p style={{ margin: 0 }}>
+                    Once uploaded, the platform extracts fields and recalculates SOP compliance automatically.
+                  </p>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3>Names bring the case together.</h3>
+                <p>
+                  Full names and unambiguous initials are matched automatically.
+                  Review uncertain assignments before processing.
+                </p>
+                <div className="filename-example">
+                  customer_transaction.pdf
+                  <br />
+                  customer_lld.pdf
+                  <br />
+                  customer_invoice.pdf
+                </div>
+                <ol>
+                  <li>
+                    <strong>Group first</strong>
+                    <span>
+                      Same customer label, selected branch and upload batch.
+                    </span>
+                  </li>
+                  <li>
+                    <strong>Classify next</strong>
+                    <span>The configured provider verifies the document type.</span>
+                  </li>
+                  <li>
+                    <strong>Extract and check</strong>
+                    <span>
+                      The matching schema and SOP rules run automatically.
+                    </span>
+                  </li>
+                </ol>
+                <p className="subtext">
+                  Later uploads create new cases unless explicitly attached to an
+                  existing case ID.
+                </p>
+              </>
+            )}
             {cfg?.payload.provider === "fixture" && (
               <p className="fixture-note">
                 Fixture mode is enabled. Outputs contain synthetic test values.
