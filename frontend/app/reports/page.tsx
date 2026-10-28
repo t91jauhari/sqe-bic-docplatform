@@ -227,7 +227,7 @@ export default function Reports() {
                         <Link className="text-link" href={`/reports/${r.id}`}>
                           View report <ArrowUpRight size={13} />
                         </Link>
-                        {["pdf", "xlsx", "json"].map((fmt) => (
+                        {["xlsx", "pdf", "json"].map((fmt) => (
                           <a
                             className="text-link"
                             key={fmt}

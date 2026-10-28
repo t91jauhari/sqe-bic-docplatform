@@ -54,10 +54,8 @@ def readable_remarks(snapshot, compact=False):
         if not issues:
             continue
         lines = [f"=== {label} ==="]
-        for n, finding in enumerate(issues[:2] if compact else issues, 1):
+        for n, finding in enumerate(issues, 1):
             message = " ".join(finding.get("message", "Check failed").split())
-            if compact and len(message) > 190:
-                message = message[:187] + "…"
             state = (
                 (
                     "Awaiting visual review"
@@ -68,11 +66,7 @@ def readable_remarks(snapshot, compact=False):
                 else "Failed"
             )
             lines.append(f"{n}. {state}: {message}")
-        if compact and len(issues) > 2:
-            lines.append(f"+ {len(issues)-2} more findings; see SOP Details.")
         groups.append("\n".join(lines))
-    if compact and groups:
-        groups.append("Full findings, values and rule references: SOP Details.")
     if groups:
         return "\n\n".join(groups)
     applicable = [
@@ -83,7 +77,7 @@ def readable_remarks(snapshot, compact=False):
     return (
         "All applicable SOP checks passed."
         if applicable
-        else "No applicable SOP checks assessed; see SOP Details for coverage."
+        else "No applicable SOP checks assessed."
     )
 
 
@@ -265,14 +259,17 @@ def apply_layout(book, snapshots):
                 col,
                 display_score(snap, key, key if key in CATEGORY_LABELS else None),
             )
-        remarks = readable_remarks(snap, compact=True)
+        remarks = readable_remarks(snap, compact=False)
         state = str(snap.get("release_state", "DRAFT")).replace("_", " ").title()
         pending = sum(
             f["result"] == "REVIEW" and visual_review(f, snap)
             for f in snap.get("findings", [])
             if f.get("eligible")
         )
-        remarks += f"\n\nReport state: {state}. Awaiting visual review: {pending}."
+        if pending > 0:
+            remarks += f"\n\nReport state: {state}. Awaiting visual review: {pending}."
+        else:
+            remarks += f"\n\nReport state: {state}."
         sheet.cell(n, 20, remarks)
         sheet.cell(n, 20).data_type = "s"
         sheet.cell(n, 20).alignment = Alignment(wrap_text=True, vertical="top")

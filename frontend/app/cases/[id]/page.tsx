@@ -35,6 +35,8 @@ import {
   CheckCircle2,
   Layers,
   WandSparkles,
+  FileSpreadsheet,
+  ArrowUpRight,
 } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { useData, usePlatform } from "@/components/platform-provider";
@@ -172,6 +174,70 @@ export default function CasePage({
     }
   };
 
+  const renderReportSection = () => {
+    if (!report) return null;
+    return (
+      <section className="panel report-history" id="case-reports" style={{ marginTop: 24, padding: "20px 24px" }}>
+        <div className="section-head" style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <FileSpreadsheet size={18} style={{ color: "#16a34a" }} />
+            <h2 style={{ fontSize: "16px", margin: 0 }}>
+              Official <span title="Work paper report">Kertas Kerja</span> (Work Paper)
+            </h2>
+            <Badge value={report.state} />
+            <SopBadge value={report.snapshot.validation_status} />
+          </div>
+          <span className="muted" style={{ fontSize: "12px" }}>
+            Version {report.version} · Generated: {formatDate(report.created_at)}
+          </span>
+        </div>
+
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+          <div>
+            <div style={{ fontWeight: 600, fontSize: "14px", color: "#1e293b" }}>
+              {report.snapshot.report_title || "Pemeriksaan Transaksi Valas (Forex Compliance Paper)"}
+            </div>
+            <p style={{ margin: "4px 0 0", fontSize: "13px", color: "#64748b" }}>
+              Official work paper containing verified customer extractions, compliance findings, and SOP scores.
+            </p>
+          </div>
+
+          <div className="button-row" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <a
+              className="btn-primary-action"
+              style={{ background: "#16a34a", borderColor: "#15803d", color: "#ffffff", display: "inline-flex", alignItems: "center", gap: 6 }}
+              href={`/api/reports/${report.id}/download?format=xlsx`}
+              title="Download Official Kertas Kerja in Excel format (.xlsx)"
+            >
+              <FileSpreadsheet size={16} />
+              <span>Download Excel (XLSX)</span>
+            </a>
+
+            <a
+              className="btn-secondary-action"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              href={`/api/reports/${report.id}/download?format=pdf`}
+              title="Download Work Paper in PDF format"
+            >
+              <Download size={15} />
+              <span>Download PDF</span>
+            </a>
+
+            <Link
+              className="btn-secondary-action"
+              style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              href={`/reports/${report.id}`}
+              title="View interactive report and findings breakdown"
+            >
+              <span>View Full Report</span>
+              <ArrowUpRight size={14} />
+            </Link>
+          </div>
+        </div>
+      </section>
+    );
+  };
+
   return (
     <Shell
       title={data?.customer ? `${data.customer}` : "Kasus Nasabah"}
@@ -210,14 +276,25 @@ export default function CasePage({
 
                 <div className="exec-actions">
                   {report && (
-                    <a
-                      className="btn-secondary-action"
-                      href={`/api/reports/${report.id}/download?format=pdf`}
-                      title="Download Official Compliance Work Paper (PDF)"
-                    >
-                      <Download size={15} />
-                      <span>Work Paper v{report.version}</span>
-                    </a>
+                    <>
+                      <a
+                        className="btn-primary-action"
+                        style={{ background: "#16a34a", borderColor: "#15803d", color: "#ffffff", display: "inline-flex", alignItems: "center", gap: 6 }}
+                        href={`/api/reports/${report.id}/download?format=xlsx`}
+                        title="Download Official Kertas Kerja in Excel format (.xlsx)"
+                      >
+                        <FileSpreadsheet size={15} />
+                        <span>Download Excel (v{report.version})</span>
+                      </a>
+                      <a
+                        className="btn-secondary-action compact-btn"
+                        href={`/api/reports/${report.id}/download?format=pdf`}
+                        title="Download Work Paper in PDF format"
+                      >
+                        <Download size={14} />
+                        <span>PDF</span>
+                      </a>
+                    </>
                   )}
 
                   {data.can_review && ["READY", "NEEDS_REVIEW"].includes(data.status) && report && report.state !== "FINAL" && (
@@ -704,6 +781,7 @@ export default function CasePage({
                     detail="Upload customer identity or transaction documents to begin automated extraction."
                   />
                 )}
+                {renderReportSection()}
               </div>
             )}
 
@@ -833,6 +911,7 @@ export default function CasePage({
                     />
                   )}
                 </section>
+                {renderReportSection()}
               </div>
             )}
 
@@ -840,27 +919,7 @@ export default function CasePage({
             {activeMode === "reports" && (
               <div className="mode-view-reports">
                 {report ? (
-                  <section className="panel report-summary-panel" style={{ padding: "20px 24px", marginBottom: 20 }}>
-                    <div className="section-head">
-                      <div>
-                        <h2 style={{ fontSize: "17px", margin: 0 }}>Official Compliance Work Paper (v{report.version})</h2>
-                        <p style={{ color: "#64748b", fontSize: "13px", margin: "4px 0 0" }}>
-                          Report Status: <Badge value={report.state} /> · Released: {formatDate(report.created_at)}
-                        </p>
-                      </div>
-                      <div style={{ display: "flex", gap: "10px" }}>
-                        <a
-                          className="btn-primary-action"
-                          href={`/api/reports/${report.id}/download?format=pdf`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <Download size={15} />
-                          Download Official PDF
-                        </a>
-                      </div>
-                    </div>
-                  </section>
+                  renderReportSection()
                 ) : (
                   <Empty
                     title="Work paper is not yet ready"

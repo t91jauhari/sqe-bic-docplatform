@@ -11,6 +11,7 @@ import {
   Files,
   ListChecks,
   ShieldCheck,
+  FileSpreadsheet,
 } from "lucide-react";
 import { Shell } from "@/components/shell";
 import { useData, usePlatform } from "@/components/platform-provider";
@@ -175,22 +176,31 @@ export default function ReportPage({
                       : "Setujui & Finalisasi Kertas Kerja"}
                   </button>
                 )}
-                <Link
-                  className="secondary"
-                  href={`/cases/${data.case_id}/review`}
+                <a
+                  className="btn-primary-action"
+                  style={{ background: "#16a34a", borderColor: "#15803d", color: "#ffffff", display: "inline-flex", alignItems: "center", gap: 6 }}
+                  href={`/api/reports/${data.id}/download?format=xlsx`}
+                  title="Download Kertas Kerja in Excel format (.xlsx)"
                 >
-                  Open visual review
-                </Link>
-                {["pdf", "xlsx", "json"].map((fmt) => (
-                  <a
-                    key={fmt}
-                    className="secondary"
-                    href={`/api/reports/${data.id}/download?format=${fmt}`}
-                  >
-                    <Download size={15} />
-                    {fmt.toUpperCase()}
-                  </a>
-                ))}
+                  <FileSpreadsheet size={15} />
+                  <span>Unduh Excel (XLSX)</span>
+                </a>
+                <a
+                  className="secondary"
+                  href={`/api/reports/${data.id}/download?format=pdf`}
+                  title="Download PDF format"
+                >
+                  <Download size={15} />
+                  PDF
+                </a>
+                <a
+                  className="secondary"
+                  href={`/api/reports/${data.id}/download?format=json`}
+                  title="Download JSON format"
+                >
+                  <Download size={15} />
+                  JSON
+                </a>
               </div>
             </div>
             {approveError && (
