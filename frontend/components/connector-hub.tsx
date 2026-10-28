@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useData, usePlatform } from "@/components/platform-provider";
 import { api } from "@/lib/api";
 import { Busy, ErrorNotice, Modal, Badge } from "@/components/ui";
@@ -21,11 +21,11 @@ import {
 import type { ConnectorItem } from "@/lib/types";
 
 const GEMINI_MODELS = [
-  { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro (Recommended — Advanced Banking & Table Analysis)" },
-  { id: "gemini-flash-3.8", label: "Gemini Flash 3.8 (Ultra High Throughput & Fast OCR)" },
-  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash (Balanced Multimodal)" },
-  { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro (Long Context & Dense Docs)" },
-  { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash (Lightweight)" },
+  { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro (Recommended - Advanced Banking & Table Analysis)" },
+  { id: "gemini-2.0-flash", label: "Gemini 2.0 Flash (Fast Multimodal & High Accuracy)" },
+  { id: "gemini-1.5-pro", label: "Gemini 1.5 Pro (Complex Multimodal & Long Context)" },
+  { id: "gemini-1.5-flash", label: "Gemini 1.5 Flash (Lightweight & Economical)" },
+  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash (Next-Gen High Throughput)" },
   { id: "custom", label: "Custom Model ID (Specify below)" },
 ];
 
@@ -207,6 +207,10 @@ export function ConnectorHub() {
     }
   };
 
+  const handleCloseDialog = useCallback(() => {
+    setDialogOpen(false);
+  }, []);
+
   if (!connectors && !error) return <Busy label="Loading model connectors…" />;
 
   return (
@@ -368,12 +372,13 @@ export function ConnectorHub() {
       {dialogOpen && (
         <Modal
           title={editingConnector ? `Configure ${editingConnector.name}` : "Register New Model Connector"}
-          onClose={() => setDialogOpen(false)}
+          onClose={handleCloseDialog}
         >
           <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             <label>
               Connector Name / Label
               <input
+                autoFocus
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}

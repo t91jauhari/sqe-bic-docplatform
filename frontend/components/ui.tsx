@@ -325,6 +325,11 @@ export function Modal({
   children: React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     const focusable = () =>
@@ -333,9 +338,21 @@ export function Modal({
           "button,input,textarea,select,a[href]",
         ) || [],
       ).filter((x) => !x.hasAttribute("disabled"));
-    focusable()[0]?.focus();
+
+    // Focus first input field or first interactive element on mount
+    const inputs = Array.from(
+      ref.current?.querySelectorAll<HTMLElement>(
+        "input:not([disabled]),textarea:not([disabled]),select:not([disabled])",
+      ) || [],
+    );
+    if (inputs.length > 0) {
+      inputs[0]?.focus();
+    } else {
+      focusable()[0]?.focus();
+    }
+
     const key = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") onCloseRef.current();
       if (e.key === "Tab") {
         const list = focusable();
         if (e.shiftKey && document.activeElement === list[0]) {
@@ -355,7 +372,7 @@ export function Modal({
       document.removeEventListener("keydown", key);
       previous?.focus();
     };
-  }, [onClose]);
+  }, []);
   if (typeof document === "undefined") return null;
   return createPortal(
     <div

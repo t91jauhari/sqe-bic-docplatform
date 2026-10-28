@@ -101,7 +101,8 @@ def list_connectors(session, *, organization):
 def create_connector(session, *, organization, actor, data: dict):
     """Register a new named connector (Google Gemini or Spider-AI)."""
     provider = data.get("provider_type", "gemini")
-    model_id = data.get("model_id", "gemini-2.5-pro").strip()
+    raw_model = data.get("model_id", "gemini-2.5-pro").strip()
+    model_id = raw_model.removeprefix("models/")
     name = data.get("name", "").strip() or f"{provider.capitalize()} - {model_id}"
     api_key = data.get("api_key", "").strip() if data.get("api_key") else ""
     is_active = bool(data.get("is_active", False))
@@ -163,7 +164,7 @@ def update_connector_item(session, *, organization, actor, connector_id: str, da
     if "name" in data and data["name"].strip():
         item.name = data["name"].strip()
     if "model_id" in data and data["model_id"].strip():
-        item.model_id = data["model_id"].strip()
+        item.model_id = data["model_id"].strip().removeprefix("models/")
     if "provider_type" in data:
         item.provider_type = data["provider_type"]
 

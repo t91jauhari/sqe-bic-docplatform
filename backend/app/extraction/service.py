@@ -12,24 +12,23 @@ def extract_document(document, configuration, heartbeat, *, adapters: Mapping[st
     if configuration.get("provider") == "llama":
         raise ProcessingIssue("Llama provider has been removed. Publish a Spider-AI or Google Gemini configuration and explicitly upgrade the case before retrying. Historical results are retained.")
     registry = default_adapters() if adapters is None else adapters
-    provider_id = configuration.get("provider")
+    # Check active connector in database for this organization first
+    active_provider = None
+    try:
+        from app.db import SessionLocal, Connector
+        with SessionLocal() as db:
+            org = getattr(document, "org", None)
+            if org:
+                active_conn = db.scalar(
+                    select(Connector).where(Connector.org == org, Connector.is_active == True)
+                )
+                if active_conn and active_conn.provider_type in registry:
+                    active_provider = active_conn.provider_type
+    except Exception:
+        pass
 
-    if not provider_id or provider_id not in registry:
-        # Check active connector in database for this organization
-        try:
-            from app.db import SessionLocal, Connector
-            with SessionLocal() as db:
-                org = getattr(document, "org", None)
-                if org:
-                    active_conn = db.scalar(
-                        select(Connector).where(Connector.org == org, Connector.is_active == True)
-                    )
-                    if active_conn and active_conn.provider_type in registry:
-                        provider_id = active_conn.provider_type
-        except Exception:
-            pass
-
-    if not provider_id or provider_id not in registry:
+    provider_id = active_provider or configuration.get("provider") or "spider-ai"
+    if provider_id not in registry:
         provider_id = "spider-ai"
 
     adapter = registry.get(provider_id)
