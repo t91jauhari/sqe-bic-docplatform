@@ -1,12 +1,12 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ScanEye } from "lucide-react";
+import { ArrowRight, ScanEye, RotateCcw, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
 import { useData, usePlatform } from "@/components/platform-provider";
 import { api } from "@/lib/api";
 import { ContextInputs } from "@/components/context-inputs";
-import { ForexPackageSummary } from "@/components/forex-package-summary";
 import { Badge, ErrorNotice } from "@/components/ui";
+import { SopBadge } from "@/components/status";
 import type { AutomationCatalog, CaseDetail } from "@/lib/types";
 export function CaseSOP({
   data,
@@ -72,63 +72,154 @@ export function CaseSOP({
         "valas_declaration_2",
       ].includes(d.doc_type),
     );
-  const findings =
-    report?.snapshot.findings.filter(
-      (f) => f.result === "REVIEW" && f.evaluation_type === "VISUAL",
-    ) || [];
+  const allFindings = report?.snapshot.findings || [];
+  const totalRules = allFindings.length;
+  const passedCount = allFindings.filter((f) => f.result === "PASS").length;
+  const failedCount = allFindings.filter((f) => f.result === "FAIL" || f.result === "ERROR").length;
+  const reviewCount = allFindings.filter((f) => f.result === "REVIEW").length;
+
   return (
     <section className="panel settings-card" style={{ marginBottom: 20 }}>
-      <div className="section-head">
-        <h2>Case SOP workflow</h2>
-        {current && <Badge value={current.status} />}
+      <div className="section-head" style={{ marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <h2 style={{ fontSize: "16px", margin: 0 }}>SOP Compliance Overview</h2>
+          <SopBadge value={data.validation_status} />
+        </div>
         <button
-          className="secondary"
+          className="btn-secondary-action compact-btn"
           disabled={
             !data.can_write ||
             pending ||
             data.completed_count !== data.documents_count
           }
           onClick={() => void run(`/cases/${data.id}/sop-rerun`, {})}
+          title="Rerun all SOP compliance rules against verified document extractions"
         >
-          Rerun SOP checks
+          <RotateCcw size={14} />
+          <span>Rerun SOP Checks</span>
         </button>
       </div>
-      <p>
+
+      <p style={{ margin: "0 0 16px", fontSize: "13px", color: "var(--color-muted, #64748b)" }}>
         {current
-          ? `Complete · ${new Intl.DateTimeFormat("en-GB", {
+          ? `All transaction rules evaluated against banking regulations and verified case documents · Last run: ${new Intl.DateTimeFormat("en-GB", {
               day: "2-digit",
               month: "short",
+              year: "numeric",
               hour: "2-digit",
               minute: "2-digit",
               timeZone: "Asia/Jakarta",
             }).format(new Date(current.created_at * 1000))}`
-          : "Waiting for document extraction to finish."}
+          : "Waiting for document extraction to finish before running SOP compliance."}
       </p>
-      {current && (
-        <p className="subtext" title={current.snapshot_hash}>
-          Workflow stage: {current.stage.replaceAll("_", " ").toLowerCase()}
-        </p>
-      )}
-      {current?.error && <ErrorNotice message={current.error} />}
-      <p className="subtext">
-        SOP runs and report versions keep frozen document values and rules.
-        Document quality checks remain available separately.
-      </p>
-      {report?.snapshot.sop_summary && (
-        <div className="button-row">
-          <span className="count-pill">
-            {report.snapshot.sop_summary.earned}/
-            {report.snapshot.sop_summary.possible} points
-            {" · "}
-            {report.snapshot.sop_summary.percentage ?? "—"}%{" · "}
-            {report.snapshot.sop_summary.failed} failed
-            {" · "}
-            {report.snapshot.sop_summary.pending} awaiting visual review
-            {report.snapshot.sop_summary.provisional ? " · Provisional" : ""}
-          </span>
+
+      {/* Clear Executive KPI Strip - No Confusing Point Game! */}
+      {allFindings.length > 0 && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "12px",
+            marginBottom: "18px",
+          }}
+        >
+          <div
+            style={{
+              padding: "12px 14px",
+              background: "#f8fafc",
+              borderRadius: "8px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>
+              Overall Compliance
+            </span>
+            <div
+              style={{
+                fontSize: "16px",
+                fontWeight: 700,
+                marginTop: 4,
+                color:
+                  data.validation_status === "PASS"
+                    ? "#16a34a"
+                    : data.validation_status === "FAIL"
+                      ? "#dc2626"
+                      : "#d97706",
+              }}
+            >
+              {data.validation_status === "PASS"
+                ? "Fully Compliant"
+                : data.validation_status === "FAIL"
+                  ? "Non-Compliant"
+                  : "Needs Review"}
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "12px 14px",
+              background: "#f8fafc",
+              borderRadius: "8px",
+              border: "1px solid #e2e8f0",
+            }}
+          >
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>
+              Rules Evaluated
+            </span>
+            <div style={{ fontSize: "16px", fontWeight: 700, marginTop: 4, color: "#1e293b" }}>
+              {totalRules} Checkpoints
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "12px 14px",
+              background: "#f0fdf4",
+              borderRadius: "8px",
+              border: "1px solid #bbf7d0",
+            }}
+          >
+            <span style={{ fontSize: "11px", fontWeight: 700, color: "#166534", textTransform: "uppercase" }}>
+              Compliant (Pass)
+            </span>
+            <div style={{ fontSize: "16px", fontWeight: 700, marginTop: 4, color: "#15803d" }}>
+              {passedCount} Passed
+            </div>
+          </div>
+
+          <div
+            style={{
+              padding: "12px 14px",
+              background: failedCount > 0 ? "#fef2f2" : "#f8fafc",
+              borderRadius: "8px",
+              border: `1px solid ${failedCount > 0 ? "#fecaca" : "#e2e8f0"}`,
+            }}
+          >
+            <span
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color: failedCount > 0 ? "#991b1b" : "#64748b",
+                textTransform: "uppercase",
+              }}
+            >
+              Discrepancies
+            </span>
+            <div
+              style={{
+                fontSize: "16px",
+                fontWeight: 700,
+                marginTop: 4,
+                color: failedCount > 0 ? "#dc2626" : "#475569",
+              }}
+            >
+              {failedCount} Findings
+            </div>
+          </div>
         </div>
       )}
-      <ForexPackageSummary packages={report?.snapshot.sop_packages} />
+
+      {current?.error && <ErrorNotice message={current.error} />}
       <details>
         <summary style={{ display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
           <span>Case context and transaction metadata</span>
@@ -277,22 +368,6 @@ export function CaseSOP({
           </fieldset>
         </form>
       </details>
-      <div className="review-entry">
-        <span className="review-entry-icon">
-          <ScanEye size={24} aria-hidden />
-        </span>
-        <div>
-          <h3>Visual review workspace</h3>
-          <p>
-            {findings.length} visual checks awaiting a decision. Inspect
-            documents, record evidence, and resolve each check on a dedicated
-            page.
-          </p>
-        </div>
-        <Link className="primary" href={`/cases/${data.id}/review`}>
-          Open review workspace <ArrowRight size={16} />
-        </Link>
-      </div>
     </section>
   );
 }

@@ -21,9 +21,9 @@ def normalize_findings(findings, rules, cfg=None):
         in {"signature_region", "stamp_region", "photo_region", "page_marks"}
     }
     by_id = {r["id"]: r for r in rules}
-    visual_review_enabled = True
+    visual_review_enabled = False
     if cfg is not None:
-        visual_review_enabled = cfg.get("visual_evidence_review", True) and not cfg.get("sop_review_bypass", False)
+        visual_review_enabled = cfg.get("visual_evidence_review", False) and not cfg.get("sop_review_bypass", False)
 
     for finding in findings:
         rule = by_id.get(finding["rule_id"], {})

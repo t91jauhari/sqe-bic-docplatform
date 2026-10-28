@@ -220,7 +220,7 @@ export default function CasePage({
                     </a>
                   )}
 
-                  {data.can_review && data.status === "READY" && report && report.state !== "FINAL" && (
+                  {data.can_review && ["READY", "NEEDS_REVIEW"].includes(data.status) && report && report.state !== "FINAL" && (
                     <button
                       className="btn-primary-action"
                       disabled={pending}
@@ -744,10 +744,6 @@ export default function CasePage({
                         </button>
                       ))}
                     </div>
-                    <Link className="secondary compact-btn" href={`/cases/${id}/review`}>
-                      <ShieldCheck size={14} />
-                      Open Visual Review
-                    </Link>
                   </div>
 
                   {report?.snapshot.findings.length ? (

@@ -350,7 +350,7 @@ def evaluate(documents, cfg, context):
     findings = []
     types = {d["doc_type"] for d in documents}
     templates = cfg.get("sop_message_templates", {})
-    visual_review_enabled = cfg.get("visual_evidence_review", True) and not cfg.get("sop_review_bypass", False)
+    visual_review_enabled = cfg.get("visual_evidence_review", False) and not cfg.get("sop_review_bypass", False)
 
     def tpl(key):
         """Look up a message template with graceful fallback to the hardcoded default."""
