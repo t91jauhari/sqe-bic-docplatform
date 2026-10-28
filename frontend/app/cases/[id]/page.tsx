@@ -177,7 +177,19 @@ export default function CasePage({
   const renderReportSection = () => {
     if (!report) return null;
     return (
-      <section className="panel report-history" id="case-reports" style={{ marginTop: 24, padding: "20px 24px" }}>
+      <section
+        className="panel report-history"
+        id="case-reports"
+        style={{
+          marginTop: 0,
+          marginBottom: 20,
+          padding: "18px 22px",
+          background: "#ffffff",
+          border: "1px solid #e2e8f0",
+          borderRadius: "10px",
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.05)",
+        }}
+      >
         <div className="section-head" style={{ marginBottom: 14 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <FileSpreadsheet size={18} style={{ color: "#16a34a" }} />
@@ -478,6 +490,9 @@ export default function CasePage({
               </div>
             ) : null}
 
+            {/* Official Kertas Kerja Work Paper Output - Prominently Positioned Above Fold */}
+            {renderReportSection()}
+
             {/* 3-Mode Primary Navigation Tabs */}
             <nav className="workspace-mode-tabs" aria-label="Case workspace modes">
               <button
@@ -516,9 +531,9 @@ export default function CasePage({
                 className={`mode-tab-btn ${activeMode === "reports" ? "active" : ""}`}
                 onClick={() => setActiveMode("reports")}
               >
-                <FileCheck2 size={17} />
-                <span>3. Work Paper & Audit Trail</span>
-                {report && <span className="mode-tab-count">v{report.version}</span>}
+                <Clock3 size={17} />
+                <span>3. Audit Trail & History</span>
+                <span className="mode-tab-count">{data.timeline.length}</span>
               </button>
             </nav>
 
@@ -767,7 +782,6 @@ export default function CasePage({
                     detail="Upload customer identity or transaction documents to begin automated extraction."
                   />
                 )}
-                {renderReportSection()}
               </div>
             )}
 
@@ -897,22 +911,12 @@ export default function CasePage({
                     />
                   )}
                 </section>
-                {renderReportSection()}
               </div>
             )}
 
-            {/* MODE 3: WORK PAPER & AUDIT TRAIL */}
+            {/* MODE 3: AUDIT TRAIL & HISTORY */}
             {activeMode === "reports" && (
               <div className="mode-view-reports">
-                {report ? (
-                  renderReportSection()
-                ) : (
-                  <Empty
-                    title="Work paper is not yet ready"
-                    detail="Complete document extraction and SOP compliance checks first to generate the official work paper."
-                  />
-                )}
-
                 {/* Audit Timeline */}
                 <section className="panel timeline-panel" style={{ padding: "20px 24px" }}>
                   <div className="section-head" style={{ marginBottom: 16 }}>

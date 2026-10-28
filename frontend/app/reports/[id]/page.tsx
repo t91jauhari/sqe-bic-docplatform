@@ -258,11 +258,11 @@ export default function ReportPage({
                   </strong>
                 </div>
                 <div className="report-metric-failed">
-                  <small>Failed checks</small>
+                  <small>Not Compliant checks</small>
                   <strong>{data.snapshot.sop_summary.failed}</strong>
                 </div>
                 <div className="report-metric-pending">
-                  <small>Awaiting visual review</small>
+                  <small>Pending checks</small>
                   <strong>{data.snapshot.sop_summary.pending}</strong>
                 </div>
               </div>
@@ -274,9 +274,7 @@ export default function ReportPage({
                 />
               )}
               <p className="subtext">
-                Each applicable PASS earns one point. Pending visual reviews
-                remain in possible points. Release readiness is assessed
-                separately.
+                Each applicable PASS earns one point. Rule compliance is verified against banking regulations and required criteria.
               </p>
             </section>
           )}

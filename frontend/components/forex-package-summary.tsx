@@ -18,14 +18,13 @@ export function ForexPackageSummary({ packages }: { packages?: SOPPackages }) {
       </div>
       <p>
         Each checkpoint earns one point when all its applicable field checks
-        pass. {score.failed} failed · {score.pending} awaiting visual review
-        {score.provisional ? " · Provisional" : ""}.
+        pass. {score.failed} not compliant{score.provisional ? " · Provisional" : ""}.
       </p>
       {!forex.coverage.complete && (
         <p className="error-text">
           Incomplete package: {forex.coverage.present}/15 checkpoints
           configured; {forex.coverage.missing_field_checks} required field
-          checks missing. Missing checks fail package compliance.
+          checks missing. Missing checks affect package compliance.
         </p>
       )}
       <details>
